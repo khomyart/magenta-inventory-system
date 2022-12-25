@@ -1,116 +1,266 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
+  <q-layout view="hHh Lpr lff" container style="height: 100vh">
+    <q-header class="bg-white">
+      <q-toolbar class="text-primary q-ml-sm">
         <q-btn
+          stretch
           flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+          style="margin-right: -5px"
+          @click="showToolbarTitle = !showToolbarTitle"
+        >
+          <img src="../assets/magenta-menu-logo.png" style="height: 35px" />
+        </q-btn>
 
         <q-toolbar-title>
-          Quasar App
+          <transition appear name="title-appearing">
+            <span v-if="showToolbarTitle">Magenta print</span>
+          </transition>
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-separator vertical />
+        <q-btn
+          color="positive"
+          flat
+          icon-right="arrow_downward"
+          size="13px"
+          square
+          stretch
+        >
+          <span class="toolbar-icon-number"> 350 </span>
+          <q-tooltip
+            :offset="[10, 10]"
+            class="bg-white"
+            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
+          >
+            <div class="toolbar-tooltip-content">
+              <div class="toolbar-tooltip-content-header">Надходження</div>
+              <q-separator></q-separator>
+              <div class="toolbar-tooltip-content-body"></div>
+            </div>
+          </q-tooltip>
+        </q-btn>
+        <q-separator vertical />
+        <q-btn
+          color="negative"
+          flat
+          icon-right="arrow_upward"
+          size="13px"
+          square
+          stretch
+        >
+          <span class="toolbar-icon-number"> 210 </span>
+          <q-tooltip
+            :offset="[10, 10]"
+            class="bg-white"
+            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
+          >
+            <div class="toolbar-tooltip-content">
+              <div class="toolbar-tooltip-content-header">Витрати</div>
+              <q-separator></q-separator>
+              <div class="toolbar-tooltip-content-body"></div>
+            </div>
+          </q-tooltip>
+        </q-btn>
+        <q-btn
+          color="negative"
+          flat
+          icon-right="priority_high"
+          size="13px"
+          square
+          stretch
+        >
+          <span class="toolbar-icon-number"> 3 </span>
+          <q-tooltip
+            :offset="[10, 10]"
+            class="bg-white"
+            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
+          >
+            <div class="toolbar-tooltip-content">
+              <div class="toolbar-tooltip-content-header">Нестача</div>
+              <q-separator></q-separator>
+              <div class="toolbar-tooltip-content-body"></div>
+            </div>
+          </q-tooltip>
+        </q-btn>
+        <q-separator vertical />
+        <q-space></q-space>
+        <q-btn color="primary" icon="settings" flat round class="q-mr-sm">
+          <q-menu :offset="[0, 12]">
+            <q-list style="min-width: 100px">
+              <q-item clickable v-close-popup>
+                <q-item-section>Налаштування</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup>
+                <q-item-section>Вихід</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
+      <q-separator inset />
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
+    <q-drawer show-if-above :width="200" :breakpoint="0">
+      <q-scroll-area class="fit">
+        <q-list padding class="menu-list">
+          <template v-for="(menuItem, index) in menuItems" :key="index">
+            <q-separator
+              inset
+              v-if="menuItem.type == 'separator'"
+              class="q-my-md"
+            ></q-separator>
+            <q-item
+              exact
+              :to="menuItem.to"
+              clickable
+              v-ripple
+              v-if="menuItem.type == 'item'"
+            >
+              <q-item-section avatar>
+                <q-icon :name="menuItem.icon" />
+              </q-item-section>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
+              <q-item-section> {{ menuItem.name }} </q-item-section>
+            </q-item>
+            <div
+              class="menu-header q-mt-md q-ml-md"
+              v-if="menuItem.type == 'header'"
+            >
+              {{ menuItem.name }}
+            </div>
+          </template>
+        </q-list>
+      </q-scroll-area>
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <q-page>
+        <div class="content-container">
+          <router-view></router-view>
+        </div>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
 
-<script>
-import { defineComponent, ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+<script setup>
+import { ref } from "vue";
 
-const linksList = [
+let showToolbarTitle = ref(false);
+const menuItems = [
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
+    name: "Предмети",
+    type: "header",
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
+    name: "Перелік",
+    icon: "apps",
+    to: "/items",
+    type: "item",
   },
   {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
+    name: "Лог дій",
+    icon: "checklist", //edit_square, bug_report
+    to: "/logs",
+    type: "item",
   },
   {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
+    type: "separator",
   },
   {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
+    name: "Характеристики",
+    type: "header",
   },
   {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
+    name: "Види",
+    icon: "interests",
+    to: "/types",
+    type: "item",
   },
   {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-]
-
-export default defineComponent({
-  name: 'MainLayout',
-
-  components: {
-    EssentialLink
+    name: "Розміри",
+    icon: "straighten",
+    to: "/sizes",
+    type: "item",
   },
-
-  setup () {
-    const leftDrawerOpen = ref(false)
-
-    return {
-      essentialLinks: linksList,
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
-  }
-})
+  {
+    name: "Гендери",
+    icon: "face_retouching_natural",
+    to: "/genders",
+    type: "item",
+  },
+  {
+    name: "Кольори",
+    icon: "palette",
+    to: "/colors",
+    type: "item",
+  },
+  {
+    name: "Склади",
+    icon: "warehouse",
+    to: "/warehouses",
+    type: "item",
+  },
+  {
+    type: "separator",
+  },
+  {
+    name: "Налаштування",
+    type: "header",
+  },
+  {
+    name: "Користувачі",
+    icon: "manage_accounts",
+    to: "/users",
+    type: "item",
+  },
+];
 </script>
+
+<style scoped>
+.scroll {
+  /* overflow: hidden !important; */
+}
+.menu-list .q-item {
+  border-radius: 0 10px 10px 0;
+}
+.menu-header {
+  font-size: 17px;
+}
+.toolbar-icon-number {
+  font-size: 17px;
+  margin-right: 5px;
+}
+
+.toolbar-tooltip-content {
+  background: white;
+  color: black;
+  padding: 2px;
+  font-size: 14px;
+  min-width: 250px;
+}
+.toolbar-tooltip-content-header {
+  font-size: 1.2em;
+  padding: 5px 0px 0px 10px;
+}
+
+.content-container {
+  /* min-height: calc(100vh - 51px); */
+  height: calc(100vh - 51px);
+  /* max-height: calc(100vh - 51px); 50px - height of toolbar */
+}
+
+/* animations */
+.title-appearing-enter-from,
+.title-appearing-leave-to {
+  opacity: 0;
+}
+.title-appearing-enter-to,
+.title-appearing-leave-from {
+  opacity: 1;
+}
+.title-appearing-enter-active,
+.title-appearing-leave-active {
+  transition: all 0.5s ease-in-out;
+}
+</style>

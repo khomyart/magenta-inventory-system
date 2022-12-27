@@ -54,12 +54,12 @@
       <q-separator vertical class="q-mx-sm"></q-separator>
       <q-btn flat round color="black" icon="arrow_downward">
         <q-tooltip anchor="bottom left" :offset="[-18, 7]">
-          <span style="font-size: 1.3em">Створити адходження</span>
+          <span style="font-size: 1.3em">Зарахувати надходження</span>
         </q-tooltip>
       </q-btn>
       <q-btn flat round color="black" icon="arrow_upward">
         <q-tooltip anchor="bottom left" :offset="[-20, 7]">
-          <span style="font-size: 1.3em">Створити списання</span>
+          <span style="font-size: 1.3em">Зарахувати списання</span>
         </q-tooltip>
       </q-btn>
       <q-btn
@@ -278,16 +278,16 @@ let filterSettings = reactive({
   },
   fieldWidthsInPercentages: {
     //%
-    name: 33.32,
-    type: 16.66,
-    gender: 16.66,
-    size: 16.66,
-    color: 8.33,
-    amount: 8.33,
+    name: 45,
+    type: 11,
+    gender: 11,
+    size: 11,
+    color: 11,
+    amount: 11,
   },
   params: {
     //px
-    minFilterButtonWidth: 80,
+    minFilterButtonWidth: 100,
   },
 });
 
@@ -310,6 +310,7 @@ let itemsList = reactive([
     color: {
       name: "Червоний",
       value: "#eb4034",
+      textColor: "#ffffff",
     },
     amount: 3568,
   },
@@ -331,6 +332,7 @@ let itemsList = reactive([
     color: {
       name: "Зелений",
       value: "#27db21",
+      textColor: "#000000",
     },
     amount: 60999,
   },
@@ -473,7 +475,7 @@ onMounted(() => {
 }
 .vertical-line {
   height: 40px;
-  border-left: 1px solid rgba(197, 20, 20, 0.12);
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
 }
 .content {
   overflow: auto;

@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <div class="row toolbar q-px-md q-mt-md">
+  <div class="page">
+    <div class="toolbar row q-px-md q-mt-md">
       <q-input
         v-model="searchInput"
         debounce="500"
@@ -19,8 +19,13 @@
       <q-space></q-space>
       <q-btn flat round color="white" text-color="black" icon="warehouse">
         <q-badge color="red" floating rounded> </q-badge>
-        <q-tooltip anchor="center left" self="center right" :offset="[10, 10]">
-          <span style="font-size: 1.3em">Пошук за складами</span>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="center left"
+          self="center right"
+          :offset="[10, 10]"
+        >
+          Пошук за складами
         </q-tooltip>
         <q-menu self="bottom middle" :offset="[-20, -50]">
           <q-list style="min-width: 150px">
@@ -53,13 +58,21 @@
       </q-btn>
       <q-separator vertical class="q-mx-sm"></q-separator>
       <q-btn flat round color="black" icon="arrow_downward">
-        <q-tooltip anchor="bottom left" :offset="[-18, 7]">
-          <span style="font-size: 1.3em">Зарахувати надходження</span>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-18, 7]"
+        >
+          Зарахувати надходження
         </q-tooltip>
       </q-btn>
       <q-btn flat round color="black" icon="arrow_upward">
-        <q-tooltip anchor="bottom left" :offset="[-20, 7]">
-          <span style="font-size: 1.3em">Зарахувати списання</span>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-20, 7]"
+        >
+          Зарахувати списання
         </q-tooltip>
       </q-btn>
       <q-btn
@@ -69,8 +82,12 @@
         @click="switchItemsView"
         :icon="showGroupedItems ? 'unfold_more' : 'unfold_less'"
       >
-        <q-tooltip anchor="bottom left" :offset="[-20, 7]">
-          <span style="font-size: 1.3em">{{ groupedItemsButtonTooltip }}</span>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-20, 7]"
+        >
+          {{ groupedItemsButtonTooltip }}
         </q-tooltip>
       </q-btn>
       <q-btn
@@ -84,8 +101,9 @@
           v-model="isCreateItemButtonActivated"
           anchor="bottom left"
           :offset="[-20, 7]"
+          class="bg-black text-body2"
         >
-          <span style="font-size: 1.3em">Створити</span>
+          Створити
         </q-tooltip>
         <q-menu self="bottom middle" :offset="[0, -50]">
           <q-list style="min-width: 150px">
@@ -99,8 +117,12 @@
         </q-menu>
       </q-btn>
       <q-btn flat round color="black" icon="sync_alt">
-        <q-tooltip anchor="bottom left" :offset="[0, 7]">
-          <span style="font-size: 1.3em">Перемістити</span>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[0, 7]"
+        >
+          Перемістити
         </q-tooltip>
       </q-btn>
     </div>
@@ -109,7 +131,7 @@
       <q-toolbar class="text-black q-mt-md filter q-px-none">
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.name}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.name}px; text-align: start`"
           >
             Назва
           </div>
@@ -132,7 +154,7 @@
         </div>
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.type}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.type}px; text-align: start`"
           >
             Вид
           </div>
@@ -155,7 +177,7 @@
         </div>
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.gender}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.gender}px; text-align: start`"
           >
             Стать
           </div>
@@ -178,7 +200,7 @@
         </div>
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.size}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.size}px; text-align: start`"
           >
             Розмір
           </div>
@@ -202,7 +224,7 @@
 
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.color}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.color}px; text-align: start`"
           >
             Колір
           </div>
@@ -226,7 +248,7 @@
 
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`width: ${filterSettings.fieldWidths.amount}px; text-align: start`"
+            :style="`min-width: ${filterSettings.fieldWidths.amount}px; text-align: start`"
           >
             Кількість
           </div>
@@ -245,13 +267,14 @@
           </q-menu>
         </q-btn>
       </q-toolbar>
-
-      <template v-for="item in itemsList" :key="item.id">
-        <item-component
-          :itemInfo="item"
-          :cellsWidth="filterSettings.fieldWidths"
-        ></item-component>
-      </template>
+      <div class="item-container">
+        <template v-for="item in itemsList" :key="item.id">
+          <item-component
+            :itemInfo="item"
+            :cellsWidth="filterSettings.fieldWidths"
+          ></item-component>
+        </template>
+      </div>
     </div>
     <div class="row footer q-mt-md"></div>
   </div>
@@ -295,6 +318,7 @@ let itemsList = reactive([
   {
     id: 1,
     name: "Sweet Hoody Test of Rookola",
+    image: "/src/assets/magenta-logo.png",
     type: {
       name: "Худі",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -317,6 +341,237 @@ let itemsList = reactive([
   {
     id: 2,
     name: "Sweet Hoody 2 Test of Rookola",
+    image: "/src/assets/magenta-menu-logo.png",
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
+    type: {
+      name: "Пуді",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    gender: {
+      name: "Жіноча",
+      icon: "/src/assets/magenta-menu-logo.png",
+    },
+    size: {
+      name: "L",
+      description: "chest 5 sm, etc",
+    },
+    color: {
+      name: "Зелений",
+      value: "#27db21",
+      textColor: "#000000",
+    },
+    amount: 60999,
+  },
+  {
+    id: 3,
+    name: "Poodatty",
+    image: null,
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -456,10 +711,13 @@ onMounted(() => {
 :root {
   --footer-height: 50px;
 }
-.container {
+.page {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+.content {
+  width: fit-content;
 }
 .toolbar {
   overflow: visible;

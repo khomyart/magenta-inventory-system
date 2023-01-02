@@ -135,7 +135,7 @@
 
     <q-page-container>
       <q-page>
-        <div class="content-container">
+        <div class="page-holder">
           <router-view></router-view>
         </div>
       </q-page>
@@ -244,7 +244,7 @@ const menuItems = [
   padding: 5px 0px 0px 10px;
 }
 
-.content-container {
+.page-holder {
   /* min-height: calc(100vh - 51px); */
   height: calc(100vh - 51px);
   /* max-height: calc(100vh - 51px); 50px - height of toolbar */

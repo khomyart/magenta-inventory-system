@@ -1,170 +1,172 @@
 <template>
-  <div class="row no-wrap q-mt-md item q-py-sm">
-    <div
-      class="item-cell"
-      :style="`width: ${props.cellsWidth.name}px;`"
-      @mouseenter="showItemName = false"
-      @mouseleave="showItemName = true"
-    >
+  <!-- <tr class="row no-wrap q-mt-md item q-py-sm"> -->
+  <tr height="25"></tr>
+  <tr class="item">
+    <td class="item-cell">
+      <div class="item-name-and-buttons-holder">
+        <div class="item-menu-buttons items-center flex q-pr-lg">
+          <q-btn round flat color="black" dense icon="edit" />
+          <q-btn
+            round
+            flat
+            color="red"
+            dense
+            icon="delete"
+            @click="showRemoveItemDialog = true"
+          >
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom left"
+              :offset="[-15, 7]"
+            >
+              Видалити
+            </q-tooltip>
+          </q-btn>
+          <q-separator vertical></q-separator>
+          <q-btn
+            round
+            flat
+            color="black"
+            @click="copyValue(props.itemInfo.name, 'Назву')"
+            dense
+            icon="content_paste"
+          >
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom left"
+              :offset="[-15, 7]"
+            >
+              Копіювати назву
+            </q-tooltip>
+          </q-btn>
+          <q-btn
+            round
+            flat
+            color="black"
+            dense
+            icon="qr_code"
+            @click="generateQrCode(props.itemInfo.id)"
+          >
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom left"
+              :offset="[-15, 7]"
+            >
+              Згенерувати QR-код
+            </q-tooltip>
+          </q-btn>
+          <q-separator vertical></q-separator>
+          <q-btn
+            @click="showImage = !showImage"
+            round
+            flat
+            :disable="props.itemInfo.image == null"
+            color="black"
+            dense
+            icon="photo"
+          >
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="center right"
+              self="center left"
+              :offset="[10, 10]"
+            >
+              {{ showImageTooltip }}
+            </q-tooltip>
+          </q-btn>
+        </div>
+        <div class="item-text">
+          {{ props.itemInfo.name }}
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div>
+        <div class="item-type">
+          <img
+            class="item-type-icon"
+            :src="`${props.itemInfo.type.icon}`"
+            alt=""
+          />
+          <span>{{ props.itemInfo.type.name }}</span>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div>
+        <div class="item-gender">
+          <img
+            class="item-type-icon"
+            :src="`${props.itemInfo.gender.icon}`"
+            alt=""
+          />
+          <span>{{ props.itemInfo.gender.name }}</span>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
       <div
-        class="item-menu-buttons items-center flex q-pr-lg"
-        :class="{ 'activated-buttons-item': !showItemName }"
-        v-if="!showItemName"
+        :id="`size-of-item-${props.itemInfo.id}`"
+        style="cursor: pointer"
+        @click="
+          copyValue(
+            `${props.itemInfo.size.name} - ${props.itemInfo.size.description}`,
+            'Розмір'
+          )
+        "
       >
-        <q-btn round flat color="black" dense icon="edit" />
-        <q-btn
-          round
-          flat
-          color="red"
-          dense
-          icon="delete"
-          @click="showRemoveItemDialog = true"
-        >
+        <div class="item-size">
+          <span>
+            {{ props.itemInfo.size.name }}
+          </span>
           <q-tooltip
+            :offset="[10, 5]"
+            :target="`#size-of-item-${props.itemInfo.id}`"
             class="bg-black text-body2"
-            anchor="bottom left"
-            :offset="[-15, 7]"
+            anchor="center left"
+            self="center right"
+            >{{ props.itemInfo.size.description }}</q-tooltip
           >
-            Видалити
-          </q-tooltip>
-        </q-btn>
-        <q-separator vertical></q-separator>
-        <q-btn
-          round
-          flat
-          color="black"
-          @click="copyValue(props.itemInfo.name, 'Назву')"
-          dense
-          icon="content_paste"
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div class="item-color-container">
+        <div
+          :id="`color-of-item-${props.itemInfo.id}`"
+          class="item-color"
+          :style="`background-color: ${props.itemInfo.color.value};`"
+          @click="copyValue(props.itemInfo.color.value, 'Колір')"
         >
-          <q-tooltip
-            class="bg-black text-body2"
-            anchor="bottom left"
-            :offset="[-15, 7]"
+          <span
+            :style="`color: ${props.itemInfo.color.textColor}`"
+            class="item-color-text"
+            >{{ props.itemInfo.color.value }}</span
           >
-            Копіювати назву
-          </q-tooltip>
-        </q-btn>
-        <q-btn
-          round
-          flat
-          color="black"
-          dense
-          icon="qr_code"
-          @click="generateQrCode(props.itemInfo.id)"
-        >
-          <q-tooltip
-            class="bg-black text-body2"
-            anchor="bottom left"
-            :offset="[-15, 7]"
-          >
-            Згенерувати QR-код
-          </q-tooltip>
-        </q-btn>
-        <q-separator vertical></q-separator>
-        <q-btn
-          @click="showImage = !showImage"
-          round
-          flat
-          :disable="props.itemInfo.image == null"
-          color="black"
-          dense
-          icon="photo"
-        >
-          <q-tooltip
-            class="bg-black text-body2"
-            anchor="center right"
-            self="center left"
-            :offset="[10, 10]"
-          >
-            {{ showImageTooltip }}
-          </q-tooltip>
-        </q-btn>
-      </div>
-      <div class="item-text" v-if="showItemName">
-        {{ props.itemInfo.name }}
-      </div>
-    </div>
-    <div class="filter-separator name-separator"></div>
-    <div class="item-cell" :style="`width: ${props.cellsWidth.type}px;`">
-      <div class="item-type">
-        <img
-          class="item-type-icon"
-          :src="`${props.itemInfo.type.icon}`"
-          alt=""
-        />
-        <span>{{ props.itemInfo.type.name }}</span>
-      </div>
-    </div>
-    <div class="filter-separator name-separator"></div>
-    <div class="item-cell" :style="`width: ${props.cellsWidth.gender}px;`">
-      <div class="item-gender">
-        <img
-          class="item-type-icon"
-          :src="`${props.itemInfo.gender.icon}`"
-          alt=""
-        />
-        <span>{{ props.itemInfo.gender.name }}</span>
-      </div>
-    </div>
-    <div class="filter-separator name-separator"></div>
-    <div class="item-cell" :style="`width: ${props.cellsWidth.size}px;`">
-      <div class="item-size">
-        <span
-          :id="`size-of-item-${props.itemInfo.id}`"
-          style="cursor: pointer"
-          @click="
-            copyValue(
-              `${props.itemInfo.size.name} - ${props.itemInfo.size.description}`,
-              'Розмір'
-            )
-          "
-        >
-          {{ props.itemInfo.size.name }}
-        </span>
+        </div>
         <q-tooltip
           :offset="[10, 5]"
-          :target="`#size-of-item-${props.itemInfo.id}`"
+          :target="`#color-of-item-${props.itemInfo.id}`"
           class="bg-black text-body2"
           anchor="center left"
           self="center right"
-          >{{ props.itemInfo.size.description }}</q-tooltip
+          >{{ props.itemInfo.color.name }}</q-tooltip
         >
       </div>
-    </div>
-    <div class="filter-separator name-separator"></div>
-    <div
-      class="item-cell q-pa-md"
-      :style="`width: ${props.cellsWidth.color}px;`"
-    >
-      <div
-        :id="`color-of-item-${props.itemInfo.id}`"
-        class="item-color"
-        :style="`background-color: ${props.itemInfo.color.value};`"
-        @click="copyValue(props.itemInfo.color.value, 'Колір')"
-      >
-        <span
-          :style="`color: ${props.itemInfo.color.textColor}`"
-          class="item-color-text"
-          >{{ props.itemInfo.color.value }}</span
-        >
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div>
+        <div class="item-amount">
+          {{ props.itemInfo.amount }}
+        </div>
       </div>
-      <q-tooltip
-        :offset="[10, 5]"
-        :target="`#color-of-item-${props.itemInfo.id}`"
-        class="bg-black text-body2"
-        anchor="center left"
-        self="center right"
-        >{{ props.itemInfo.color.name }}</q-tooltip
-      >
-    </div>
-    <div class="filter-separator name-separator"></div>
-    <div class="item-cell" :style="`width: ${props.cellsWidth.amount}px;`">
-      <div class="item-amount">
-        {{ props.itemInfo.amount }}
-      </div>
-    </div>
-  </div>
+    </td>
+  </tr>
 
   <q-dialog v-model="showImage" seamless>
     <q-card>
@@ -242,28 +244,75 @@ function removeItem(itemId) {
 }
 </script>
 
-<style scoped>
+<style>
+:root {
+  --cell-height: 50px;
+  --cell-border-style: 1px solid rgba(0, 0, 0, 0.18);
+}
 .item {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 3px;
-  width: 100%;
+  /* border: 1px solid rgba(0, 0, 0, 0.12); */
+}
+.item:hover {
 }
 .item-cell {
-  padding: 2px 16px;
-  height: 40px;
+  padding: 0px;
+}
+.item-cell > div {
+  width: 100%;
   display: flex;
   align-items: center;
-  box-sizing: content-box;
-  overflow: hidden;
+  padding: 5px 10px;
+  height: var(--cell-height);
 }
+
+.separator-cell div {
+  width: 100%;
+  height: var(--cell-height);
+  box-sizing: border-box;
+  background-color: rgba(34, 34, 34, 0.032);
+}
+tr td {
+  padding: 0;
+  margin: 0;
+}
+tr td:first-child > div {
+  border-left: var(--cell-border-style);
+  border-top: var(--cell-border-style);
+  border-bottom: var(--cell-border-style);
+  border-radius: 3px 0 0 3px;
+}
+
+tr td:nth-child(n + 1):nth-child(-n + 11) > div {
+  border-top: var(--cell-border-style);
+  border-bottom: var(--cell-border-style);
+}
+
+tr td:last-child > div {
+  border-right: var(--cell-border-style);
+  border-top: var(--cell-border-style);
+  border-bottom: var(--cell-border-style);
+  border-radius: 0 3px 3px 0;
+}
+
 .item-text {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.item-cell:first-child {
+  cursor: pointer;
+}
+.item-cell:first-child:hover .item-menu-buttons {
+  display: flex !important;
+}
+.item-cell:first-child:hover .item-text {
+  display: none !important;
+}
+.item-name-and-buttons-holder {
+}
 .item-menu-buttons {
-  height: 100%;
   width: fit-content;
   transition: all 0.5s ease-in-out;
+  display: none !important;
 }
 .item-menu-buttons > * {
   margin-right: 10px;
@@ -280,7 +329,7 @@ function removeItem(itemId) {
   text-overflow: ellipsis;
 }
 .item-type-icon {
-  --icon-width: 28px;
+  --icon-width: 35px;
   padding-right: 8px;
   min-width: var(--icon-width);
   max-width: var(--icon-width);
@@ -293,9 +342,15 @@ function removeItem(itemId) {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.item-color {
+.item-color-container {
   width: 100%;
-  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.item-color {
+  width: 70%;
+  height: 80%;
   display: flex;
   justify-content: center;
   align-items: center;

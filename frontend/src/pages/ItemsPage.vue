@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-px-md q-mt-md">
+    <div class="toolbar row q-px-md q-my-md">
       <q-input
         v-model="searchInput"
         debounce="500"
@@ -128,7 +128,7 @@
     </div>
 
     <div class="content">
-      <q-toolbar class="text-black q-mt-md filter q-px-none">
+      <q-toolbar class="text-black filter q-px-none bg-white">
         <q-btn flat stretch class="filter-button">
           <div
             :style="`min-width: ${filterSettings.fieldWidths.name}px; text-align: start`"
@@ -248,7 +248,10 @@
 
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`min-width: ${filterSettings.fieldWidths.amount}px; text-align: start`"
+            :style="`min-width: ${
+              filterSettings.fieldWidths.amount -
+              filterSettings.params.xScrollWidth
+            }px; text-align: start`"
           >
             Кількість
           </div>
@@ -267,13 +270,34 @@
           </q-menu>
         </q-btn>
       </q-toolbar>
-      <div class="item-container">
-        <template v-for="item in itemsList" :key="item.id">
-          <item-component
-            :itemInfo="item"
-            :cellsWidth="filterSettings.fieldWidths"
-          ></item-component>
-        </template>
+      <div class="items-container">
+        <table class="items">
+          <tr>
+            <td :width="filterSettings.fieldWidths.name + 32"></td>
+            <td :width="filterSettings.params.separatorWidth"></td>
+            <td :width="filterSettings.fieldWidths.type + 32"></td>
+            <td :width="filterSettings.params.separatorWidth"></td>
+            <td :width="filterSettings.fieldWidths.gender + 32"></td>
+            <td :width="filterSettings.params.separatorWidth"></td>
+            <td :width="filterSettings.fieldWidths.size + 32"></td>
+            <td :width="filterSettings.params.separatorWidth"></td>
+            <td :width="filterSettings.fieldWidths.color + 32"></td>
+            <td :width="filterSettings.params.separatorWidth"></td>
+            <td
+              :width="
+                filterSettings.fieldWidths.amount +
+                30 -
+                filterSettings.params.xScrollWidth
+              "
+            ></td>
+          </tr>
+          <template v-for="(item, index) in itemsList" :key="index">
+            <item-component
+              :itemInfo="item"
+              :cellsWidth="filterSettings.fieldWidths"
+            ></item-component>
+          </template>
+        </table>
       </div>
     </div>
     <div class="row footer q-mt-md"></div>
@@ -311,6 +335,8 @@ let filterSettings = reactive({
   params: {
     //px
     minFilterButtonWidth: 100,
+    separatorWidth: 11,
+    xScrollWidth: 19,
   },
 });
 
@@ -641,11 +667,18 @@ onMounted(() => {
   // let amountSeparator = document.querySelector(".amount-separator");
   let filterButtons = document.querySelectorAll(".filter-button");
 
+  let filterPanel = document.querySelector(".filter");
+  let items = document.querySelector(".items-container");
+  let qApp = document.querySelector("#q-app");
+
   function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
     separatorObject.onmousedown = (mouseDownEvent) => {
       filterButtons.forEach((button) => {
         button.style.cursor = "col-resize";
       });
+
+      qApp.classList.add("disable-interaction");
+      // items.classList.add("disable-interaction");
 
       let initCursorCoord = mouseDownEvent.screenX;
       let initFieldWidth = filterSettings.fieldWidths[fieldName];
@@ -653,21 +686,6 @@ onMounted(() => {
         filterSettings.fieldWidths[affectedFieldName];
 
       document.body.onmousemove = (mouseMoveEvent) => {
-        // if (
-        //   filterSettings.fieldWidths[fieldName] >
-        //   filterSettings.params.minFilterButtonWidth
-        // ) {
-        //   filterSettings.fieldWidths[fieldName] =
-        //     initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-        // }
-
-        // if (
-        //   filterSettings.fieldWidths[affectedFieldName] >
-        //   filterSettings.params.minFilterButtonWidth
-        // ) {
-        //   filterSettings.fieldWidths[affectedFieldName] =
-        //     initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
-        // }
         if (
           initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
             filterSettings.params.minFilterButtonWidth &&
@@ -683,6 +701,7 @@ onMounted(() => {
         document.body.onmouseup = () => {
           document.body.onmousemove = null;
           document.body.onmouseup = null;
+          qApp.classList.remove("disable-interaction");
           filterButtons.forEach((button) => {
             button.style.cursor = "pointer";
           });
@@ -692,6 +711,7 @@ onMounted(() => {
     separatorObject.onmouseup = () => {
       document.body.onmousemove = null;
       document.body.onmouseup = null;
+      qApp.classList.remove("disable-interaction");
       filterButtons.forEach((button) => {
         button.style.cursor = "pointer";
       });
@@ -711,6 +731,10 @@ onMounted(() => {
 :root {
   --footer-height: 50px;
 }
+.disable-interaction {
+  pointer-events: none;
+  user-select: none;
+}
 .page {
   display: flex;
   flex-direction: column;
@@ -718,6 +742,10 @@ onMounted(() => {
 }
 .content {
   width: fit-content;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+  padding: 0px 5px 30px 10px;
 }
 .toolbar {
   overflow: visible;
@@ -725,6 +753,8 @@ onMounted(() => {
 }
 .filter {
   width: fit-content;
+  position: sticky;
+  top: 0px;
 }
 .filter-separator {
   cursor: col-resize;
@@ -736,10 +766,19 @@ onMounted(() => {
   border-left: 1px solid rgba(0, 0, 0, 0.12);
 }
 .content {
+  width: fit-content;
   overflow: auto;
   height: 100%;
   width: 100%;
-  padding: 0px 10px;
+  padding: 0px 3px 30px 10px;
+}
+.items-container {
+  width: fit-content;
+}
+.items {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100px;
 }
 .footer {
   min-height: 50px;

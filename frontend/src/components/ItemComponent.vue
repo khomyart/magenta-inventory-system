@@ -5,14 +5,29 @@
     <td class="item-cell">
       <div class="item-name-and-buttons-holder">
         <div class="item-menu-buttons items-center flex q-pr-lg">
-          <q-btn round flat color="black" dense icon="edit" />
+          <q-btn
+            round
+            flat
+            color="black"
+            dense
+            icon="edit"
+            @click="showEditItemDialog = !showEditItemDialog"
+          >
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom left"
+              :offset="[-37, 7]"
+            >
+              Редагувати
+            </q-tooltip>
+          </q-btn>
           <q-btn
             round
             flat
             color="red"
             dense
             icon="delete"
-            @click="showRemoveItemDialog = true"
+            @click="showRemoveItemDialog = !showRemoveItemDialog"
           >
             <q-tooltip
               class="bg-black text-body2"
@@ -60,7 +75,7 @@
             @click="showImage = !showImage"
             round
             flat
-            :disable="props.itemInfo.image == null"
+            :disable="props.itemInfo.images.length == 0"
             color="black"
             dense
             icon="photo"
@@ -168,26 +183,108 @@
     </td>
   </tr>
 
-  <q-dialog v-model="showImage" seamless>
+  <q-dialog v-model="showEditItemDialog" seamless>
     <q-card>
-      <q-card-section class="row items-center q-pa-md">
-        <div
-          class="text-h6 col-10"
-          style="white-space: nowrap; text-overflow: ellipsis"
-        >
-          {{ props.itemInfo.name }}
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 flex items-center">
+          <q-icon name="edit" color="black" size="md" /><b class="q-ml-sm"
+            >Редагування</b
+          >
         </div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
-      <q-separator></q-separator>
       <q-card-section class="q-pa-md flex justify-center">
-        <img style="width: 400px" :src="props.itemInfo.image" alt="" />
+        <div class="q-pa-md" style="width: 400px">
+          <form
+            @submit.prevent.stop="onSubmit"
+            @reset.prevent.stop="onReset"
+            class="q-gutter-md"
+          >
+            <q-input
+              square
+              ref="editItemNameRef"
+              filled
+              label="Назва предмету"
+            />
+
+            <div>
+              <q-btn label="Submit" type="submit" color="primary" />
+              <q-btn
+                label="Reset"
+                type="reset"
+                color="primary"
+                flat
+                class="q-ml-sm"
+              />
+            </div>
+          </form>
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
 
-  <q-dialog v-model="showRemoveItemDialog">
+  <q-dialog v-model="showImage" seamless>
+    <q-card>
+      <q-card-section class="row items-center q-pb-md">
+        <div class="text-h6 flex items-center">
+          <q-icon name="photo" color="black" size="md" /><b class="q-ml-sm">{{
+            props.itemInfo.name
+          }}</b>
+        </div>
+        <q-space />
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-section>
+      <q-card-section class="q-pa-md flex justify-center">
+        <template v-if="props.itemInfo.images.length > 1">
+          <q-carousel
+            animated
+            v-model="slide"
+            arrows
+            navigation
+            infinite
+            control-color="primary"
+            style="width: 500px"
+            class="flex justify-center"
+          >
+            <q-carousel-slide
+              style="
+                width: 300px;
+                margin-top: -15px;
+                background-size: contain;
+                background-repeat: no-repeat;
+              "
+              v-for="(image, index) in props.itemInfo.images"
+              :key="index"
+              :name="index + 1"
+              :img-src="image"
+            />
+          </q-carousel>
+        </template>
+        <img
+          class="q-px-md"
+          v-else
+          style="width: 400px"
+          :src="props.itemInfo.images[0]"
+          alt=""
+        />
+      </q-card-section>
+      <q-card-section class="flex justify-center">
+        <q-btn
+          color="primary q-mr-md"
+          @click="downloadImage(props.itemInfo.images[slide - 1])"
+          >Завантажити</q-btn
+        >
+        <q-btn
+          color="primary"
+          @click="copyImage(props.itemInfo.images[slide - 1])"
+          >Копіювати</q-btn
+        >
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="showRemoveItemDialog" seamless>
     <q-card>
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6 flex items-center">
@@ -214,7 +311,7 @@
 
 <script setup>
 import { useQuasar } from "quasar";
-import { computed, ref } from "vue";
+import { computed, ref, reactive } from "vue";
 
 const props = defineProps(["itemInfo", "cellsWidth"]);
 const $q = useQuasar();
@@ -222,9 +319,18 @@ const showImageTooltip = computed(() => {
   return showImage.value ? "Сховати зображення" : "Показати зображення";
 });
 
-let showItemName = ref(true);
-let showImage = ref(false);
-let showRemoveItemDialog = ref(false);
+let showItemName = ref(true),
+  slide = ref(1),
+  showImage = ref(false),
+  showEditItemDialog = ref(false),
+  showRemoveItemDialog = ref(false),
+  editItemNameRef = ref(null);
+
+let editItemForm = reactive({
+  id: "",
+  name: "",
+  type: "",
+});
 
 function copyValue(value, paramName) {
   navigator.clipboard.writeText(value);
@@ -241,6 +347,33 @@ function generateQrCode(itemId) {
 function removeItem(itemId) {
   showRemoveItemDialog.value = false;
   console.log(itemId);
+}
+function downloadImage(imageSrc) {
+  let link = document.createElement("a");
+  link.href = imageSrc;
+  link.download = imageSrc.split("/")[imageSrc.split("/").length - 1];
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+async function copyImage(imageSrc) {
+  try {
+    const response = await fetch("." + imageSrc);
+    const blob = await response.blob();
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        [blob.type]: blob,
+      }),
+    ]);
+    $q.notify({
+      position: "top",
+      color: "primary",
+      message: `Зображення зкопійовано`,
+      group: false,
+    });
+  } catch (err) {
+    console.error(err.name, err.message);
+  }
 }
 </script>
 
@@ -263,13 +396,14 @@ function removeItem(itemId) {
   align-items: center;
   padding: 5px 10px;
   height: var(--cell-height);
+  /* justify-content: center; */
 }
 
 .separator-cell div {
   width: 100%;
   height: var(--cell-height);
   box-sizing: border-box;
-  background-color: rgba(34, 34, 34, 0.032);
+  /* background-color: rgba(14, 14, 14, 0.032); */
 }
 tr td {
   padding: 0;

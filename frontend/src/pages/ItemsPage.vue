@@ -270,35 +270,33 @@
           </q-menu>
         </q-btn>
       </q-toolbar>
-      <div class="items-container">
-        <table class="items">
-          <tr>
-            <td :width="filterSettings.fieldWidths.name + 32"></td>
-            <td :width="filterSettings.params.separatorWidth"></td>
-            <td :width="filterSettings.fieldWidths.type + 32"></td>
-            <td :width="filterSettings.params.separatorWidth"></td>
-            <td :width="filterSettings.fieldWidths.gender + 32"></td>
-            <td :width="filterSettings.params.separatorWidth"></td>
-            <td :width="filterSettings.fieldWidths.size + 32"></td>
-            <td :width="filterSettings.params.separatorWidth"></td>
-            <td :width="filterSettings.fieldWidths.color + 32"></td>
-            <td :width="filterSettings.params.separatorWidth"></td>
-            <td
-              :width="
-                filterSettings.fieldWidths.amount +
-                30 -
-                filterSettings.params.xScrollWidth
-              "
-            ></td>
-          </tr>
-          <template v-for="(item, index) in itemsList" :key="index">
-            <item-component
-              :itemInfo="item"
-              :cellsWidth="filterSettings.fieldWidths"
-            ></item-component>
-          </template>
-        </table>
-      </div>
+      <table class="items">
+        <tr>
+          <td :width="filterSettings.fieldWidths.name + 32"></td>
+          <td :width="filterSettings.params.separatorWidth"></td>
+          <td :width="filterSettings.fieldWidths.type + 32"></td>
+          <td :width="filterSettings.params.separatorWidth"></td>
+          <td :width="filterSettings.fieldWidths.gender + 32"></td>
+          <td :width="filterSettings.params.separatorWidth"></td>
+          <td :width="filterSettings.fieldWidths.size + 32"></td>
+          <td :width="filterSettings.params.separatorWidth"></td>
+          <td :width="filterSettings.fieldWidths.color + 32"></td>
+          <td :width="filterSettings.params.separatorWidth"></td>
+          <td
+            :width="
+              filterSettings.fieldWidths.amount +
+              30 -
+              filterSettings.params.xScrollWidth
+            "
+          ></td>
+        </tr>
+        <template v-for="(item, index) in itemsList" :key="index">
+          <item-component
+            :itemInfo="item"
+            :cellsWidth="filterSettings.fieldWidths"
+          ></item-component>
+        </template>
+      </table>
     </div>
     <div class="row footer q-mt-md"></div>
   </div>
@@ -323,20 +321,29 @@ let filterSettings = reactive({
     color: 0,
     amount: 0,
   },
+  fieldMinWidths: {
+    //px
+    name: 260,
+    type: 150,
+    gender: 150,
+    size: 150,
+    color: 150,
+    amount: 150,
+  },
   fieldWidthsInPercentages: {
     //%
-    name: 45,
-    type: 11,
-    gender: 11,
-    size: 11,
-    color: 11,
-    amount: 11,
+    name: 30,
+    type: 14,
+    gender: 14,
+    size: 14,
+    color: 14,
+    amount: 14,
   },
   params: {
     //px
-    minFilterButtonWidth: 100,
+    minFilterButtonWidth: 140,
     separatorWidth: 11,
-    xScrollWidth: 19,
+    xScrollWidth: 10,
   },
 });
 
@@ -344,7 +351,10 @@ let itemsList = reactive([
   {
     id: 1,
     name: "Sweet Hoody Test of Rookola",
-    image: "/src/assets/magenta-logo.png",
+    images: [
+      "/src/assets/magenta-logo.png",
+      "/src/assets/magenta-menu-logo.png",
+    ],
     type: {
       name: "Худі",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -367,7 +377,11 @@ let itemsList = reactive([
   {
     id: 2,
     name: "Sweet Hoody 2 Test of Rookola",
-    image: "/src/assets/magenta-menu-logo.png",
+    images: [
+      "/src/assets/magenta-logo.png",
+      "/src/assets/magenta-menu-logo.png",
+      "/src/assets/magenta-menu-logo.png",
+    ],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -390,7 +404,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: ["/src/assets/magenta-logo.png"],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -413,7 +427,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -436,7 +450,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -459,7 +473,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -482,7 +496,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -505,7 +519,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -528,7 +542,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -551,7 +565,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -574,7 +588,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -597,7 +611,7 @@ let itemsList = reactive([
   {
     id: 3,
     name: "Poodatty",
-    image: null,
+    images: [],
     type: {
       name: "Пуді",
       icon: "/src/assets/magenta-menu-logo.png",
@@ -655,6 +669,14 @@ onMounted(() => {
     if (Object.keys(filterSettings.fieldWidths).length != fieldNumber) {
       filterSettings.fieldWidths[fieldName] -= separatorWidth;
     }
+    //set minimum width of fields in case, if calculated is less than set minimum
+    if (
+      filterSettings.fieldWidths[fieldName] <
+      filterSettings.fieldMinWidths[fieldName]
+    ) {
+      filterSettings.fieldWidths[fieldName] =
+        filterSettings.fieldMinWidths[fieldName];
+    }
 
     fieldNumber += 1;
   }
@@ -667,8 +689,6 @@ onMounted(() => {
   // let amountSeparator = document.querySelector(".amount-separator");
   let filterButtons = document.querySelectorAll(".filter-button");
 
-  let filterPanel = document.querySelector(".filter");
-  let items = document.querySelector(".items-container");
   let qApp = document.querySelector("#q-app");
 
   function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {

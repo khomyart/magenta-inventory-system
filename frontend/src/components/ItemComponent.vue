@@ -1,6 +1,6 @@
 <template>
   <!-- <tr class="row no-wrap q-mt-md item q-py-sm"> -->
-  <tr height="25"></tr>
+  <tr height="10"></tr>
   <tr class="item">
     <td class="item-cell">
       <div class="item-name-and-buttons-holder">
@@ -385,7 +385,8 @@ async function copyImage(imageSrc) {
 .item {
   /* border: 1px solid rgba(0, 0, 0, 0.12); */
 }
-.item:hover {
+.item:hover td > div {
+  background-color: rgba(255, 0, 217, 0.088);
 }
 .item-cell {
   padding: 0px;

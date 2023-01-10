@@ -290,7 +290,7 @@
             "
           ></td>
         </tr>
-        <template v-for="(item, index) in itemsList" :key="index">
+        <template v-for="(item, index) in store.itemsList" :key="index">
           <item-component
             :itemInfo="item"
             :cellsWidth="filterSettings.fieldWidths"
@@ -305,6 +305,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import ItemComponent from "components/ItemComponent.vue";
+
+import { useItemStore } from "src/stores/itemStore";
 
 let searchInput = ref("");
 let isSearching = ref(false);
@@ -347,291 +349,10 @@ let filterSettings = reactive({
   },
 });
 
-let itemsList = reactive([
-  {
-    id: 1,
-    name: "Sweet Hoody Test of Rookola",
-    images: [
-      "/src/assets/magenta-logo.png",
-      "/src/assets/magenta-menu-logo.png",
-    ],
-    type: {
-      name: "Худі",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Чоловіча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "XXL",
-      description: "chest 150 sm, etc",
-    },
-    color: {
-      name: "Червоний",
-      value: "#eb4034",
-      textColor: "#ffffff",
-    },
-    amount: 3568,
-  },
-  {
-    id: 2,
-    name: "Sweet Hoody 2 Test of Rookola",
-    images: [
-      "/src/assets/magenta-logo.png",
-      "/src/assets/magenta-menu-logo.png",
-      "/src/assets/magenta-menu-logo.png",
-    ],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: ["/src/assets/magenta-logo.png"],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-  {
-    id: 3,
-    name: "Poodatty",
-    images: [],
-    type: {
-      name: "Пуді",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    gender: {
-      name: "Жіноча",
-      icon: "/src/assets/magenta-menu-logo.png",
-    },
-    size: {
-      name: "L",
-      description: "chest 5 sm, etc",
-    },
-    color: {
-      name: "Зелений",
-      value: "#27db21",
-      textColor: "#000000",
-    },
-    amount: 60999,
-  },
-]);
+const groupedItemsButtonTooltip = computed(() => {
+  return showGroupedItems.value ? "Розділити" : "Групувати";
+});
+const store = useItemStore();
 
 function switchItemsView() {
   showGroupedItems.value = !showGroupedItems.value;
@@ -640,10 +361,6 @@ function switchItemsView() {
 function createItemButtonAction() {
   isCreateItemButtonActivated.value = !isCreateItemButtonActivated.value;
 }
-
-const groupedItemsButtonTooltip = computed(() => {
-  return showGroupedItems.value ? "Розділити" : "Групувати";
-});
 
 onMounted(() => {
   //set up default values for filter fields width according to config

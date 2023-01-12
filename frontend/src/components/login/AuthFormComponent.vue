@@ -10,12 +10,12 @@
       class="q-mb-lg"
       type="email"
       label="Пошта"
-      v-model="authInfo.email"
+      v-model="userData.email"
     />
     <q-input
       filled
       square
-      v-model="authInfo.password"
+      v-model="userData.password"
       class="q-mb-lg"
       :type="isPwd ? 'password' : 'text'"
       label="Пароль"
@@ -29,35 +29,33 @@
       </template>
     </q-input>
     <div class="col-12 flex justify-center">
-      <q-btn label="Увійти" style="width: 50%" type="submit" color="primary" />
+      <q-btn
+        label="Увійти"
+        :loading="store.isLoading"
+        style="width: 50%"
+        type="submit"
+        color="primary"
+      />
     </div>
   </q-form>
 </template>
 <script setup>
 import { ref, reactive } from "vue";
 import { useQuasar } from "quasar";
-import { api } from "src/boot/axios";
+import { useUserStore } from "src/stores/userStore";
+
 const $q = useQuasar();
+const store = useUserStore();
 
 let isPwd = ref(true);
-let authInfo = reactive({
+// let isLoading = ref(false);
+let userData = reactive({
   email: "",
   password: "",
 });
+
 function onSubmit() {
-  api
-    .post("/authentication", JSON.stringify(authInfo))
-    .then((response) => {
-      console.log(response);
-    })
-    .catch(() => {
-      $q.notify({
-        position: "top",
-        color: "negative",
-        message: "Невірні данні авторизації",
-        group: false,
-      });
-    });
+  store.login(userData);
 }
 </script>
 <style scoped></style>

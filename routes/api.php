@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::post('/authentication', function (Request $request) {
-    return $request->all();
+Route::post('/login', function (Request $request) {
+    return response($request->all());
 });
+

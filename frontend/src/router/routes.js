@@ -1,10 +1,14 @@
 const routes = [
   {
     path: "/login",
+    name: "Login",
     component: () => import("layouts/LoginLayout.vue"),
   },
   {
     path: "/",
+    meta: {
+      isAuthNeeded: true,
+    },
     redirect: "/items",
     component: () => import("layouts/MainLayout.vue"),
     children: [

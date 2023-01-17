@@ -85,13 +85,22 @@
         <q-separator vertical />
         <q-space></q-space>
         <q-btn color="primary" icon="settings" flat round class="q-mr-sm">
-          <q-menu :offset="[0, 12]">
-            <q-list style="min-width: 100px">
-              <q-item clickable v-close-popup>
+          <q-menu
+            :offset="[0, 12]"
+            style="min-width: 200px; text-align: center"
+          >
+            <q-list>
+              <q-item>
+                <q-item-section>
+                  {{ store.data.name }}
+                </q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item clickable v-close-popup @click="axiosTestRequest">
                 <q-item-section>Налаштування</q-item-section>
               </q-item>
               <q-item clickable v-close-popup>
-                <q-item-section>Вихід</q-item-section>
+                <q-item-section @click="logout">Вихід</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -145,6 +154,12 @@
 
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "src/stores/userStore";
+import { api } from "src/boot/axios";
+
+const router = useRouter();
+const store = useUserStore();
 
 let showToolbarTitle = ref(false);
 const menuItems = [
@@ -215,6 +230,15 @@ const menuItems = [
     type: "item",
   },
 ];
+function axiosTestRequest() {
+  api.post("/lol", 123);
+}
+
+function logout() {
+  sessionStorage.removeItem("token");
+  store.token = null;
+  router.push("/login");
+}
 </script>
 
 <style scoped>

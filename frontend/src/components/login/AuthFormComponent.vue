@@ -31,7 +31,7 @@
     <div class="col-12 flex justify-center">
       <q-btn
         label="Увійти"
-        :loading="store.isLoading"
+        :loading="isLoading"
         style="width: 50%"
         type="submit"
         color="primary"
@@ -43,19 +43,48 @@
 import { ref, reactive } from "vue";
 import { useQuasar } from "quasar";
 import { useUserStore } from "src/stores/userStore";
+import { useRouter } from "vue-router";
 
 const $q = useQuasar();
 const store = useUserStore();
+const router = useRouter();
+
+let notification = null;
 
 let isPwd = ref(true);
-// let isLoading = ref(false);
+let isLoading = ref(false);
 let userData = reactive({
   email: "",
   password: "",
 });
 
 function onSubmit() {
-  store.login(userData);
+  isLoading.value = true;
+  store
+    .login(userData)
+    .then((response) => {
+      store.data.email = response.data.user.email;
+      store.data.name = response.data.user.name;
+      store.data.id = response.data.user.id;
+      store.token = response.data.token;
+      console.log(response.data);
+      sessionStorage.setItem("token", response.data.token);
+      router.push("/items");
+      if (notification != null) {
+        notification();
+      }
+    })
+    .catch((error) => {
+      notification = $q.notify({
+        position: "top",
+        color: "negative",
+        message: error.response.data.error,
+        group: true,
+      });
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 }
 </script>
 <style scoped></style>

@@ -22,7 +22,7 @@
 }
 .label p {
   margin-top: 0px;
-  letter-spacing: 21px;
-  margin-left: 11px;
+  letter-spacing: 20px;
+  margin-right: -11px;
 }
 </style>

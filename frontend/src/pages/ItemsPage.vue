@@ -290,7 +290,7 @@
             "
           ></td>
         </tr>
-        <template v-for="(item, index) in store.itemsList" :key="index">
+        <template v-for="(item, index) in newArrayOfItems" :key="index">
           <item-component
             :itemInfo="item"
             :cellsWidth="filterSettings.fieldWidths"
@@ -312,6 +312,7 @@ let searchInput = ref("");
 let isSearching = ref(false);
 let showGroupedItems = ref(false);
 let isCreateItemButtonActivated = ref(false);
+let newArrayOfItems = ref([]);
 
 let filterSettings = reactive({
   fieldWidths: {
@@ -352,6 +353,7 @@ let filterSettings = reactive({
 const groupedItemsButtonTooltip = computed(() => {
   return showGroupedItems.value ? "Розділити" : "Групувати";
 });
+
 const store = useItemStore();
 
 function switchItemsView() {
@@ -363,6 +365,18 @@ function createItemButtonAction() {
 }
 
 onMounted(() => {
+  let amountOfMultiplies = 4;
+  let tempItemsList = store.itemsList;
+  let lengthOfItemsList = tempItemsList.length;
+
+  for (let i = 0; i < amountOfMultiplies; i++) {
+    for (let j = 0; j < lengthOfItemsList; ) {
+      tempItemsList[j].id = j + lengthOfItemsList * i;
+      newArrayOfItems.value.push(tempItemsList[j]);
+    }
+  }
+  // console.log(newArrayOfItems);
+
   //set up default values for filter fields width according to config
   let contentElement = document.querySelector(".content");
   //get .content div padding

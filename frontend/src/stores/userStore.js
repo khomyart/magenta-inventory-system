@@ -4,32 +4,17 @@ import { api } from "src/boot/axios";
 export const useUserStore = defineStore("user", {
   state: () => ({
     data: {
+      id: "",
       name: "",
       email: "",
     },
-    token: "",
-    isLoading: false,
+    token: null,
   }),
   getters: {},
   actions: {
     login(userData) {
-      this.isLoading = true;
-      api
-        .post("/login", userData)
-        .then((response) => {
-          console.log(response);
-        })
-        .catch(() => {
-          $q.notify({
-            position: "top",
-            color: "negative",
-            message: "Невірні данні авторизації",
-            group: false,
-          });
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
+      return api.post("/login", userData);
     },
+    logout() {},
   },
 });

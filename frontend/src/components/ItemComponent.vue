@@ -1,7 +1,15 @@
 <template>
   <!-- <tr class="row no-wrap q-mt-md item q-py-sm"> -->
-  <tr height="10"></tr>
+  <tr :height="props.gap"></tr>
   <tr class="item">
+    <td class="item-cell">
+      <div>
+        <div class="item-article">
+          {{ props.itemInfo.article }}
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
     <td class="item-cell">
       <div class="item-name-and-buttons-holder">
         <div class="item-menu-buttons items-center flex q-pr-lg">
@@ -181,6 +189,14 @@
         </div>
       </div>
     </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div>
+        <div class="item-units">
+          {{ props.itemInfo.units }}
+        </div>
+      </div>
+    </td>
   </tr>
 
   <q-dialog v-model="showEditItemDialog" seamless>
@@ -313,7 +329,7 @@
 import { useQuasar } from "quasar";
 import { computed, ref, reactive } from "vue";
 
-const props = defineProps(["itemInfo", "cellsWidth"]);
+const props = defineProps(["itemInfo", "gap"]);
 const $q = useQuasar();
 const showImageTooltip = computed(() => {
   return showImage.value ? "Сховати зображення" : "Показати зображення";
@@ -417,7 +433,7 @@ tr td:first-child > div {
   border-radius: 3px 0 0 3px;
 }
 
-tr td:nth-child(n + 1):nth-child(-n + 11) > div {
+tr td:nth-child(n + 1):nth-child(-n + 14) > div {
   border-top: var(--cell-border-style);
   border-bottom: var(--cell-border-style);
 }
@@ -433,13 +449,13 @@ tr td:last-child > div {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.item-cell:first-child {
+.item-name-and-buttons-holder {
   cursor: pointer;
 }
-.item-cell:first-child:hover .item-menu-buttons {
+.item-name-and-buttons-holder:hover .item-menu-buttons {
   display: flex !important;
 }
-.item-cell:first-child:hover .item-text {
+.item-name-and-buttons-holder:hover .item-text {
   display: none !important;
 }
 .item-name-and-buttons-holder {

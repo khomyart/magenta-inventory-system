@@ -131,13 +131,35 @@
       <q-toolbar class="text-black filter q-px-none bg-white">
         <q-btn flat stretch class="filter-button">
           <div
-            :style="`min-width: ${filterSettings.fieldWidths.name}px; text-align: start`"
+            :style="`min-width: ${fieldWidths.article}px; text-align: start`"
           >
+            Артикул
+          </div>
+
+          <q-menu
+            self="bottom middle"
+            :offset="[-fieldWidths.article / 2 - 16, 102]"
+          >
+            <q-list style="min-width: 250px">
+              <q-item clickable v-close-popup>
+                <q-item-section>New tab</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup>
+                <q-item-section>New incognito tab</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+        <div class="filter-separator" name="article">
+          <div class="vertical-line"></div>
+        </div>
+        <q-btn flat stretch class="filter-button">
+          <div :style="`min-width: ${fieldWidths.name}px; text-align: start`">
             Назва
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.name / 2 - 16, 102]"
+            :offset="[-fieldWidths.name / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -149,18 +171,16 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <div class="filter-separator name-separator">
+        <div class="filter-separator" name="name">
           <div class="vertical-line"></div>
         </div>
         <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${filterSettings.fieldWidths.type}px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.type}px; text-align: start`">
             Вид
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.type / 2 - 16, 102]"
+            :offset="[-fieldWidths.type / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -172,18 +192,16 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <div class="filter-separator type-separator">
+        <div class="filter-separator" name="type">
           <div class="vertical-line"></div>
         </div>
         <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${filterSettings.fieldWidths.gender}px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.gender}px; text-align: start`">
             Стать
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.gender / 2 - 16, 102]"
+            :offset="[-fieldWidths.gender / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -195,18 +213,16 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <div class="filter-separator gender-separator">
+        <div class="filter-separator" name="gender">
           <div class="vertical-line"></div>
         </div>
         <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${filterSettings.fieldWidths.size}px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.size}px; text-align: start`">
             Розмір
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.size / 2 - 16, 102]"
+            :offset="[-fieldWidths.size / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -218,19 +234,17 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <div class="filter-separator size-separator">
+        <div class="filter-separator" name="size">
           <div class="vertical-line"></div>
         </div>
 
         <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${filterSettings.fieldWidths.color}px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.color}px; text-align: start`">
             Колір
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.color / 2 - 16, 102]"
+            :offset="[-fieldWidths.color / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -242,22 +256,42 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <div class="filter-separator color-separator">
+        <div class="filter-separator" name="color">
           <div class="vertical-line"></div>
         </div>
 
         <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${
-              filterSettings.fieldWidths.amount -
-              filterSettings.params.xScrollWidth
-            }px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.amount}px; text-align: start`">
             Кількість
           </div>
           <q-menu
             self="bottom middle"
-            :offset="[-filterSettings.fieldWidths.amount / 2 - 16, 102]"
+            :offset="[-fieldWidths.amount / 2 - 16, 102]"
+          >
+            <q-list style="min-width: 250px">
+              <q-item clickable v-close-popup>
+                <q-item-section>New tab 1</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup>
+                <q-item-section>New incognito tab</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+        <div class="filter-separator" name="amount">
+          <div class="vertical-line"></div>
+        </div>
+        <q-btn flat stretch class="filter-button">
+          <div
+            :style="`min-width: ${
+              fieldWidths.units - filterWidthSettings.options.xScrollWidth
+            }px; text-align: start`"
+          >
+            Одиниці
+          </div>
+          <q-menu
+            self="bottom middle"
+            :offset="[-fieldWidths.units / 2 - 16, 102]"
           >
             <q-list style="min-width: 250px">
               <q-item clickable v-close-popup>
@@ -272,29 +306,65 @@
       </q-toolbar>
       <table class="items">
         <tr>
-          <td :width="filterSettings.fieldWidths.name + 32"></td>
-          <td :width="filterSettings.params.separatorWidth"></td>
-          <td :width="filterSettings.fieldWidths.type + 32"></td>
-          <td :width="filterSettings.params.separatorWidth"></td>
-          <td :width="filterSettings.fieldWidths.gender + 32"></td>
-          <td :width="filterSettings.params.separatorWidth"></td>
-          <td :width="filterSettings.fieldWidths.size + 32"></td>
-          <td :width="filterSettings.params.separatorWidth"></td>
-          <td :width="filterSettings.fieldWidths.color + 32"></td>
-          <td :width="filterSettings.params.separatorWidth"></td>
           <td
             :width="
-              filterSettings.fieldWidths.amount +
-              30 -
-              filterSettings.params.xScrollWidth
+              fieldWidths.article +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.name +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.type +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.gender +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.size +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.color +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.amount +
+              filterWidthSettings.options.filterButtonXPadding
+            "
+          ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td
+            :width="
+              fieldWidths.units +
+              filterWidthSettings.options.filterButtonXPadding -
+              filterWidthSettings.options.xScrollWidth
             "
           ></td>
         </tr>
         <template v-for="(item, index) in newArrayOfItems" :key="index">
-          <item-component
-            :itemInfo="item"
-            :cellsWidth="filterSettings.fieldWidths"
-          ></item-component>
+          <item-component :itemInfo="item" :gap="5"></item-component>
         </template>
       </table>
     </div>
@@ -308,53 +378,68 @@ import ItemComponent from "components/ItemComponent.vue";
 
 import { useItemStore } from "src/stores/itemStore";
 
+const itemsSequance = [
+  "article",
+  "name",
+  "type",
+  "gender",
+  "size",
+  "color",
+  "amount",
+  "units",
+];
+const groupedItemsButtonTooltip = computed(() => {
+  return showGroupedItems.value ? "Розділити" : "Групувати";
+});
+const store = useItemStore();
+
 let searchInput = ref("");
 let isSearching = ref(false);
 let showGroupedItems = ref(false);
 let isCreateItemButtonActivated = ref(false);
 let newArrayOfItems = ref([]);
-
-let filterSettings = reactive({
-  fieldWidths: {
-    //px
-    name: 0,
-    type: 0,
-    gender: 0,
-    size: 0,
-    color: 0,
-    amount: 0,
-  },
+let fieldWidths = reactive({
+  //px
+  article: 0,
+  name: 0,
+  type: 0,
+  gender: 0,
+  size: 0,
+  color: 0,
+  amount: 0,
+  units: 0,
+});
+let filterWidthSettings = {
   fieldMinWidths: {
     //px
+    article: 180,
     name: 260,
-    type: 150,
-    gender: 150,
-    size: 150,
-    color: 150,
-    amount: 150,
+    type: 180,
+    gender: 180,
+    size: 180,
+    color: 180,
+    amount: 180,
+    units: 180,
   },
   fieldWidthsInPercentages: {
     //%
+    article: 14,
     name: 30,
     type: 14,
     gender: 14,
     size: 14,
     color: 14,
     amount: 14,
+    units: 14,
   },
-  params: {
+  options: {
     //px
-    minFilterButtonWidth: 140,
+    minFilterWidth: 140,
     separatorWidth: 11,
-    xScrollWidth: 10,
+    xScrollWidth: 20,
+    filterButtonXPadding: 32,
   },
-});
-
-const groupedItemsButtonTooltip = computed(() => {
-  return showGroupedItems.value ? "Розділити" : "Групувати";
-});
-
-const store = useItemStore();
+};
 
 function switchItemsView() {
   showGroupedItems.value = !showGroupedItems.value;
@@ -365,19 +450,20 @@ function createItemButtonAction() {
 }
 
 onMounted(() => {
-  let amountOfMultiplies = 4;
-  let tempItemsList = store.itemsList;
+  //just placeholder for spamming more items
+  let amountOfMultiplies = 10;
+  let tempItemsList = [...store.itemsList];
   let lengthOfItemsList = tempItemsList.length;
-
   for (let i = 0; i < amountOfMultiplies; i++) {
-    for (let j = 0; j < lengthOfItemsList; ) {
-      tempItemsList[j].id = j + lengthOfItemsList * i;
-      newArrayOfItems.value.push(tempItemsList[j]);
-    }
+    tempItemsList.forEach((item, index) => {
+      item.id = index + lengthOfItemsList * i;
+      newArrayOfItems.value.push(item);
+    });
   }
-  // console.log(newArrayOfItems);
 
-  //set up default values for filter fields width according to config
+  /*
+    setting up default values for filter fields width according to config
+  */
   let contentElement = document.querySelector(".content");
   //get .content div padding
   let contentWidth = contentElement.offsetWidth;
@@ -388,64 +474,65 @@ onMounted(() => {
   let separatorWidth = document.querySelector(".filter-separator").offsetWidth;
 
   let fieldNumber = 1;
-  for (const fieldName in filterSettings.fieldWidths) {
-    filterSettings.fieldWidths[fieldName] =
+  for (const fieldName in fieldWidths) {
+    fieldWidths[fieldName] =
       contentWidth *
-        (filterSettings.fieldWidthsInPercentages[fieldName] / 100) -
-      32;
+        (filterWidthSettings.fieldWidthsInPercentages[fieldName] / 100) -
+      filterWidthSettings.options.filterButtonXPadding;
     //substracting value according to container padding devided by amount of filter parameters
-    filterSettings.fieldWidths[fieldName] -=
-      contentPaddingX / Object.keys(filterSettings.fieldWidths).length;
+    fieldWidths[fieldName] -= contentPaddingX / Object.keys(fieldWidths).length;
     //if filter item is not last -> substract width of separator
-    if (Object.keys(filterSettings.fieldWidths).length != fieldNumber) {
-      filterSettings.fieldWidths[fieldName] -= separatorWidth;
+    if (Object.keys(fieldWidths).length != fieldNumber) {
+      fieldWidths[fieldName] -= separatorWidth;
     }
-    //set minimum width of fields in case, if calculated is less than set minimum
+    //set minimum width of fields in case, if calculated is less than established minimum
     if (
-      filterSettings.fieldWidths[fieldName] <
-      filterSettings.fieldMinWidths[fieldName]
+      fieldWidths[fieldName] < filterWidthSettings.fieldMinWidths[fieldName]
     ) {
-      filterSettings.fieldWidths[fieldName] =
-        filterSettings.fieldMinWidths[fieldName];
+      fieldWidths[fieldName] = filterWidthSettings.fieldMinWidths[fieldName];
     }
 
     fieldNumber += 1;
   }
 
-  let nameSeparator = document.querySelector(".name-separator");
-  let typeSeparator = document.querySelector(".type-separator");
-  let genderSeparator = document.querySelector(".gender-separator");
-  let sizeSeparator = document.querySelector(".size-separator");
-  let colorSeparator = document.querySelector(".color-separator");
-  // let amountSeparator = document.querySelector(".amount-separator");
-  let filterButtons = document.querySelectorAll(".filter-button");
-
+  /*
+    adding to all separators drag actions
+  */
   let qApp = document.querySelector("#q-app");
 
   function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
     separatorObject.onmousedown = (mouseDownEvent) => {
-      filterButtons.forEach((button) => {
-        button.style.cursor = "col-resize";
-      });
-
       qApp.classList.add("disable-interaction");
       // items.classList.add("disable-interaction");
 
       let initCursorCoord = mouseDownEvent.screenX;
-      let initFieldWidth = filterSettings.fieldWidths[fieldName];
-      let initAffectedFieldWidth =
-        filterSettings.fieldWidths[affectedFieldName];
+      let initFieldWidth = fieldWidths[fieldName];
+      let initAffectedFieldWidth = fieldWidths[affectedFieldName];
 
       document.body.onmousemove = (mouseMoveEvent) => {
+        // let interval = setTimeout(() => {
+        //   if (
+        //     initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
+        //       filterWidthSettings.options.minFilterWidth &&
+        //     initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
+        //       filterWidthSettings.options.minFilterWidth
+        //   ) {
+        //     fieldWidths[fieldName] =
+        //       initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
+        //     fieldWidths[affectedFieldName] =
+        //       initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
+        //   }
+        // }, 2);
+
         if (
           initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
-            filterSettings.params.minFilterButtonWidth &&
+            filterWidthSettings.options.minFilterWidth &&
           initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
-            filterSettings.params.minFilterButtonWidth
+            filterWidthSettings.options.minFilterWidth
         ) {
-          filterSettings.fieldWidths[fieldName] =
+          fieldWidths[fieldName] =
             initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-          filterSettings.fieldWidths[affectedFieldName] =
+          fieldWidths[affectedFieldName] =
             initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
         }
 
@@ -453,9 +540,6 @@ onMounted(() => {
           document.body.onmousemove = null;
           document.body.onmouseup = null;
           qApp.classList.remove("disable-interaction");
-          filterButtons.forEach((button) => {
-            button.style.cursor = "pointer";
-          });
         };
       };
     };
@@ -463,18 +547,16 @@ onMounted(() => {
       document.body.onmousemove = null;
       document.body.onmouseup = null;
       qApp.classList.remove("disable-interaction");
-      filterButtons.forEach((button) => {
-        button.style.cursor = "pointer";
-      });
     };
   }
 
-  addEventToSeparator(nameSeparator, "name", "type");
-  addEventToSeparator(typeSeparator, "type", "gender");
-  addEventToSeparator(genderSeparator, "gender", "size");
-  addEventToSeparator(sizeSeparator, "size", "color");
-  addEventToSeparator(colorSeparator, "color", "amount");
-  // addEventToSeparator(amountSeparator, "amount");
+  for (let i = 0; i < itemsSequance.length - 1; i++) {
+    console.log(itemsSequance[i]);
+    let currentItem = document.querySelector(
+      `.filter-separator[name='${itemsSequance[i]}']`
+    );
+    addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+  }
 });
 </script>
 
@@ -532,7 +614,7 @@ onMounted(() => {
   width: 100px;
 }
 .footer {
-  min-height: 50px;
+  min-height: var(--footer-height);
   background-color: beige;
 }
 </style>

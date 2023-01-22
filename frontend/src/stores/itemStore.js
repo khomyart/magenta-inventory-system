@@ -5,6 +5,7 @@ export const useItemStore = defineStore("item", {
     itemsList: [
       {
         id: null,
+        article: "3341125",
         name: "Sweet Hoody Test of Rookola",
         images: [
           "/src/assets/magenta-logo.png",
@@ -28,9 +29,11 @@ export const useItemStore = defineStore("item", {
           textColor: "#ffffff",
         },
         amount: 3568,
+        units: "од",
       },
       {
         id: null,
+        article: "3341125",
         name: "Sweet Hoody 2 Test of Rookola",
         images: [
           "/src/assets/magenta-logo.png",
@@ -55,9 +58,11 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
+        units: "м3",
       },
       {
         id: null,
+        article: "3341125",
         name: "Poodatty",
         images: ["/src/assets/magenta-logo.png"],
         type: {
@@ -78,9 +83,11 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
+        units: "кг",
       },
       {
         id: null,
+        article: "3341125",
         name: "Poodatty",
         images: [],
         type: {
@@ -101,6 +108,7 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
+        units: "л",
       },
     ],
   }),

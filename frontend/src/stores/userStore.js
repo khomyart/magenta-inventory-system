@@ -8,7 +8,8 @@ export const useUserStore = defineStore("user", {
       name: "",
       email: "",
     },
-    token: null,
+    token: "null1",
+    // token: null,
   }),
   getters: {},
   actions: {

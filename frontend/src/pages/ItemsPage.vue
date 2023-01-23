@@ -409,6 +409,17 @@ let fieldWidths = reactive({
   amount: 0,
   units: 0,
 });
+let tempFieldWidths = reactive({
+  //px
+  article: 0,
+  name: 0,
+  type: 0,
+  gender: 0,
+  size: 0,
+  color: 0,
+  amount: 0,
+  units: 0,
+});
 let filterWidthSettings = {
   fieldMinWidths: {
     //px
@@ -502,56 +513,56 @@ onMounted(() => {
 
   function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
     separatorObject.onmousedown = (mouseDownEvent) => {
+      //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
-      // items.classList.add("disable-interaction");
+      //applying current filter width values to temp filter object
+      Object.keys(fieldWidths).forEach((field) => {
+        tempFieldWidths[field] = fieldWidths[field];
+      });
 
       let initCursorCoord = mouseDownEvent.screenX;
       let initFieldWidth = fieldWidths[fieldName];
       let initAffectedFieldWidth = fieldWidths[affectedFieldName];
+      let minFilterWidth = filterWidthSettings.options.minFilterWidth;
 
-      document.body.onmousemove = (mouseMoveEvent) => {
-        // let interval = setTimeout(() => {
-        //   if (
-        //     initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
-        //       filterWidthSettings.options.minFilterWidth &&
-        //     initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
-        //       filterWidthSettings.options.minFilterWidth
-        //   ) {
-        //     fieldWidths[fieldName] =
-        //       initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-        //     fieldWidths[affectedFieldName] =
-        //       initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
-        //   }
-        // }, 2);
+      function releaseSeparator() {
+        document.body.onmousemove = null;
+        document.body.onmouseup = null;
+        qApp.classList.remove("disable-interaction");
 
-        if (
-          initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
-            filterWidthSettings.options.minFilterWidth &&
-          initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
-            filterWidthSettings.options.minFilterWidth
-        ) {
-          fieldWidths[fieldName] =
-            initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-          fieldWidths[affectedFieldName] =
-            initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
+        //set field width according to minFilterWidth if satisfies the condition
+        if (tempFieldWidths[fieldName] < minFilterWidth) {
+          tempFieldWidths[fieldName] = minFilterWidth;
+          tempFieldWidths[affectedFieldName] =
+            initAffectedFieldWidth + (initFieldWidth - minFilterWidth);
+        } else if (tempFieldWidths[affectedFieldName] < minFilterWidth) {
+          tempFieldWidths[affectedFieldName] = minFilterWidth;
+          tempFieldWidths[fieldName] =
+            initFieldWidth + (initAffectedFieldWidth - minFilterWidth);
         }
 
+        //bringing active value back to actual fieldWidth object
+        fieldWidths[fieldName] = tempFieldWidths[fieldName];
+        fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+      }
+
+      document.body.onmousemove = (mouseMoveEvent) => {
+        tempFieldWidths[fieldName] =
+          initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
+        tempFieldWidths[affectedFieldName] =
+          initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
+
         document.body.onmouseup = () => {
-          document.body.onmousemove = null;
-          document.body.onmouseup = null;
-          qApp.classList.remove("disable-interaction");
+          releaseSeparator();
         };
       };
     };
     separatorObject.onmouseup = () => {
-      document.body.onmousemove = null;
-      document.body.onmouseup = null;
-      qApp.classList.remove("disable-interaction");
+      releaseSeparator();
     };
   }
 
   for (let i = 0; i < itemsSequance.length - 1; i++) {
-    console.log(itemsSequance[i]);
     let currentItem = document.querySelector(
       `.filter-separator[name='${itemsSequance[i]}']`
     );

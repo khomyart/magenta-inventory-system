@@ -1,5 +1,4 @@
 <template>
-  <!-- <tr class="row no-wrap q-mt-md item q-py-sm"> -->
   <tr :height="props.gap"></tr>
   <tr class="item">
     <td class="item-cell">

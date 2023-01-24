@@ -367,8 +367,8 @@
           <item-component :itemInfo="item" :gap="5"></item-component>
         </template>
       </table>
+      <div class="filter-width-helper"></div>
     </div>
-    <div class="row footer q-mt-md"></div>
   </div>
 </template>
 
@@ -446,7 +446,7 @@ let filterWidthSettings = {
   options: {
     //px
     minFilterWidth: 140,
-    separatorWidth: 11,
+    separatorWidth: 10,
     xScrollWidth: 20,
     filterButtonXPadding: 32,
   },
@@ -510,8 +510,20 @@ onMounted(() => {
     adding to all separators drag actions
   */
   let qApp = document.querySelector("#q-app");
+  let pageContainer = document.querySelector(".content");
+  let filter = document.querySelector(".filter");
+  // let element = document.querySelector(".filter-width-helper");
+  // element.style.height = `${document.querySelector(".content").clientHeight}px`;
 
   function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
+    function separatorMovementVisualisation() {
+      let devider = document.createElement("div");
+      devider.classList.add("filter-width-helper");
+      devider.style.height = `${pageContainer.clientHeight}px`;
+      pageContainer.appendChild(devider);
+      return devider;
+    }
+
     separatorObject.onmousedown = (mouseDownEvent) => {
       //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
@@ -524,8 +536,16 @@ onMounted(() => {
       let initFieldWidth = fieldWidths[fieldName];
       let initAffectedFieldWidth = fieldWidths[affectedFieldName];
       let minFilterWidth = filterWidthSettings.options.minFilterWidth;
-
-      function releaseSeparator() {
+      //working with visualistion of separator movement
+      let devider = separatorMovementVisualisation();
+      devider.style.top = `${filter.offsetTop}px`;
+      devider.style.left = `${
+        separatorObject.getBoundingClientRect().x -
+        pageContainer.getBoundingClientRect().x +
+        filterWidthSettings.options.separatorWidth / 2
+      }px`;
+      function onSeparatorRelease() {
+        devider.remove();
         document.body.onmousemove = null;
         document.body.onmouseup = null;
         qApp.classList.remove("disable-interaction");
@@ -553,12 +573,12 @@ onMounted(() => {
           initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
 
         document.body.onmouseup = () => {
-          releaseSeparator();
+          onSeparatorRelease();
         };
       };
     };
     separatorObject.onmouseup = () => {
-      releaseSeparator();
+      onSeparatorRelease();
     };
   }
 
@@ -594,6 +614,14 @@ onMounted(() => {
 .toolbar {
   overflow: visible;
   height: auto;
+}
+.filter-width-helper {
+  width: 1px;
+  position: absolute;
+  z-index: 9999;
+  border-left: 2px dotted #888;
+  top: 0;
+  left: 0;
 }
 .filter {
   width: fit-content;

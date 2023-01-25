@@ -196,6 +196,7 @@
         </div>
       </div>
     </td>
+    <td class="separator-cell"><div></div></td>
   </tr>
 
   <q-dialog v-model="showEditItemDialog" seamless>
@@ -432,7 +433,7 @@ tr td:first-child > div {
   border-radius: 3px 0 0 3px;
 }
 
-tr td:nth-child(n + 1):nth-child(-n + 14) > div {
+tr td:nth-child(n + 1):nth-child(-n + 15) > div {
   border-top: var(--cell-border-style);
   border-bottom: var(--cell-border-style);
 }

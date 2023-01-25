@@ -303,6 +303,9 @@
             </q-list>
           </q-menu>
         </q-btn>
+        <div class="filter-separator" name="units">
+          <div class="vertical-line"></div>
+        </div>
       </q-toolbar>
       <table class="items">
         <tr>
@@ -362,13 +365,14 @@
               filterWidthSettings.options.xScrollWidth
             "
           ></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
         </tr>
         <template v-for="(item, index) in newArrayOfItems" :key="index">
           <item-component :itemInfo="item" :gap="5"></item-component>
         </template>
       </table>
-      <div class="filter-width-helper"></div>
     </div>
+    <div class="footer"></div>
   </div>
 </template>
 
@@ -445,10 +449,12 @@ let filterWidthSettings = {
   },
   options: {
     //px
-    minFilterWidth: 140,
+    minFilterWidth: 90,
     separatorWidth: 10,
     xScrollWidth: 20,
     filterButtonXPadding: 32,
+    //affected || straight
+    resizeMode: "straight",
   },
 };
 
@@ -512,15 +518,29 @@ onMounted(() => {
   let qApp = document.querySelector("#q-app");
   let pageContainer = document.querySelector(".content");
   let filter = document.querySelector(".filter");
-  // let element = document.querySelector(".filter-width-helper");
-  // element.style.height = `${document.querySelector(".content").clientHeight}px`;
 
-  function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
+  /**
+   * @param {htmlObject} separatorObject
+   * @param {string} fieldName
+   * @param {string} affectedFieldName
+   */
+  function addEventToSeparator(
+    separatorObject,
+    fieldName,
+    affectedFieldName = null
+  ) {
     function separatorMovementVisualisation() {
       let devider = document.createElement("div");
       devider.classList.add("filter-width-helper");
       devider.style.height = `${pageContainer.clientHeight}px`;
       pageContainer.appendChild(devider);
+      devider.style.top = `${filter.offsetTop}px`;
+      devider.style.left = `${
+        separatorObject.getBoundingClientRect().x -
+        pageContainer.getBoundingClientRect().x +
+        filterWidthSettings.options.separatorWidth / 2
+      }px`;
+
       return devider;
     }
 
@@ -532,45 +552,57 @@ onMounted(() => {
         tempFieldWidths[field] = fieldWidths[field];
       });
 
-      let initCursorCoord = mouseDownEvent.screenX;
+      let initCursorCoord = mouseDownEvent.pageX;
       let initFieldWidth = fieldWidths[fieldName];
-      let initAffectedFieldWidth = fieldWidths[affectedFieldName];
+      let initAffectedFieldWidth =
+        affectedFieldName == null ? null : fieldWidths[affectedFieldName];
       let minFilterWidth = filterWidthSettings.options.minFilterWidth;
       //working with visualistion of separator movement
       let devider = separatorMovementVisualisation();
-      devider.style.top = `${filter.offsetTop}px`;
-      devider.style.left = `${
-        separatorObject.getBoundingClientRect().x -
-        pageContainer.getBoundingClientRect().x +
-        filterWidthSettings.options.separatorWidth / 2
-      }px`;
+      let initDeviderOffsetLeft = devider.offsetLeft;
+
       function onSeparatorRelease() {
         devider.remove();
         document.body.onmousemove = null;
         document.body.onmouseup = null;
         qApp.classList.remove("disable-interaction");
 
-        //set field width according to minFilterWidth if satisfies the condition
-        if (tempFieldWidths[fieldName] < minFilterWidth) {
-          tempFieldWidths[fieldName] = minFilterWidth;
-          tempFieldWidths[affectedFieldName] =
-            initAffectedFieldWidth + (initFieldWidth - minFilterWidth);
-        } else if (tempFieldWidths[affectedFieldName] < minFilterWidth) {
-          tempFieldWidths[affectedFieldName] = minFilterWidth;
-          tempFieldWidths[fieldName] =
-            initFieldWidth + (initAffectedFieldWidth - minFilterWidth);
-        }
+        if (affectedFieldName != null) {
+          //set field width according to minFilterWidth if satisfies the condition
+          if (tempFieldWidths[fieldName] < minFilterWidth) {
+            tempFieldWidths[fieldName] = minFilterWidth;
+            tempFieldWidths[affectedFieldName] =
+              initAffectedFieldWidth + (initFieldWidth - minFilterWidth);
+          } else if (tempFieldWidths[affectedFieldName] < minFilterWidth) {
+            tempFieldWidths[affectedFieldName] = minFilterWidth;
+            tempFieldWidths[fieldName] =
+              initFieldWidth + (initAffectedFieldWidth - minFilterWidth);
+          }
 
-        //bringing active value back to actual fieldWidth object
-        fieldWidths[fieldName] = tempFieldWidths[fieldName];
-        fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+          //bringing active value back to actual fieldWidth object
+          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+          fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+        } else {
+          if (tempFieldWidths[fieldName] < minFilterWidth) {
+            tempFieldWidths[fieldName] = minFilterWidth;
+          }
+
+          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+        }
       }
 
       document.body.onmousemove = (mouseMoveEvent) => {
+        devider.style.left = `${
+          initDeviderOffsetLeft + mouseMoveEvent.pageX - initCursorCoord
+        }px`;
+
         tempFieldWidths[fieldName] =
-          initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-        tempFieldWidths[affectedFieldName] =
-          initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
+          initFieldWidth + mouseMoveEvent.pageX - initCursorCoord;
+
+        if (affectedFieldName != null) {
+          tempFieldWidths[affectedFieldName] =
+            initAffectedFieldWidth - mouseMoveEvent.pageX + initCursorCoord;
+        }
 
         document.body.onmouseup = () => {
           onSeparatorRelease();
@@ -582,11 +614,21 @@ onMounted(() => {
     };
   }
 
-  for (let i = 0; i < itemsSequance.length - 1; i++) {
+  for (let i = 0; i < itemsSequance.length; i++) {
     let currentItem = document.querySelector(
       `.filter-separator[name='${itemsSequance[i]}']`
     );
-    addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+
+    if (filterWidthSettings.options.resizeMode == "straight") {
+      addEventToSeparator(currentItem, itemsSequance[i]);
+    }
+
+    if (filterWidthSettings.options.resizeMode == "affected") {
+      if (i > itemsSequance.length - 2) {
+        continue;
+      }
+      addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+    }
   }
 });
 </script>
@@ -619,7 +661,7 @@ onMounted(() => {
   width: 1px;
   position: absolute;
   z-index: 9999;
-  border-left: 2px dotted #888;
+  border-left: 2px solid #a32cc7;
   top: 0;
   left: 0;
 }
@@ -642,7 +684,7 @@ onMounted(() => {
   overflow: auto;
   height: 100%;
   width: 100%;
-  padding: 0px 3px 30px 10px;
+  padding: 0px 20px 30px 10px;
 }
 .items-container {
   width: fit-content;

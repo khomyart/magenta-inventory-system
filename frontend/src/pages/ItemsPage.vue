@@ -129,11 +129,27 @@
 
     <div class="content">
       <q-toolbar class="text-black filter q-px-none bg-white">
+        <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
+          <q-menu :offset="[11, 9]">
+            <q-list style="min-width: 100px">
+              <q-item clickable v-close-popup>
+                <q-item-section>Застосувати фільтр</q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item clickable v-close-popup>
+                <q-item-section>Скинути значення</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+        <div class="filter-separator">
+          <div class="vertical-line"></div>
+        </div>
         <q-btn flat stretch class="filter-button">
           <div
             :style="`min-width: ${fieldWidths.article}px; text-align: start`"
           >
-            Артикул
+            Артикль
           </div>
 
           <q-menu
@@ -309,6 +325,8 @@
       </q-toolbar>
       <table class="items">
         <tr>
+          <td :width="60"></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
           <td
             :width="
               fieldWidths.article +
@@ -365,14 +383,19 @@
               filterWidthSettings.options.xScrollWidth
             "
           ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
+          <td :width="filterWidthSettings.options.separatorWidth + 4"></td>
         </tr>
         <template v-for="(item, index) in newArrayOfItems" :key="index">
           <item-component :itemInfo="item" :gap="5"></item-component>
         </template>
       </table>
     </div>
-    <div class="footer"></div>
+
+    <div class="footer">
+      <div class="q-pa-lg flex flex-center">
+        <q-pagination v-model="currentPage" :max="5" input />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -400,8 +423,9 @@ const store = useItemStore();
 let searchInput = ref("");
 let isSearching = ref(false);
 let showGroupedItems = ref(false);
+let currentPage = ref(1);
 let isCreateItemButtonActivated = ref(false);
-let newArrayOfItems = ref([]);
+let newArrayOfItems = [];
 let fieldWidths = reactive({
   //px
   article: 0,
@@ -473,11 +497,11 @@ onMounted(() => {
   let lengthOfItemsList = tempItemsList.length;
   for (let i = 0; i < amountOfMultiplies; i++) {
     tempItemsList.forEach((item, index) => {
-      item.id = index + lengthOfItemsList * i;
-      newArrayOfItems.value.push(item);
+      newArrayOfItems.push(Object.assign({}, item));
+      newArrayOfItems[index + lengthOfItemsList * i].id =
+        index + lengthOfItemsList * i;
     });
   }
-
   /*
     setting up default values for filter fields width according to config
   */
@@ -631,6 +655,10 @@ onMounted(() => {
     }
   }
 });
+// document.body.addEventListener("click", function (e) {
+//   console.log("bodya");
+//   console.log(e);
+// });
 </script>
 
 <style>
@@ -669,9 +697,12 @@ onMounted(() => {
   width: fit-content;
   position: sticky;
   top: 0px;
+  z-index: 9999;
+}
+div[name] {
+  cursor: col-resize;
 }
 .filter-separator {
-  cursor: col-resize;
   padding: 0 5px;
   height: 100%;
 }

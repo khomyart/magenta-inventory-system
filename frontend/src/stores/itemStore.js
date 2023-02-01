@@ -29,7 +29,10 @@ export const useItemStore = defineStore("item", {
           textColor: "#ffffff",
         },
         amount: 3568,
-        units: "од",
+        units: {
+          value: "од",
+          description: "одиниці",
+        },
       },
       {
         id: null,
@@ -58,7 +61,10 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
-        units: "м3",
+        units: {
+          value: "м3",
+          description: "метри кубічні",
+        },
       },
       {
         id: null,
@@ -83,7 +89,10 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
-        units: "кг",
+        units: {
+          value: "кг",
+          description: "кілограми",
+        },
       },
       {
         id: null,
@@ -108,7 +117,10 @@ export const useItemStore = defineStore("item", {
           textColor: "#000000",
         },
         amount: 60999,
-        units: "л",
+        units: {
+          value: "л",
+          description: "літри",
+        },
       },
     ],
   }),

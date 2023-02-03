@@ -1,9 +1,65 @@
 <template>
-  <!-- <tr class="row no-wrap q-mt-md item q-py-sm"> -->
   <tr :height="props.gap"></tr>
-  <tr class="item">
+  <tr class="item" :id="`item${props.itemInfo.id}`">
     <td class="item-cell">
       <div>
+        <q-btn icon="list" round flat>
+          <q-menu :offset="[5, 5]">
+            <q-list style="min-width: 100px">
+              <q-item
+                clickable
+                v-close-popup
+                v-if="props.itemInfo.images.length != 0"
+                @click="showImage = !showImage"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="photo" left></q-icon>
+                  <span>Показати зображення</span>
+                </div>
+              </q-item>
+              <q-item
+                clickable
+                v-close-popup
+                @click="generateQrCode(props.itemInfo.id)"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="qr_code" left></q-icon>
+                  <span>Згенерувати QR-код</span>
+                </div>
+              </q-item>
+              <q-separator />
+
+              <q-item
+                clickable
+                v-close-popup
+                @click="showEditItemDialog = !showEditItemDialog"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="edit" left></q-icon>
+                  <span>Редагувати</span>
+                </div>
+              </q-item>
+              <q-item
+                clickable
+                v-close-popup
+                @click="showRemoveItemDialog = !showRemoveItemDialog"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" color="red" name="delete" left></q-icon>
+                  <span>Видалити</span>
+                </div>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+    <td class="item-cell">
+      <div
+        style="cursor: pointer"
+        @click="copyValue(props.itemInfo.article, 'Артикль')"
+      >
         <div class="item-article">
           {{ props.itemInfo.article }}
         </div>
@@ -11,96 +67,8 @@
     </td>
     <td class="separator-cell"><div></div></td>
     <td class="item-cell">
-      <div class="item-name-and-buttons-holder">
-        <div class="item-menu-buttons items-center flex q-pr-lg">
-          <q-btn
-            round
-            flat
-            color="black"
-            dense
-            icon="edit"
-            @click="showEditItemDialog = !showEditItemDialog"
-          >
-            <q-tooltip
-              class="bg-black text-body2"
-              anchor="bottom left"
-              :offset="[-37, 7]"
-            >
-              Редагувати
-            </q-tooltip>
-          </q-btn>
-          <q-btn
-            round
-            flat
-            color="red"
-            dense
-            icon="delete"
-            @click="showRemoveItemDialog = !showRemoveItemDialog"
-          >
-            <q-tooltip
-              class="bg-black text-body2"
-              anchor="bottom left"
-              :offset="[-15, 7]"
-            >
-              Видалити
-            </q-tooltip>
-          </q-btn>
-          <q-separator vertical></q-separator>
-          <q-btn
-            round
-            flat
-            color="black"
-            @click="copyValue(props.itemInfo.name, 'Назву')"
-            dense
-            icon="content_paste"
-          >
-            <q-tooltip
-              class="bg-black text-body2"
-              anchor="bottom left"
-              :offset="[-15, 7]"
-            >
-              Копіювати назву
-            </q-tooltip>
-          </q-btn>
-          <q-btn
-            round
-            flat
-            color="black"
-            dense
-            icon="qr_code"
-            @click="generateQrCode(props.itemInfo.id)"
-          >
-            <q-tooltip
-              class="bg-black text-body2"
-              anchor="bottom left"
-              :offset="[-15, 7]"
-            >
-              Згенерувати QR-код
-            </q-tooltip>
-          </q-btn>
-          <q-separator vertical></q-separator>
-          <q-btn
-            @click="showImage = !showImage"
-            round
-            flat
-            :disable="props.itemInfo.images.length == 0"
-            color="black"
-            dense
-            icon="photo"
-          >
-            <q-tooltip
-              class="bg-black text-body2"
-              anchor="center right"
-              self="center left"
-              :offset="[10, 10]"
-            >
-              {{ showImageTooltip }}
-            </q-tooltip>
-          </q-btn>
-        </div>
-        <div class="item-text">
-          {{ props.itemInfo.name }}
-        </div>
+      <div class="item-name" @click="copyValue(props.itemInfo.name, 'Назву')">
+        {{ props.itemInfo.name }}
       </div>
     </td>
     <td class="separator-cell"><div></div></td>
@@ -146,7 +114,7 @@
             {{ props.itemInfo.size.name }}
           </span>
           <q-tooltip
-            :offset="[10, 5]"
+            :offset="[0, 5]"
             :target="`#size-of-item-${props.itemInfo.id}`"
             class="bg-black text-body2"
             anchor="center left"
@@ -190,13 +158,22 @@
       </div>
     </td>
     <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
+    <td class="item-cell" :id="`unit-of-item-${props.itemInfo.id}`">
       <div>
         <div class="item-units">
-          {{ props.itemInfo.units }}
+          {{ props.itemInfo.units.value }}
         </div>
       </div>
+      <q-tooltip
+        :offset="[0, 5]"
+        :target="`#unit-of-item-${props.itemInfo.id}`"
+        class="bg-black text-body2"
+        anchor="center left"
+        self="center right"
+        >{{ props.itemInfo.units.description }}</q-tooltip
+      >
     </td>
+    <td class="separator-cell"><div></div></td>
   </tr>
 
   <q-dialog v-model="showEditItemDialog" seamless>
@@ -331,9 +308,6 @@ import { computed, ref, reactive } from "vue";
 
 const props = defineProps(["itemInfo", "gap"]);
 const $q = useQuasar();
-const showImageTooltip = computed(() => {
-  return showImage.value ? "Сховати зображення" : "Показати зображення";
-});
 
 let showItemName = ref(true),
   slide = ref(1),
@@ -346,6 +320,14 @@ let editItemForm = reactive({
   id: "",
   name: "",
   type: "",
+});
+
+let contextMenuOptions = reactive({
+  isShown: false,
+  offset: {
+    x: 0,
+    y: 0,
+  },
 });
 
 function copyValue(value, paramName) {
@@ -407,6 +389,7 @@ async function copyImage(imageSrc) {
 .item-cell {
   padding: 0px;
 }
+
 .item-cell > div {
   width: 100%;
   display: flex;
@@ -433,7 +416,7 @@ tr td:first-child > div {
   border-radius: 3px 0 0 3px;
 }
 
-tr td:nth-child(n + 1):nth-child(-n + 14) > div {
+tr td:nth-child(n + 1):nth-child(-n + 25) > div {
   border-top: var(--cell-border-style);
   border-bottom: var(--cell-border-style);
 }
@@ -445,32 +428,19 @@ tr td:last-child > div {
   border-radius: 0 3px 3px 0;
 }
 
-.item-text {
+.context-menu-item {
+  display: flex;
+  align-items: center;
+}
+.context-menu-item span {
+  /* font-size: 1rem; */
+}
+.item-name {
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-.item-name-and-buttons-holder {
   cursor: pointer;
 }
-.item-name-and-buttons-holder:hover .item-menu-buttons {
-  display: flex !important;
-}
-.item-name-and-buttons-holder:hover .item-text {
-  display: none !important;
-}
-.item-name-and-buttons-holder {
-}
-.item-menu-buttons {
-  width: fit-content;
-  transition: all 0.5s ease-in-out;
-  display: none !important;
-}
-.item-menu-buttons > * {
-  margin-right: 10px;
-}
-.activated-text-item {
-  margin-left: 30px;
-}
+
 .item-type {
   display: flex;
   align-items: center;

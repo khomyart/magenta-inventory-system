@@ -129,11 +129,27 @@
 
     <div class="content">
       <q-toolbar class="text-black filter q-px-none bg-white">
+        <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
+          <q-menu :offset="[11, 9]">
+            <q-list style="min-width: 100px">
+              <q-item clickable v-close-popup>
+                <q-item-section>Застосувати фільтр</q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item clickable v-close-popup>
+                <q-item-section>Скинути значення</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+        <div class="filter-separator">
+          <div class="vertical-line"></div>
+        </div>
         <q-btn flat stretch class="filter-button">
           <div
             :style="`min-width: ${fieldWidths.article}px; text-align: start`"
           >
-            Артикул
+            Артикль
           </div>
 
           <q-menu
@@ -303,9 +319,14 @@
             </q-list>
           </q-menu>
         </q-btn>
+        <div class="filter-separator" name="units">
+          <div class="vertical-line"></div>
+        </div>
       </q-toolbar>
       <table class="items">
         <tr>
+          <td :width="60"></td>
+          <td :width="filterWidthSettings.options.separatorWidth"></td>
           <td
             :width="
               fieldWidths.article +
@@ -362,13 +383,37 @@
               filterWidthSettings.options.xScrollWidth
             "
           ></td>
+          <td :width="filterWidthSettings.options.separatorWidth + 4"></td>
         </tr>
         <template v-for="(item, index) in newArrayOfItems" :key="index">
           <item-component :itemInfo="item" :gap="5"></item-component>
         </template>
       </table>
     </div>
-    <div class="row footer q-mt-md"></div>
+
+    <div class="footer">
+      <div class="footer-left-part flex items-center">
+        <q-pagination
+          class="q-mr-xl"
+          v-model="currentPage"
+          color="purple"
+          :max="10"
+          :max-pages="6"
+          boundary-numbers
+        />
+
+        <span class="q-mr-sm">Записів на сторінці</span>
+        <q-select
+          outlined
+          v-model="itemsPegPage"
+          :options="amountOfItemsOptions"
+          class="item-per-page-selector"
+        />
+      </div>
+      <div class="footer-right-part q-mr-md">
+        Кількість: {{ amountOfItems }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -397,8 +442,19 @@ let searchInput = ref("");
 let isSearching = ref(false);
 let showGroupedItems = ref(false);
 let isCreateItemButtonActivated = ref(false);
-let newArrayOfItems = ref([]);
+let newArrayOfItems = [];
 let fieldWidths = reactive({
+  //px
+  article: 0,
+  name: 0,
+  type: 0,
+  gender: 0,
+  size: 0,
+  color: 0,
+  amount: 0,
+  units: 0,
+});
+let tempFieldWidths = reactive({
   //px
   article: 0,
   name: 0,
@@ -434,12 +490,21 @@ let filterWidthSettings = {
   },
   options: {
     //px
-    minFilterWidth: 140,
-    separatorWidth: 11,
+    minFilterWidth: 90,
+    separatorWidth: 10,
     xScrollWidth: 20,
     filterButtonXPadding: 32,
+    //affected || straight
+    resizeMode: "straight",
   },
 };
+
+//footer
+let currentPage = ref(1),
+  itemsPegPage = ref(50),
+  itemsOnPage = ref(3),
+  amountOfItemsOptions = [10, 20, 50],
+  amountOfItems = ref(958);
 
 function switchItemsView() {
   showGroupedItems.value = !showGroupedItems.value;
@@ -456,11 +521,11 @@ onMounted(() => {
   let lengthOfItemsList = tempItemsList.length;
   for (let i = 0; i < amountOfMultiplies; i++) {
     tempItemsList.forEach((item, index) => {
-      item.id = index + lengthOfItemsList * i;
-      newArrayOfItems.value.push(item);
+      newArrayOfItems.push(Object.assign({}, item));
+      newArrayOfItems[index + lengthOfItemsList * i].id =
+        index + lengthOfItemsList * i;
     });
   }
-
   /*
     setting up default values for filter fields width according to config
   */
@@ -499,70 +564,131 @@ onMounted(() => {
     adding to all separators drag actions
   */
   let qApp = document.querySelector("#q-app");
+  let pageContainer = document.querySelector(".content");
+  let filter = document.querySelector(".filter");
 
-  function addEventToSeparator(separatorObject, fieldName, affectedFieldName) {
+  /**
+   * @param {htmlObject} separatorObject
+   * @param {string} fieldName
+   * @param {string} affectedFieldName
+   */
+  function addEventToSeparator(
+    separatorObject,
+    fieldName,
+    affectedFieldName = null
+  ) {
+    //display strip when column is moving
+    function separatorMovementVisualisation() {
+      let devider = document.createElement("div");
+      devider.classList.add("filter-width-helper");
+      devider.style.height = `${pageContainer.clientHeight}px`;
+      pageContainer.appendChild(devider);
+      devider.style.top = `${filter.offsetTop}px`;
+      devider.style.left = `${
+        separatorObject.getBoundingClientRect().x -
+        pageContainer.getBoundingClientRect().x +
+        filterWidthSettings.options.separatorWidth / 2
+      }px`;
+
+      return devider;
+    }
+
     separatorObject.onmousedown = (mouseDownEvent) => {
+      separatorObject.onmouseup = () => {
+        onSeparatorRelease();
+        console.log("release");
+      };
+      document.body.onmouseup = () => {
+        onSeparatorRelease();
+      };
+      //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
-      // items.classList.add("disable-interaction");
+      //applying current filter width values to temp filter object
+      Object.keys(fieldWidths).forEach((field) => {
+        tempFieldWidths[field] = fieldWidths[field];
+      });
 
-      let initCursorCoord = mouseDownEvent.screenX;
+      let initCursorCoord = mouseDownEvent.pageX;
       let initFieldWidth = fieldWidths[fieldName];
-      let initAffectedFieldWidth = fieldWidths[affectedFieldName];
+      let initAffectedFieldWidth =
+        affectedFieldName == null ? null : fieldWidths[affectedFieldName];
+      let minFilterWidth = filterWidthSettings.options.minFilterWidth;
+      //working with visualistion of separator movement
+      let devider = separatorMovementVisualisation();
+      let initDeviderOffsetLeft = devider.offsetLeft;
+
+      function onSeparatorRelease() {
+        devider.remove();
+        document.body.onmousemove = null;
+        document.body.onmouseup = null;
+        qApp.classList.remove("disable-interaction");
+
+        if (affectedFieldName != null) {
+          //set field width according to minFilterWidth if satisfies the condition
+          if (tempFieldWidths[fieldName] < minFilterWidth) {
+            tempFieldWidths[fieldName] = minFilterWidth;
+            tempFieldWidths[affectedFieldName] =
+              initAffectedFieldWidth + (initFieldWidth - minFilterWidth);
+          } else if (tempFieldWidths[affectedFieldName] < minFilterWidth) {
+            tempFieldWidths[affectedFieldName] = minFilterWidth;
+            tempFieldWidths[fieldName] =
+              initFieldWidth + (initAffectedFieldWidth - minFilterWidth);
+          }
+
+          //bringing active value back to actual fieldWidth object
+          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+          fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+        } else {
+          if (tempFieldWidths[fieldName] < minFilterWidth) {
+            tempFieldWidths[fieldName] = minFilterWidth;
+          }
+
+          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+        }
+      }
 
       document.body.onmousemove = (mouseMoveEvent) => {
-        // let interval = setTimeout(() => {
-        //   if (
-        //     initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
-        //       filterWidthSettings.options.minFilterWidth &&
-        //     initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
-        //       filterWidthSettings.options.minFilterWidth
-        //   ) {
-        //     fieldWidths[fieldName] =
-        //       initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-        //     fieldWidths[affectedFieldName] =
-        //       initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
-        //   }
-        // }, 2);
+        devider.style.left = `${
+          initDeviderOffsetLeft + mouseMoveEvent.pageX - initCursorCoord
+        }px`;
 
-        if (
-          initFieldWidth + mouseMoveEvent.screenX - initCursorCoord >
-            filterWidthSettings.options.minFilterWidth &&
-          initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord >
-            filterWidthSettings.options.minFilterWidth
-        ) {
-          fieldWidths[fieldName] =
-            initFieldWidth + mouseMoveEvent.screenX - initCursorCoord;
-          fieldWidths[affectedFieldName] =
-            initAffectedFieldWidth - mouseMoveEvent.screenX + initCursorCoord;
+        tempFieldWidths[fieldName] =
+          initFieldWidth + mouseMoveEvent.pageX - initCursorCoord;
+
+        if (affectedFieldName != null) {
+          tempFieldWidths[affectedFieldName] =
+            initAffectedFieldWidth - mouseMoveEvent.pageX + initCursorCoord;
         }
-
-        document.body.onmouseup = () => {
-          document.body.onmousemove = null;
-          document.body.onmouseup = null;
-          qApp.classList.remove("disable-interaction");
-        };
       };
-    };
-    separatorObject.onmouseup = () => {
-      document.body.onmousemove = null;
-      document.body.onmouseup = null;
-      qApp.classList.remove("disable-interaction");
     };
   }
 
-  for (let i = 0; i < itemsSequance.length - 1; i++) {
-    console.log(itemsSequance[i]);
+  for (let i = 0; i < itemsSequance.length; i++) {
     let currentItem = document.querySelector(
       `.filter-separator[name='${itemsSequance[i]}']`
     );
-    addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+
+    if (filterWidthSettings.options.resizeMode == "straight") {
+      addEventToSeparator(currentItem, itemsSequance[i]);
+    }
+
+    if (filterWidthSettings.options.resizeMode == "affected") {
+      if (i > itemsSequance.length - 2) {
+        continue;
+      }
+      addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+    }
   }
 });
+// document.body.addEventListener("click", function (e) {
+//   console.log("bodya");
+//   console.log(e);
+// });
 </script>
 
 <style>
 :root {
-  --footer-height: 50px;
+  --footer-height: 70px;
 }
 .disable-interaction {
   pointer-events: none;
@@ -584,13 +710,24 @@ onMounted(() => {
   overflow: visible;
   height: auto;
 }
+.filter-width-helper {
+  width: 1px;
+  position: absolute;
+  z-index: 9999;
+  border-left: 2px solid #a32cc7;
+  top: 0;
+  left: 0;
+}
 .filter {
   width: fit-content;
   position: sticky;
   top: 0px;
+  z-index: 9999;
+}
+div[name] {
+  cursor: col-resize;
 }
 .filter-separator {
-  cursor: col-resize;
   padding: 0 5px;
   height: 100%;
 }
@@ -603,7 +740,7 @@ onMounted(() => {
   overflow: auto;
   height: 100%;
   width: 100%;
-  padding: 0px 3px 30px 10px;
+  padding: 0px 20px 30px 10px;
 }
 .items-container {
   width: fit-content;
@@ -615,6 +752,10 @@ onMounted(() => {
 }
 .footer {
   min-height: var(--footer-height);
-  background-color: beige;
+  /* background-color: beige; */
+  display: flex;
+  align-items: center;
+  direction: row;
+  justify-content: space-between;
 }
 </style>

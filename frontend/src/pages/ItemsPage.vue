@@ -392,8 +392,26 @@
     </div>
 
     <div class="footer">
-      <div class="q-pa-lg flex flex-center">
-        <q-pagination v-model="currentPage" :max="5" input />
+      <div class="footer-left-part flex items-center">
+        <q-pagination
+          class="q-mr-xl"
+          v-model="currentPage"
+          color="purple"
+          :max="10"
+          :max-pages="6"
+          boundary-numbers
+        />
+
+        <span class="q-mr-sm">Записів на сторінці</span>
+        <q-select
+          outlined
+          v-model="itemsPegPage"
+          :options="amountOfItemsOptions"
+          class="item-per-page-selector"
+        />
+      </div>
+      <div class="footer-right-part q-mr-md">
+        Кількість: {{ amountOfItems }}
       </div>
     </div>
   </div>
@@ -423,7 +441,6 @@ const store = useItemStore();
 let searchInput = ref("");
 let isSearching = ref(false);
 let showGroupedItems = ref(false);
-let currentPage = ref(1);
 let isCreateItemButtonActivated = ref(false);
 let newArrayOfItems = [];
 let fieldWidths = reactive({
@@ -481,6 +498,13 @@ let filterWidthSettings = {
     resizeMode: "straight",
   },
 };
+
+//footer
+let currentPage = ref(1),
+  itemsPegPage = ref(50),
+  itemsOnPage = ref(3),
+  amountOfItemsOptions = [10, 20, 50],
+  amountOfItems = ref(958);
 
 function switchItemsView() {
   showGroupedItems.value = !showGroupedItems.value;
@@ -553,6 +577,7 @@ onMounted(() => {
     fieldName,
     affectedFieldName = null
   ) {
+    //display strip when column is moving
     function separatorMovementVisualisation() {
       let devider = document.createElement("div");
       devider.classList.add("filter-width-helper");
@@ -569,6 +594,13 @@ onMounted(() => {
     }
 
     separatorObject.onmousedown = (mouseDownEvent) => {
+      separatorObject.onmouseup = () => {
+        onSeparatorRelease();
+        console.log("release");
+      };
+      document.body.onmouseup = () => {
+        onSeparatorRelease();
+      };
       //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
       //applying current filter width values to temp filter object
@@ -627,14 +659,7 @@ onMounted(() => {
           tempFieldWidths[affectedFieldName] =
             initAffectedFieldWidth - mouseMoveEvent.pageX + initCursorCoord;
         }
-
-        document.body.onmouseup = () => {
-          onSeparatorRelease();
-        };
       };
-    };
-    separatorObject.onmouseup = () => {
-      onSeparatorRelease();
     };
   }
 
@@ -663,7 +688,7 @@ onMounted(() => {
 
 <style>
 :root {
-  --footer-height: 50px;
+  --footer-height: 70px;
 }
 .disable-interaction {
   pointer-events: none;
@@ -727,6 +752,10 @@ div[name] {
 }
 .footer {
   min-height: var(--footer-height);
-  background-color: beige;
+  /* background-color: beige; */
+  display: flex;
+  align-items: center;
+  direction: row;
+  justify-content: space-between;
 }
 </style>

@@ -4,6 +4,10 @@
   overflow: hidden;
 }
 
+.scroll {
+  overflow: hidden;
+}
+
 /* width */
 ::-webkit-scrollbar {
   width: 10px;

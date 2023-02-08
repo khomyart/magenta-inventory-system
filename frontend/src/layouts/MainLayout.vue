@@ -189,7 +189,7 @@ const menuItems = [
   {
     name: "Види",
     icon: "interests",
-    to: "/types",
+    to: "/types/1",
     type: "item",
   },
   {

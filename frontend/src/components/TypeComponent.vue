@@ -9,29 +9,6 @@
               <q-item
                 clickable
                 v-close-popup
-                v-if="props.itemInfo.images.length != 0"
-                @click="showImage = !showImage"
-              >
-                <div class="context-menu-item">
-                  <q-icon size="sm" name="photo" left></q-icon>
-                  <span>Показати зображення</span>
-                </div>
-              </q-item>
-              <q-item
-                clickable
-                v-close-popup
-                @click="generateQrCode(props.itemInfo.id)"
-              >
-                <div class="context-menu-item">
-                  <q-icon size="sm" name="qr_code" left></q-icon>
-                  <span>Згенерувати QR-код</span>
-                </div>
-              </q-item>
-              <q-separator />
-
-              <q-item
-                clickable
-                v-close-popup
                 @click="showEditItemDialog = !showEditItemDialog"
               >
                 <div class="context-menu-item">
@@ -70,98 +47,6 @@
       <div class="item-name" @click="copyValue(props.itemInfo.name, 'Назву')">
         {{ props.itemInfo.name }}
       </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
-      <div>
-        <div class="item-type">
-          {{ props.itemInfo.type.name }}
-        </div>
-      </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
-      <div>
-        <div class="item-gender">
-          {{ props.itemInfo.gender.name }}
-        </div>
-      </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
-      <div
-        :id="`size-of-item-${props.itemInfo.id}`"
-        style="cursor: pointer"
-        @click="
-          copyValue(
-            `${props.itemInfo.size.name} - ${props.itemInfo.size.description}`,
-            'Розмір'
-          )
-        "
-      >
-        <div class="item-size">
-          <span>
-            {{ props.itemInfo.size.name }}
-          </span>
-          <q-tooltip
-            :offset="[0, 5]"
-            :target="`#size-of-item-${props.itemInfo.id}`"
-            class="bg-black text-body2"
-            anchor="center left"
-            self="center right"
-            >{{ props.itemInfo.size.description }}</q-tooltip
-          >
-        </div>
-      </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
-      <div class="item-color-container">
-        <div
-          :id="`color-of-item-${props.itemInfo.id}`"
-          class="item-color"
-          :style="`background-color: ${props.itemInfo.color.value};`"
-          @click="copyValue(props.itemInfo.color.value, 'Колір')"
-        >
-          <span
-            :style="`color: ${props.itemInfo.color.textColor}`"
-            class="item-color-text"
-            >{{ props.itemInfo.color.value }}</span
-          >
-        </div>
-        <q-tooltip
-          :offset="[10, 5]"
-          :target="`#color-of-item-${props.itemInfo.id}`"
-          class="bg-black text-body2"
-          anchor="center left"
-          self="center right"
-          >{{ props.itemInfo.color.name }}</q-tooltip
-        >
-      </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell">
-      <div>
-        <div class="item-amount">
-          {{ props.itemInfo.amount }}
-        </div>
-      </div>
-    </td>
-    <td class="separator-cell"><div></div></td>
-    <td class="item-cell" :id="`unit-of-item-${props.itemInfo.id}`">
-      <div>
-        <div class="item-units">
-          {{ props.itemInfo.units.value }}
-        </div>
-      </div>
-      <q-tooltip
-        :offset="[0, 5]"
-        :target="`#unit-of-item-${props.itemInfo.id}`"
-        class="bg-black text-body2"
-        anchor="center left"
-        self="center right"
-        >{{ props.itemInfo.units.description }}</q-tooltip
-      >
     </td>
     <td class="separator-cell"><div></div></td>
   </tr>
@@ -207,66 +92,6 @@
     </q-card>
   </q-dialog>
 
-  <q-dialog v-model="showImage" seamless>
-    <q-card>
-      <q-card-section class="row items-center q-pb-md">
-        <div class="text-h6 flex items-center">
-          <q-icon name="photo" color="black" size="md" /><b class="q-ml-sm">{{
-            props.itemInfo.name
-          }}</b>
-        </div>
-        <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
-      </q-card-section>
-      <q-card-section class="q-pa-md flex justify-center">
-        <template v-if="props.itemInfo.images.length > 1">
-          <q-carousel
-            animated
-            v-model="slide"
-            arrows
-            navigation
-            infinite
-            control-color="primary"
-            style="width: 500px"
-            class="flex justify-center"
-          >
-            <q-carousel-slide
-              style="
-                width: 300px;
-                margin-top: -15px;
-                background-size: contain;
-                background-repeat: no-repeat;
-              "
-              v-for="(image, index) in props.itemInfo.images"
-              :key="index"
-              :name="index + 1"
-              :img-src="image"
-            />
-          </q-carousel>
-        </template>
-        <img
-          class="q-px-md"
-          v-else
-          style="width: 400px"
-          :src="props.itemInfo.images[0]"
-          alt=""
-        />
-      </q-card-section>
-      <q-card-section class="flex justify-center">
-        <q-btn
-          color="primary q-mr-md"
-          @click="downloadImage(props.itemInfo.images[slide - 1])"
-          >Завантажити</q-btn
-        >
-        <q-btn
-          color="primary"
-          @click="copyImage(props.itemInfo.images[slide - 1])"
-          >Копіювати</q-btn
-        >
-      </q-card-section>
-    </q-card>
-  </q-dialog>
-
   <q-dialog v-model="showRemoveItemDialog" seamless>
     <q-card>
       <q-card-section class="row items-center q-pb-none">
@@ -280,7 +105,7 @@
       </q-card-section>
 
       <q-card-section>
-        Ви справді бажаєте знищити предмет: "{{ props.itemInfo.name }}"?
+        Ви справді бажаєте знищити вид: "{{ props.itemInfo.name }}"?
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
@@ -434,10 +259,17 @@ tr td:last-child > div {
 .item-type {
   display: flex;
   align-items: center;
+}
+.item-type > span {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
+.item-type-icon {
+  --icon-width: 35px;
+  padding-right: 8px;
+  min-width: var(--icon-width);
+  max-width: var(--icon-width);
+}
 .item-gender {
   display: flex;
   align-items: center;

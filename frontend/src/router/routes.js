@@ -23,7 +23,7 @@ const routes = [
         component: () => import("pages/LogsPage.vue"),
       },
       {
-        path: "/types",
+        path: "/types/:page",
         name: "Types",
         component: () => import("pages/TypesPage.vue"),
       },

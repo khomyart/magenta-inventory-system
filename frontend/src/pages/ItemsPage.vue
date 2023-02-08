@@ -380,6 +380,7 @@
             :width="
               fieldWidths.units +
               filterWidthSettings.options.filterButtonXPadding -
+              filterWidthSettings.options.separatorWidth -
               filterWidthSettings.options.xScrollWidth
             "
           ></td>
@@ -491,7 +492,7 @@ let filterWidthSettings = {
   options: {
     //px
     minFilterWidth: 90,
-    separatorWidth: 10,
+    separatorWidth: 11,
     xScrollWidth: 20,
     filterButtonXPadding: 32,
     //affected || straight
@@ -686,76 +687,4 @@ onMounted(() => {
 // });
 </script>
 
-<style>
-:root {
-  --footer-height: 70px;
-}
-.disable-interaction {
-  pointer-events: none;
-  user-select: none;
-}
-.page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.content {
-  width: fit-content;
-  overflow: auto;
-  height: 100%;
-  width: 100%;
-  padding: 0px 5px 30px 10px;
-}
-.toolbar {
-  overflow: visible;
-  height: auto;
-}
-.filter-width-helper {
-  width: 1px;
-  position: absolute;
-  z-index: 9999;
-  border-left: 2px solid #a32cc7;
-  top: 0;
-  left: 0;
-}
-.filter {
-  width: fit-content;
-  position: sticky;
-  top: 0px;
-  z-index: 9999;
-}
-div[name] {
-  cursor: col-resize;
-}
-.filter-separator {
-  padding: 0 5px;
-  height: 100%;
-}
-.vertical-line {
-  height: 40px;
-  border-left: 1px solid rgba(0, 0, 0, 0.12);
-}
-.content {
-  width: fit-content;
-  overflow: auto;
-  height: 100%;
-  width: 100%;
-  padding: 0px 20px 30px 10px;
-}
-.items-container {
-  width: fit-content;
-}
-.items {
-  border-collapse: collapse;
-  table-layout: fixed;
-  width: 100px;
-}
-.footer {
-  min-height: var(--footer-height);
-  /* background-color: beige; */
-  display: flex;
-  align-items: center;
-  direction: row;
-  justify-content: space-between;
-}
-</style>
+<style></style>

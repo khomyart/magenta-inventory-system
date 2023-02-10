@@ -48,6 +48,9 @@
   width: 100%;
   padding: 0px 5px 30px 10px;
 }
+.q-inner-loading {
+  z-index: 1100;
+}
 .toolbar {
   overflow: visible;
   height: auto;
@@ -55,7 +58,7 @@
 .filter-width-helper {
   width: 1px;
   position: absolute;
-  z-index: 9999;
+  z-index: 1000;
   border-left: 2px solid #a32cc7;
   top: 0;
   left: 0;
@@ -64,7 +67,7 @@
   width: fit-content;
   position: sticky;
   top: 0px;
-  z-index: 9999;
+  z-index: 1000;
 }
 div[name] {
   cursor: col-resize;

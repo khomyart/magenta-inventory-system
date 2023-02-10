@@ -23,9 +23,15 @@ const routes = [
         component: () => import("pages/LogsPage.vue"),
       },
       {
-        path: "/types/:page",
-        name: "Types",
-        component: () => import("pages/TypesPage.vue"),
+        path: "/types",
+        redirect: "/types/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/TypesPage.vue"),
+            name: "Types",
+          },
+        ],
       },
       {
         path: "/sizes",

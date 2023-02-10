@@ -92,7 +92,7 @@
             <q-list>
               <q-item>
                 <q-item-section>
-                  {{ store.data.name }}
+                  {{ userStore.data.name }}
                 </q-item-section>
               </q-item>
               <q-separator />
@@ -119,7 +119,7 @@
               class="q-my-md"
             ></q-separator>
             <q-item
-              exact
+              @click="menuItem.onClick"
               :to="menuItem.to"
               clickable
               v-ripple
@@ -155,11 +155,15 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
+import { useTypeStore } from "src/stores/typeStore";
 import { api } from "src/boot/axios";
 
 const router = useRouter();
-const store = useUserStore();
+const userStore = useUserStore();
+const typeStore = useTypeStore();
+const appConfigStore = useAppConfigStore();
 
 let showToolbarTitle = ref(false);
 const menuItems = [
@@ -170,13 +174,15 @@ const menuItems = [
   {
     name: "Перелік",
     icon: "apps",
-    to: "/items",
+    to: { name: "Items" },
+    onClick: () => {},
     type: "item",
   },
   {
     name: "Лог дій",
     icon: "checklist", //edit_square, bug_report
-    to: "/logs",
+    to: { name: "Logs" },
+    onClick: () => {},
     type: "item",
   },
   {
@@ -189,31 +195,54 @@ const menuItems = [
   {
     name: "Види",
     icon: "interests",
-    to: "/types/1",
+    to: "/types",
+    onClick: () => {
+      if (
+        router.currentRoute.value.name == "Types" &&
+        appConfigStore.currentPages.types != 1
+      ) {
+        appConfigStore.currentPages.types = 1;
+      } else {
+        typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
+      }
+      //   appConfigStore.currentPages.types = 1;
+      // typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
+
+      // appConfigStore.currentPages.types = 1;
+      // if (appConfigStore.currentPages.types === 1) {
+      //   typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
+      // } else {
+
+      // }
+    },
     type: "item",
   },
   {
     name: "Розміри",
     icon: "straighten",
-    to: "/sizes",
+    to: { name: "Sizes" },
+    onClick: () => {},
     type: "item",
   },
   {
     name: "Гендери",
     icon: "face_retouching_natural",
-    to: "/genders",
+    to: { name: "Genders" },
+    onClick: () => {},
     type: "item",
   },
   {
     name: "Кольори",
     icon: "palette",
-    to: "/colors",
+    to: { name: "Colors" },
+    onClick: () => {},
     type: "item",
   },
   {
     name: "Склади",
     icon: "warehouse",
-    to: "/warehouses",
+    to: { name: "Warehouses" },
+    onClick: () => {},
     type: "item",
   },
   {
@@ -226,7 +255,8 @@ const menuItems = [
   {
     name: "Користувачі",
     icon: "manage_accounts",
-    to: "/users",
+    to: { name: "Users" },
+    onClick: () => {},
     type: "item",
   },
 ];
@@ -236,7 +266,7 @@ function axiosTestRequest() {
 
 function logout() {
   sessionStorage.removeItem("token");
-  store.token = null;
+  userStore.token = null;
   router.push("/login");
 }
 </script>

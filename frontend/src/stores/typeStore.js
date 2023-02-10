@@ -28,7 +28,12 @@ export const useTypeStore = defineStore("type", {
     receive(amountOfItemsPegPage, currentPage) {
       this.isTypesLoading = true;
       api
-        .get(`/types?itemsPerPage=${amountOfItemsPegPage}&page=${currentPage}`)
+        // .get(`/types?itemsPerPage=${amountOfItemsPegPage}&page=${currentPage}`, {
+        //   params: [{itemsPerPage: amountOfItemsPegPage}, {page: currentPage}]
+        // })
+        .get("/types", {
+          params: { itemsPerPage: amountOfItemsPegPage, page: currentPage },
+        })
         .then((res) => {
           console.log(res);
           this.items = res.data.data;

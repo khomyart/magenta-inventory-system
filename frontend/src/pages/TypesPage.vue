@@ -37,7 +37,12 @@
         round
         color="black"
         icon="sync"
-        @click="typeStore.receive(appConfigStore.amountOfItemsPerPages.types)"
+        @click="
+          typeStore.receive(
+            appConfigStore.amountOfItemsPerPages.types,
+            appConfigStore.currentPages.types
+          )
+        "
       >
         <q-tooltip
           anchor="bottom left"
@@ -50,6 +55,9 @@
     </div>
 
     <div class="content">
+      <q-inner-loading :showing="typeStore.isTypesLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none bg-white">
         <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
           <q-menu :offset="[11, 9]">
@@ -155,7 +163,7 @@
         />
         <q-separator vertical class="q-mx-md"></q-separator>
         <q-pagination
-          v-model="currentPage"
+          v-model="appConfigStore.currentPages.types"
           color="purple"
           :max="typeStore.lastPage"
           :max-pages="6"
@@ -260,20 +268,22 @@ let filterWidthSettings = {
   },
 };
 
-//footer
-let currentPage = ref(1);
-
 watch(
-  [currentPage, () => appConfigStore.amountOfItemsPerPages.types],
+  [
+    () => appConfigStore.currentPages.types,
+    () => appConfigStore.amountOfItemsPerPages.types,
+  ],
   ([currentPage, amountPerPage]) => {
-    typeStore.receive(amountPerPage, currentPage);
     router.push(`/types/${currentPage}`);
+    typeStore.receive(amountPerPage, currentPage);
   }
 );
 
 onMounted(() => {
-  currentPage.value = Number(router.currentRoute.value.params.page);
-  typeStore.receive(appConfigStore.amountOfItemsPerPages.types, currentPage);
+  typeStore.items = [];
+  appConfigStore.currentPages.types = Number(
+    router.currentRoute.value.params.page
+  );
   /*
     setting up default values for filter fields width according to config
   */

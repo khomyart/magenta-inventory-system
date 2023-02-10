@@ -11,6 +11,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       items: 20,
       types: 4,
     },
+    currentPages: { items: 1, types: 0 },
     availableAmaountOfItemsPerPage: [4, 20, 50],
   }),
   getters: {},

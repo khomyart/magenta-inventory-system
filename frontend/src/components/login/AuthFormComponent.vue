@@ -63,12 +63,10 @@ function onSubmit() {
   store
     .login(userData)
     .then((response) => {
-      store.data.email = response.data.user.email;
-      store.data.name = response.data.user.name;
-      store.data.id = response.data.user.id;
-      store.token = response.data.token;
-      console.log(response.data);
-      sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("email", response.data.user.email);
+      sessionStorage.setItem("name", response.data.user.name);
+      sessionStorage.setItem("token", response.data.auth.token);
+      sessionStorage.setItem("expired_at", response.data.auth.expired_at);
       router.push("/items");
       if (notification != null) {
         notification();
@@ -78,7 +76,7 @@ function onSubmit() {
       notification = $q.notify({
         position: "top",
         color: "negative",
-        message: error.response.data.error,
+        message: error.response.data,
         group: true,
       });
     })

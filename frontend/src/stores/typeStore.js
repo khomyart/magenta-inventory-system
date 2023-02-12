@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import { store } from "quasar/wrappers";
 import { api } from "src/boot/axios";
+import { useAppConfigStore } from "./appConfigStore";
+const appConfigStore = useAppConfigStore();
 
 export const useTypeStore = defineStore("type", {
   state: () => ({
@@ -8,31 +9,43 @@ export const useTypeStore = defineStore("type", {
     isTypesLoading: false,
     amountOfItems: 0,
     lastPage: 0,
+    dialogs: {
+      create: {
+        isShown: false,
+        isLoading: false,
+      },
+    },
   }),
   getters: {},
   actions: {
     create(payload) {
+      this.dialogs.create.isLoading = true;
       api
         .post("/types", {
           ...payload,
         })
         .then((res) => {
           console.log(res);
+          this.dialogs.create.isShown = false;
+          this.receive();
         })
         .catch((err) => {
           console.log(err);
+        })
+        .finally(() => {
+          this.dialogs.create.isLoading = false;
         });
     },
     edit(id, payload) {},
     remove(id) {},
-    receive(amountOfItemsPegPage, currentPage) {
+    receive() {
       this.isTypesLoading = true;
       api
-        // .get(`/types?itemsPerPage=${amountOfItemsPegPage}&page=${currentPage}`, {
-        //   params: [{itemsPerPage: amountOfItemsPegPage}, {page: currentPage}]
-        // })
         .get("/types", {
-          params: { itemsPerPage: amountOfItemsPegPage, page: currentPage },
+          params: {
+            itemsPerPage: appConfigStore.amountOfItemsPerPages.types,
+            page: appConfigStore.currentPages.types,
+          },
         })
         .then((res) => {
           console.log(res);

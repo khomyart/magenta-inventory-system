@@ -4,12 +4,13 @@ import { api } from "src/boot/axios";
 export const useUserStore = defineStore("user", {
   state: () => ({
     data: {
-      id: "",
       name: "",
       email: "",
+      token: {
+        value: null,
+        expiredAt: "",
+      },
     },
-    token: null,
-    // token: null,
   }),
   getters: {},
   actions: {

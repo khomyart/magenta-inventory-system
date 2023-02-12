@@ -17,13 +17,7 @@
         </template>
       </q-input>
       <q-separator class="q-mx-sm" vertical></q-separator>
-      <q-btn
-        flat
-        round
-        color="black"
-        icon="add"
-        @click="isCreateItemDialogShown = !isCreateItemDialogShown"
-      >
+      <q-btn flat round color="black" icon="add" @click="openCreateDialog">
         <q-tooltip
           anchor="bottom left"
           :offset="[-20, 7]"
@@ -32,18 +26,7 @@
           Створити
         </q-tooltip>
       </q-btn>
-      <q-btn
-        flat
-        round
-        color="black"
-        icon="sync"
-        @click="
-          typeStore.receive(
-            appConfigStore.amountOfItemsPerPages.types,
-            appConfigStore.currentPages.types
-          )
-        "
-      >
+      <q-btn flat round color="black" icon="sync" @click="typeStore.receive()">
         <q-tooltip
           anchor="bottom left"
           :offset="[-20, 7]"
@@ -175,7 +158,7 @@
       </div>
     </div>
 
-    <q-dialog v-model="isCreateItemDialogShown">
+    <q-dialog v-model="typeStore.dialogs.create.isShown">
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
@@ -185,30 +168,43 @@
             >
           </div>
         </q-card-section>
+        <q-form @submit="typeStore.create(newType)">
+          <q-card-section style="max-height: 50vh; width: 300px" class="scroll">
+            <q-input
+              class="q-mb-sm"
+              outlined
+              v-model="newType.article"
+              label="Артикль"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть артикль',
+                (val) => val.length <= 8 || 'Не більше 8 символів',
+              ]"
+            />
+            <q-input
+              class="q-mb-sm"
+              outlined
+              v-model="newType.name"
+              label="Назва"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть назву',
+                (val) => val.length <= 8 || 'Не більше 128 символів',
+              ]"
+            />
+          </q-card-section>
 
-        <q-card-section style="max-height: 50vh; width: 300px" class="scroll">
-          <q-input
-            class="q-mb-md"
-            outlined
-            v-model="newType.article"
-            label="Артикль"
-          />
-          <q-input
-            class="q-mb-md"
-            outlined
-            v-model="newType.name"
-            label="Назва"
-          />
-        </q-card-section>
+          <q-separator />
 
-        <q-separator />
-
-        <q-card-actions align="right">
-          <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
-          <q-btn flat color="primary" @click="typeStore.create(newType)"
-            ><b>Створити</b></q-btn
-          >
-        </q-card-actions>
+          <q-card-actions align="right">
+            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+            <q-btn
+              flat
+              color="primary"
+              type="submit"
+              :loading="typeStore.dialogs.create.isLoading"
+              ><b>Створити</b></q-btn
+            >
+          </q-card-actions>
+        </q-form>
       </q-card>
     </q-dialog>
   </div>
@@ -233,7 +229,6 @@ let newType = reactive({
 
 let searchInput = ref("");
 let isSearching = ref(false);
-let isCreateItemDialogShown = ref(false);
 let fieldWidths = reactive({
   //px
   article: 0,
@@ -268,6 +263,12 @@ let filterWidthSettings = {
   },
 };
 
+function openCreateDialog() {
+  newType.article = "";
+  newType.name = "";
+  typeStore.dialogs.create.isShown = !typeStore.dialogs.create.isShown;
+}
+
 watch(
   [
     () => appConfigStore.currentPages.types,
@@ -275,7 +276,7 @@ watch(
   ],
   ([currentPage, amountPerPage]) => {
     router.push(`/types/${currentPage}`);
-    typeStore.receive(amountPerPage, currentPage);
+    typeStore.receive();
   }
 );
 

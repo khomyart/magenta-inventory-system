@@ -24,8 +24,8 @@ class StoreTypeRequest extends FormRequest
     public function rules()
     {
         return [
-            'article' => 'required|max:255',
-            'name' => 'required',
+            'article' => 'required|max:8',
+            'name' => 'required|max:128',
         ];
     }
 }

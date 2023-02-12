@@ -153,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
@@ -265,10 +265,27 @@ function axiosTestRequest() {
 }
 
 function logout() {
+  sessionStorage.removeItem("email");
+  sessionStorage.removeItem("name");
   sessionStorage.removeItem("token");
-  userStore.token = null;
+  sessionStorage.removeItem("expired_at");
+  userStore.data.email = "";
+  userStore.data.name = "";
+  userStore.data.token.value = null;
+  userStore.data.token.expiredAt = "";
   router.push("/login");
 }
+
+onMounted(() => {
+  if (typeof sessionStorage.getItem("token") == "string") {
+    userStore.data.email = sessionStorage.getItem("email");
+    userStore.data.name = sessionStorage.getItem("name");
+    userStore.data.token.value = sessionStorage.getItem("token");
+    userStore.data.token.expiredAt = sessionStorage.getItem("expired_at");
+  } else {
+    router.push("/login");
+  }
+});
 </script>
 
 <style scoped>

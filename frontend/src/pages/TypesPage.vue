@@ -162,14 +162,16 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="interests" color="black" size="md" /><b
-              class="q-ml-sm"
-              >Вид</b
-            >
+            <q-icon name="interests" color="black" size="md" class="q-mr-sm" />
+            Вид
           </div>
         </q-card-section>
+        <q-separator></q-separator>
         <q-form @submit="typeStore.create(newType)">
-          <q-card-section style="max-height: 50vh; width: 300px" class="scroll">
+          <q-card-section
+            style="max-height: 50vh; width: 300px"
+            class="scroll q-pt-md"
+          >
             <q-input
               class="q-mb-sm"
               outlined
@@ -181,7 +183,6 @@
               ]"
             />
             <q-input
-              class="q-mb-sm"
               outlined
               v-model="newType.name"
               label="Назва"

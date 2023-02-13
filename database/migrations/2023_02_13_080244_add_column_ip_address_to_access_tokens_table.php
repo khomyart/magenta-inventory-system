@@ -13,10 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('allowenses', function (Blueprint $table) {
-            $table->id();
-            $table->string("section", 50);
-            $table->enum("action", ["show", "create", "update", "remove"]);
+        Schema::table('access_tokens', function (Blueprint $table) {
+            $table->string('ip_address', 30)->after('expired_at');
         });
     }
 
@@ -27,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('allowenses');
+        Schema::table('access_tokens', function (Blueprint $table) {
+            //
+        });
     }
 };

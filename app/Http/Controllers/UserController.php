@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Helpers\AuthAPI;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -18,12 +18,7 @@ class UserController extends Controller
             "email" => $data["email"],
             "password" => Hash::make($data["password"]),
         ]);
-        AccessToken::create([
-            'user_id' => $user->id,
-            'token' => Hash::make(today()),
-            'last_used' => Carbon::now(),
-            'expired_at' => Carbon::now()->addHours(3),
-        ]);
+
     }
 
     //login
@@ -31,15 +26,18 @@ class UserController extends Controller
         $credentials = $request->validate([
             // "email" => "required|email|unique:users", for registration
             "email" => "required|email",
-            "password" => "required",
+            "password" => "required|string",
         ]);
         $user = User::firstWhere("email", $credentials["email"]);
 
         if (isset($user) && Hash::check($credentials["password"], $user->password)) {
-            return response()->json(["user" => $user->toArray(), "auth" => $user->accessToken->toArray()]);
+            $auth = new AuthAPI(user: $user, ip: $request->ip());
+
+            $token = $auth->hasToken() ? $auth->recreateAccessToken() : $auth->createAccessToken();
+
+            return response()->json(["user" => $user->toArray(), "auth" => $token->toArray()]);
         } else {
             return response("Невірні данні аутентифікації", 403);
         }
-
     }
 }

@@ -2,6 +2,12 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
+    dialogs: {
+      reauth: {
+        isShown: false,
+        isLoading: false,
+      },
+    },
     allowenses: {},
     filtersWidths: {
       //px
@@ -15,5 +21,11 @@ export const useAppConfigStore = defineStore("appConfig", {
     availableAmaountOfItemsPerPage: [4, 20, 50],
   }),
   getters: {},
-  actions: {},
+  actions: {
+    catchRequestError(err) {
+      if (err.response.data === "tokenexpired" && err.response.status === 422) {
+        this.dialogs.reauth.isShown = true;
+      }
+    },
+  },
 });

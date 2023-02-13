@@ -30,7 +30,7 @@ export const useTypeStore = defineStore("type", {
           this.receive();
         })
         .catch((err) => {
-          console.log(err);
+          appConfigStore.catchRequestError(err);
         })
         .finally(() => {
           this.dialogs.create.isLoading = false;
@@ -54,7 +54,7 @@ export const useTypeStore = defineStore("type", {
           this.lastPage = res.data.last_page;
         })
         .catch((err) => {
-          console.log(err);
+          appConfigStore.catchRequestError(err);
         })
         .finally(() => {
           this.isTypesLoading = false;

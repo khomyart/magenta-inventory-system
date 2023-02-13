@@ -18,5 +18,13 @@ export const useUserStore = defineStore("user", {
       return api.post("/login", userData);
     },
     logout() {},
+    renewSession(password) {
+      let userData = {
+        email: this.data.email,
+        password: password,
+      };
+
+      return api.post("/login", userData);
+    },
   },
 });

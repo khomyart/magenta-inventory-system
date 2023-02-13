@@ -62,11 +62,14 @@ function onSubmit() {
   isLoading.value = true;
   store
     .login(userData)
-    .then((response) => {
-      sessionStorage.setItem("email", response.data.user.email);
-      sessionStorage.setItem("name", response.data.user.name);
-      sessionStorage.setItem("token", response.data.auth.token);
-      sessionStorage.setItem("expired_at", response.data.auth.expired_at);
+    .then((res) => {
+      userData = {
+        email: res.data.user.email,
+        name: res.data.user.name,
+        token: res.data.auth.token,
+        expired_at: res.data.auth.expired_at,
+      };
+      sessionStorage.setItem("data", JSON.stringify(userData));
       router.push("/items");
       if (notification != null) {
         notification();

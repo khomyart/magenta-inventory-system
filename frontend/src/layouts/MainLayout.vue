@@ -85,18 +85,15 @@
         <q-separator vertical />
         <q-space></q-space>
         <q-btn color="primary" icon="settings" flat round class="q-mr-sm">
-          <q-menu
-            :offset="[0, 12]"
-            style="min-width: 200px; text-align: center"
-          >
+          <q-menu :offset="[0, 12]" style="min-width: 200px; text-align: left">
             <q-list>
               <q-item>
-                <q-item-section>
+                <q-item-section style="text-align: center">
                   {{ userStore.data.name }}
                 </q-item-section>
               </q-item>
               <q-separator />
-              <q-item clickable v-close-popup @click="axiosTestRequest">
+              <q-item clickable v-close-popup>
                 <q-item-section>Налаштування</q-item-section>
               </q-item>
               <q-item clickable v-close-popup>
@@ -150,6 +147,68 @@
       </q-page>
     </q-page-container>
   </q-layout>
+
+  <q-dialog
+    persistent
+    v-model="appConfigStore.dialogs.reauth.isShown"
+    transition-show="scale"
+    transition-hide="scale"
+  >
+    <q-card style="width: 400px">
+      <q-card-section>
+        <div class="text-h6 flex items-center">
+          <q-icon
+            size="md"
+            class="q-mr-sm"
+            name="admin_panel_settings"
+            color="black"
+          ></q-icon>
+          Автентифікація
+        </div>
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-form @submit="renewSession">
+        <q-card-section class="q-pt-md">
+          Термін дії сесії закінчився. Введіть пароль користувача ({{
+            userStore.data.email
+          }}), щоб відновити роботу:
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            class="q-pt-none"
+            v-model="sessionRenewPassword"
+            outlined
+            :type="!showSessionRenewPassword ? 'password' : 'text'"
+            label="Пароль"
+          >
+            <template v-slot:append>
+              <q-icon
+                :name="
+                  !showSessionRenewPassword ? 'visibility_off' : 'visibility'
+                "
+                class="cursor-pointer"
+                @click="showSessionRenewPassword = !showSessionRenewPassword"
+              />
+            </template>
+          </q-input>
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn flat color="black" @click="logout"
+            ><b>Сторікна автентифікації</b></q-btn
+          >
+          <q-btn
+            flat
+            color="primary"
+            type="submit"
+            :loading="appConfigStore.dialogs.reauth.isLoading"
+            ><b>Відновити</b></q-btn
+          >
+        </q-card-actions>
+      </q-form>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -158,7 +217,6 @@ import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
 import { useTypeStore } from "src/stores/typeStore";
-import { api } from "src/boot/axios";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -166,6 +224,9 @@ const typeStore = useTypeStore();
 const appConfigStore = useAppConfigStore();
 
 let showToolbarTitle = ref(false);
+let sessionRenewPassword = ref("");
+let showSessionRenewPassword = ref(false);
+
 const menuItems = [
   {
     name: "Предмети",
@@ -203,17 +264,11 @@ const menuItems = [
       ) {
         appConfigStore.currentPages.types = 1;
       } else {
-        typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
+        // typeStore.receive(
+        //   appConfigStore.amountOfItemsPerPages.types,
+        //   appConfigStore.currentPages.types
+        // );
       }
-      //   appConfigStore.currentPages.types = 1;
-      // typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
-
-      // appConfigStore.currentPages.types = 1;
-      // if (appConfigStore.currentPages.types === 1) {
-      //   typeStore.receive(appConfigStore.amountOfItemsPerPages.types, 1);
-      // } else {
-
-      // }
     },
     type: "item",
   },
@@ -260,15 +315,10 @@ const menuItems = [
     type: "item",
   },
 ];
-function axiosTestRequest() {
-  api.post("/lol", 123);
-}
 
 function logout() {
-  sessionStorage.removeItem("email");
-  sessionStorage.removeItem("name");
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("expired_at");
+  appConfigStore.dialogs.reauth.isShown = false;
+  sessionStorage.removeItem("data");
   userStore.data.email = "";
   userStore.data.name = "";
   userStore.data.token.value = null;
@@ -276,14 +326,39 @@ function logout() {
   router.push("/login");
 }
 
+function renewSession() {
+  appConfigStore.dialogs.reauth.isLoading = true;
+  userStore
+    .renewSession(sessionRenewPassword.value)
+    .then((res) => {
+      let userData = JSON.parse(sessionStorage.getItem("data"));
+
+      userData.token = res.data.auth.token;
+      userData.expired_at = res.data.auth.expired_at;
+      userStore.data.token.value = res.data.auth.token;
+      userStore.data.token.expiredAt = res.data.auth.expired_at;
+
+      sessionStorage.setItem("data", JSON.stringify(userData));
+
+      appConfigStore.dialogs.reauth.isShown = false;
+      window.location.reload();
+    })
+    .catch((err) => {
+      appConfigStore.catchRequestError(err);
+    })
+    .finally(() => {
+      appConfigStore.dialogs.reauth.isLoading = false;
+      sessionRenewPassword.value = "";
+    });
+}
+
 onMounted(() => {
-  if (typeof sessionStorage.getItem("token") == "string") {
-    userStore.data.email = sessionStorage.getItem("email");
-    userStore.data.name = sessionStorage.getItem("name");
-    userStore.data.token.value = sessionStorage.getItem("token");
-    userStore.data.token.expiredAt = sessionStorage.getItem("expired_at");
-  } else {
-    router.push("/login");
+  let userData = JSON.parse(sessionStorage.getItem("data"));
+  if (typeof userData === "object") {
+    userStore.data.email = userData.email;
+    userStore.data.name = userData.name;
+    userStore.data.token.expiredAt = userData.expired_at;
+    userStore.data.token.value = userData.token;
   }
 });
 </script>

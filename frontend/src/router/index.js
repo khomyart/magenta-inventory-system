@@ -35,10 +35,10 @@ export default route(function (/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     if (
       to.meta.isAuthNeeded === true &&
-      sessionStorage.getItem("token") === null
+      sessionStorage.getItem("data") === null
     ) {
       next({ name: "Login" });
-    } else if (sessionStorage.getItem("token") != null && to.name == "Login") {
+    } else if (sessionStorage.getItem("data") != null && to.name == "Login") {
       next({ name: "Items" });
     } else {
       next();

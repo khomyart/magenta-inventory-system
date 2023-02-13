@@ -46,4 +46,8 @@ class User extends Authenticatable
     public function accessToken() {
         return $this->hasOne(AccessToken::class, 'user_id', 'id'); //first foreign, then other
     }
+
+    public function roles(){
+        return $this->belongsToMany(Role::class, 'users_roles', 'user_id', 'role_id');
+    }
 }

@@ -16,7 +16,7 @@ const api = axios.create({
   },
 });
 api.interceptors.request.use((config) => {
-  config.headers.Authorization = userStore.data.token.value;
+  config.headers.Authorization = `Bearer ${userStore.data.token.value}`;
   return config;
 });
 

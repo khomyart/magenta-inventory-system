@@ -21,4 +21,8 @@ include "auth.php";
 //     return $request->user();
 // });
 
-Route::resource('types', TypeController::class);
+// Route::resource('types', TypeController::class);
+Route::get('/types', [TypeController::class,'show'])
+->middleware('api.authorization:show,type');
+Route::post('/types', [TypeController::class,'create'])
+->middleware('api.authorization:create,type');

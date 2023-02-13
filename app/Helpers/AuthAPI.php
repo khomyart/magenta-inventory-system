@@ -1,6 +1,102 @@
 <?php
 namespace App\Helpers;
 
-class AuthAPI {
+use App\Models\AccessToken;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
+class AuthAPI {
+    //minutes
+    const TOKEN_LIFE_TIME = 180;
+
+    public $data;
+    public $tokenTime;
+    public $ip;
+
+    function __construct($user, $ip, $tokenTime = self::TOKEN_LIFE_TIME) {
+        $this->user = $user;
+        $this->tokenTime = $tokenTime;
+        $this->ip = $ip;
+    }
+
+    public static function isAuthenticated($bearerToken, $ip) {
+        $token = AccessToken::firstWhere('token', $bearerToken);
+        if (isset($token) && $token->where('ip_adress', $ip) != null) {
+            return new self(user: $token->user, ip: $ip);
+        }
+
+        return false;
+    }
+
+    public function hasToken() {
+        $token = $this->user->accessToken;
+        return isset($token) ? $token->firstWhere("ip_address", $this->ip) : false;
+    }
+
+    public function isTokenExpired() {
+        $now = Carbon::now();
+        $tokenExpiringTime = new Carbon($this->hasToken()->expired_at);
+
+        return $now > $tokenExpiringTime;
+    }
+
+    public function createAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
+        $accessToken = AccessToken::create([
+            'user_id' => $this->user->id,
+            'token' => Hash::make(today()),
+            'ip_address' => $this->ip,
+            'last_used' => Carbon::now(),
+            'expired_at' => Carbon::now()->addMinutes($tokenLifeTime),
+        ]);
+
+        return isset($accessToken) ? $accessToken : false;
+    }
+
+    public function refreshAccessToken() {
+        $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
+
+        $accessToken->last_used = Carbon::now();
+        $accessToken->expired_at = Carbon::now()->addMinutes(180);
+
+        $accessToken->save();
+
+        return $accessToken;
+    }
+
+    public function recreateAccessToken() {
+        $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
+
+        $accessToken->token = Hash::make(today());
+        $accessToken->last_used = Carbon::now();
+        $accessToken->expired_at = Carbon::now()->addMinutes(180);
+
+        $accessToken->save();
+
+        return $accessToken;
+    }
+
+    public function isAuthorizedFor($action, $section) {
+        $allowensesList = $this->getAllowenses();
+
+        $isAuthorized = false;
+        foreach($allowensesList as $allowense) {
+            if ($allowense->action == $action && $allowense->section == $section) {
+                $isAuthorized = true;
+                break;
+            }
+        }
+
+        return $isAuthorized;
+    }
+
+    public function getAllowenses() {
+        return DB::table('users')
+        ->select('allowenses.action', 'allowenses.section')
+        ->join('users_roles', 'users.id', '=', 'users_roles.user_id')
+        ->join('roles_allowenses', 'users_roles.role_id', '=', 'roles_allowenses.role_id')
+        ->join('allowenses', 'roles_allowenses.allowense_id', '=', 'allowenses.id')
+        ->where('users.id', '=', $this->user->id)
+        ->distinct()->get();
+    }
 }

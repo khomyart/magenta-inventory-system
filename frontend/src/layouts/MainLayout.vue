@@ -150,7 +150,7 @@
 
   <q-dialog
     persistent
-    v-model="appConfigStore.dialogs.reauth.isShown"
+    v-model="appConfigStore.reauth.dialogs.renewPassword.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -174,7 +174,7 @@
           }}), щоб відновити роботу:
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-sm">
           <q-input
             class="q-pt-none"
             v-model="sessionRenewPassword"
@@ -193,6 +193,9 @@
             </template>
           </q-input>
         </q-card-section>
+        <q-card-section class="q-pt-none" style="text-align: end">
+          Залишилось спроб: {{ appConfigStore.attemptsLeft }}</q-card-section
+        >
         <q-separator></q-separator>
         <q-card-actions align="right">
           <q-btn flat color="black" @click="logout"
@@ -202,8 +205,47 @@
             flat
             color="primary"
             type="submit"
-            :loading="appConfigStore.dialogs.reauth.isLoading"
+            :loading="appConfigStore.reauth.dialogs.renewPassword.isLoading"
             ><b>Відновити</b></q-btn
+          >
+        </q-card-actions>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog
+    persistent
+    v-model="appConfigStore.reauth.dialogs.unauthenticated.isShown"
+    transition-show="scale"
+    transition-hide="scale"
+  >
+    <q-card style="width: 400px">
+      <q-card-section>
+        <div class="text-h6 flex items-center">
+          <q-icon
+            size="md"
+            class="q-mr-sm"
+            name="admin_panel_settings"
+            color="black"
+          ></q-icon>
+          Автентифікація
+        </div>
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-form @submit="logout">
+        <q-card-section class="q-pt-md">
+          Сесія користувача була закрита, або користувач не ідентифікований. Ви
+          будете перенаправлені на сторінку автентифікації.
+        </q-card-section>
+
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            color="primary"
+            type="submit"
+            :loading="appConfigStore.reauth.dialogs.unauthenticated.isLoading"
+            ><b>Гаразд ({{ appConfigStore.secondsToLogoutLeft }})</b></q-btn
           >
         </q-card-actions>
       </q-form>
@@ -212,7 +254,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
@@ -263,11 +305,21 @@ const menuItems = [
         appConfigStore.currentPages.types != 1
       ) {
         appConfigStore.currentPages.types = 1;
+      } else if (
+        router.currentRoute.value.name != "Types" &&
+        appConfigStore.currentPages.types != 1
+      ) {
+        // console.log(123);
+        appConfigStore.currentPages.types = 1;
+        typeStore.receive(
+          appConfigStore.amountOfItemsPerPages.types,
+          appConfigStore.currentPages.types
+        );
       } else {
-        // typeStore.receive(
-        //   appConfigStore.amountOfItemsPerPages.types,
-        //   appConfigStore.currentPages.types
-        // );
+        typeStore.receive(
+          appConfigStore.amountOfItemsPerPages.types,
+          appConfigStore.currentPages.types
+        );
       }
     },
     type: "item",
@@ -317,17 +369,24 @@ const menuItems = [
 ];
 
 function logout() {
-  appConfigStore.dialogs.reauth.isShown = false;
-  sessionStorage.removeItem("data");
-  userStore.data.email = "";
-  userStore.data.name = "";
-  userStore.data.token.value = null;
-  userStore.data.token.expiredAt = "";
-  router.push("/login");
+  appConfigStore.reauth.dialogs.unauthenticated.isLoading = true;
+  userStore.logout().finally(() => {
+    sessionStorage.removeItem("data");
+    userStore.data.email = "";
+    userStore.data.name = "";
+    userStore.data.token.value = null;
+    userStore.data.token.expiredAt = "";
+    appConfigStore.reauth.data.attempt = 0;
+    appConfigStore.reauth.data.changingSecondsToLogout = 0;
+    appConfigStore.reauth.dialogs.renewPassword.isShown = false;
+    appConfigStore.reauth.dialogs.unauthenticated.isLoading = false;
+    appConfigStore.reauth.dialogs.unauthenticated.isShown = false;
+    router.push("/login");
+  });
 }
 
 function renewSession() {
-  appConfigStore.dialogs.reauth.isLoading = true;
+  appConfigStore.reauth.dialogs.renewPassword.isLoading = true;
   userStore
     .renewSession(sessionRenewPassword.value)
     .then((res) => {
@@ -340,17 +399,46 @@ function renewSession() {
 
       sessionStorage.setItem("data", JSON.stringify(userData));
 
-      appConfigStore.dialogs.reauth.isShown = false;
+      appConfigStore.reauth.dialogs.renewPassword.isShown = false;
       window.location.reload();
     })
     .catch((err) => {
       appConfigStore.catchRequestError(err);
     })
     .finally(() => {
-      appConfigStore.dialogs.reauth.isLoading = false;
+      appConfigStore.reauth.dialogs.renewPassword.isLoading = false;
       sessionRenewPassword.value = "";
     });
 }
+
+watch(
+  () => appConfigStore.reauth.data.attempt,
+  (attempt) => {
+    if (attempt >= appConfigStore.reauth.data.attemptsAllowed) {
+      logout();
+    }
+  }
+);
+
+let logoutInterval;
+watch(
+  () => appConfigStore.reauth.dialogs.unauthenticated.isShown,
+  (isShown) => {
+    if (isShown) {
+      appConfigStore.reauth.data.secondsToLogout;
+      logoutInterval = setInterval(() => {
+        appConfigStore.reauth.data.changingSecondsToLogout += 1;
+        if (
+          appConfigStore.reauth.data.changingSecondsToLogout >=
+          appConfigStore.reauth.data.secondsToLogout
+        ) {
+          clearInterval(logoutInterval);
+          logout();
+        }
+      }, 1000);
+    }
+  }
+);
 
 onMounted(() => {
   let userData = JSON.parse(sessionStorage.getItem("data"));

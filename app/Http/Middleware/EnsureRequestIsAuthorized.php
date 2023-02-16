@@ -31,6 +31,10 @@ class EnsureRequestIsAuthorized
             return response("tokenexpired", 422);
         }
 
+        if ($auth->isUserAway()) {
+            return response("userisafk", 422);
+        }
+
         $reqreatedToken = $auth->refreshAccessToken();
 
         return $next($request);

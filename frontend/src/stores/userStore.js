@@ -17,7 +17,9 @@ export const useUserStore = defineStore("user", {
     login(userData) {
       return api.post("/login", userData);
     },
-    logout() {},
+    logout() {
+      return api.post("/logout");
+    },
     renewSession(password) {
       let userData = {
         email: this.data.email,

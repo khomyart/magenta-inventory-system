@@ -40,4 +40,14 @@ class UserController extends Controller
             return response("Невірні данні аутентифікації", 403);
         }
     }
+
+    public function logout(Request $request) {
+        $auth = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
+
+        if ($auth) {
+            $token = $auth->hasToken()->delete();
+        }
+
+        return response("OK", 200);
+    }
 }

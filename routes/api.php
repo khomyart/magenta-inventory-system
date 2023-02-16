@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TypeController;
 
 include "auth.php";
+include "apiTest.php";
 
 /*
 |--------------------------------------------------------------------------

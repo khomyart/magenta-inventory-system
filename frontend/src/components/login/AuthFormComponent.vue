@@ -82,9 +82,6 @@ function onSubmit() {
         message: error.response.data,
         group: true,
       });
-    })
-    .finally(() => {
-      isLoading.value = false;
     });
 }
 </script>

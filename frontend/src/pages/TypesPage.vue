@@ -270,16 +270,19 @@ function openCreateDialog() {
   typeStore.dialogs.create.isShown = !typeStore.dialogs.create.isShown;
 }
 
-watch(
-  [
-    () => appConfigStore.currentPages.types,
-    () => appConfigStore.amountOfItemsPerPages.types,
-  ],
-  ([currentPage, amountPerPage]) => {
-    router.push(`/types/${currentPage}`);
+watch([() => appConfigStore.currentPages.types], ([currentPage]) => {
+  router.push(`/types/${currentPage}`);
+  typeStore.receive();
+});
+
+watch([() => appConfigStore.amountOfItemsPerPages.types], ([amountPerPage]) => {
+  if (appConfigStore.currentPages.types != 1) {
+    appConfigStore.currentPages.types = 1;
+  } else {
     typeStore.receive();
   }
-);
+  router.push(`/types/${appConfigStore.currentPages.types}`);
+});
 
 onMounted(() => {
   typeStore.items = [];

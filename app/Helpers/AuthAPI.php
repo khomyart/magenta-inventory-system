@@ -9,6 +9,7 @@ use Carbon\Carbon;
 class AuthAPI {
     //minutes
     const TOKEN_LIFE_TIME = 180;
+    const AWAY_FROM_KEYBOARD_TIME = 20;
 
     public $data;
     public $tokenTime;
@@ -41,6 +42,13 @@ class AuthAPI {
         return $now > $tokenExpiringTime;
     }
 
+    public function isUserAway($afkTime = self::AWAY_FROM_KEYBOARD_TIME) {
+        $now = Carbon::now();
+        $tokenLastUsedTime = new Carbon($this->hasToken()->last_used);
+
+        return $now > $tokenLastUsedTime->addMinutes($afkTime);
+    }
+
     public function createAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
         $accessToken = AccessToken::create([
             'user_id' => $this->user->id,
@@ -53,23 +61,23 @@ class AuthAPI {
         return isset($accessToken) ? $accessToken : false;
     }
 
-    public function refreshAccessToken() {
+    public function refreshAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
         $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
 
         $accessToken->last_used = Carbon::now();
-        $accessToken->expired_at = Carbon::now()->addMinutes(180);
+        $accessToken->expired_at = Carbon::now()->addMinutes($tokenLifeTime);
 
         $accessToken->save();
 
         return $accessToken;
     }
 
-    public function recreateAccessToken() {
+    public function recreateAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
         $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
 
         $accessToken->token = Hash::make(today());
         $accessToken->last_used = Carbon::now();
-        $accessToken->expired_at = Carbon::now()->addMinutes(180);
+        $accessToken->expired_at = Carbon::now()->addMinutes($tokenLifeTime);
 
         $accessToken->save();
 

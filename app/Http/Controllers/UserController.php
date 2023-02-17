@@ -45,7 +45,7 @@ class UserController extends Controller
         $auth = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
 
         if ($auth) {
-            $token = $auth->hasToken()->delete();
+            $auth->hasToken()->delete();
         }
 
         return response("OK", 200);

@@ -19,7 +19,7 @@ class TypeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request)
+    public function read(Request $request)
     {
         $user = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
         $data = $request->validate([
@@ -35,6 +35,21 @@ class TypeController extends Controller
         ]);
 
         return Type::create($data);
+    }
+
+    public function update(Request $request, $id) {
+        return response("OK", 200);
+    }
+
+    public function delete(Request $request, $id) {
+        $type = Type::find($id);
+
+        if ($type) {
+            $type->delete();
+            return response("OK", 200);
+        }
+
+        return response("type not found", 404);
     }
 
 }

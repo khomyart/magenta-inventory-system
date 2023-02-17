@@ -9,7 +9,7 @@
               <q-item
                 clickable
                 v-close-popup
-                @click="showEditItemDialog = !showEditItemDialog"
+                @click="$emit('showEditDialog', props.itemInfo.id)"
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>
@@ -19,7 +19,13 @@
               <q-item
                 clickable
                 v-close-popup
-                @click="showRemoveItemDialog = !showRemoveItemDialog"
+                @click="
+                  $emit(
+                    'showRemoveDialog',
+                    props.itemInfo.id,
+                    props.itemInfo.name
+                  )
+                "
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" color="red" name="delete" left></q-icon>
@@ -50,92 +56,16 @@
     </td>
     <td class="separator-cell"><div></div></td>
   </tr>
-
-  <q-dialog v-model="showEditItemDialog" seamless>
-    <q-card>
-      <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6 flex items-center">
-          <q-icon name="edit" color="black" size="md" /><b class="q-ml-sm"
-            >Редагування</b
-          >
-        </div>
-        <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
-      </q-card-section>
-      <q-card-section class="q-pa-md flex justify-center">
-        <div class="q-pa-md" style="width: 400px">
-          <form
-            @submit.prevent.stop="onSubmit"
-            @reset.prevent.stop="onReset"
-            class="q-gutter-md"
-          >
-            <q-input
-              square
-              ref="editItemNameRef"
-              filled
-              label="Назва предмету"
-            />
-
-            <div>
-              <q-btn label="Submit" type="submit" color="primary" />
-              <q-btn
-                label="Reset"
-                type="reset"
-                color="primary"
-                flat
-                class="q-ml-sm"
-              />
-            </div>
-          </form>
-        </div>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
-
-  <q-dialog v-model="showRemoveItemDialog" seamless>
-    <q-card>
-      <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6 flex items-center">
-          <q-icon name="warning" color="negative" size="md" /><b class="q-ml-sm"
-            >Видалення</b
-          >
-        </div>
-        <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
-      </q-card-section>
-
-      <q-card-section>
-        Ви справді бажаєте знищити вид: "{{ props.itemInfo.name }}"?
-      </q-card-section>
-      <q-card-actions align="right">
-        <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
-        <q-btn flat color="negative" @click="removeItem(props.itemInfo.id)"
-          ><b>Так</b></q-btn
-        >
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
 </template>
 
 <script setup>
 import { useQuasar } from "quasar";
-import { computed, ref, reactive } from "vue";
+import { reactive } from "vue";
+
+defineEmits(["showEditDialog", "showRemoveDialog"]);
 
 const props = defineProps(["itemInfo", "gap"]);
 const $q = useQuasar();
-
-let showItemName = ref(true),
-  slide = ref(1),
-  showImage = ref(false),
-  showEditItemDialog = ref(false),
-  showRemoveItemDialog = ref(false),
-  editItemNameRef = ref(null);
-
-let editItemForm = reactive({
-  id: "",
-  name: "",
-  type: "",
-});
 
 let contextMenuOptions = reactive({
   isShown: false,

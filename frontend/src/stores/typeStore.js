@@ -6,14 +6,24 @@ const appConfigStore = useAppConfigStore();
 export const useTypeStore = defineStore("type", {
   state: () => ({
     items: [],
-    isTypesLoading: false,
-    amountOfItems: 0,
-    lastPage: 0,
     dialogs: {
       create: {
         isShown: false,
         isLoading: false,
       },
+      update: {
+        isShown: false,
+        isLoading: false,
+      },
+      delete: {
+        isShown: false,
+        isLoading: false,
+      },
+    },
+    data: {
+      isTypesLoading: false,
+      amountOfItems: 0,
+      lastPage: 0,
     },
   }),
   getters: {},
@@ -37,9 +47,34 @@ export const useTypeStore = defineStore("type", {
         });
     },
     edit(id, payload) {},
-    remove(id) {},
+    delete(id) {
+      this.dialogs.delete.isLoading = true;
+      api
+        .delete(`/types/${id}`)
+        .then(() => {
+          let perPage = appConfigStore.amountOfItemsPerPages.types;
+          let currentPage = appConfigStore.currentPages.types;
+
+          if (
+            this.data.amountOfItems != 1 &&
+            this.data.lastPage == currentPage &&
+            perPage * currentPage - this.data.amountOfItems == 1
+          ) {
+            appConfigStore.currentPages.types -= 1;
+          } else {
+            this.receive();
+          }
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.delete.isLoading = false;
+          this.dialogs.delete.isShown = false;
+        });
+    },
     receive() {
-      this.isTypesLoading = true;
+      this.data.isTypesLoading = true;
       api
         .get("/types", {
           params: {
@@ -50,14 +85,14 @@ export const useTypeStore = defineStore("type", {
         .then((res) => {
           console.log(res);
           this.items = res.data.data;
-          this.amountOfItems = res.data.total;
-          this.lastPage = res.data.last_page;
+          this.data.amountOfItems = res.data.total;
+          this.data.lastPage = res.data.last_page;
         })
         .catch((err) => {
           appConfigStore.catchRequestError(err);
         })
         .finally(() => {
-          this.isTypesLoading = false;
+          this.data.isTypesLoading = false;
         });
     },
   },

@@ -76,6 +76,8 @@ function onSubmit() {
       }
     })
     .catch((error) => {
+      isLoading.value = false;
+
       notification = $q.notify({
         position: "top",
         color: "negative",

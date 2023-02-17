@@ -179,6 +179,7 @@
             class="q-pt-none"
             v-model="sessionRenewPassword"
             outlined
+            autofocus
             :type="!showSessionRenewPassword ? 'password' : 'text'"
             label="Пароль"
           >
@@ -235,7 +236,8 @@
       <q-form @submit="logout">
         <q-card-section class="q-pt-md">
           Сесія користувача була закрита, або користувач не ідентифікований. Ви
-          будете перенаправлені на сторінку автентифікації.
+          будете перенаправлені на сторінку автентифікації через
+          {{ appConfigStore.secondsToLogoutLeft }} {{ secondsLabel }}
         </q-card-section>
 
         <q-separator></q-separator>
@@ -245,7 +247,7 @@
             color="primary"
             type="submit"
             :loading="appConfigStore.reauth.dialogs.unauthenticated.isLoading"
-            ><b>Гаразд ({{ appConfigStore.secondsToLogoutLeft }})</b></q-btn
+            ><b>Гаразд</b></q-btn
           >
         </q-card-actions>
       </q-form>
@@ -254,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
@@ -439,6 +441,18 @@ watch(
     }
   }
 );
+
+const secondsLabel = computed(() => {
+  if (appConfigStore.secondsToLogoutLeft > 5) {
+    return "секунд";
+  } else if (
+    appConfigStore.secondsToLogoutLeft <= 4 &&
+    appConfigStore.secondsToLogoutLeft >= 2
+  ) {
+    return "секунди";
+  }
+  return "секунду";
+});
 
 onMounted(() => {
   let userData = JSON.parse(sessionStorage.getItem("data"));

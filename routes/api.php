@@ -4,8 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TypeController;
 
+//include "apiTest.php";
 include "auth.php";
-include "apiTest.php";
 
 /*
 |--------------------------------------------------------------------------
@@ -18,12 +18,15 @@ include "apiTest.php";
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+Route::get('/types', [TypeController::class,'read'])
+->middleware('api.authorization:read,types');
 
-// Route::resource('types', TypeController::class);
-Route::get('/types', [TypeController::class,'show'])
-->middleware('api.authorization:show,type');
 Route::post('/types', [TypeController::class,'create'])
-->middleware('api.authorization:create,type');
+->middleware('api.authorization:create,types');
+
+Route::patch('/types/{id}', [TypeController::class,'update'])
+->middleware('api.authorization:update,types');
+
+Route::delete('/types/{id}', [TypeController::class,'delete'])
+->middleware('api.authorization:delete,types');
+

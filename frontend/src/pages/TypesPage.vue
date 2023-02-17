@@ -17,7 +17,7 @@
         </template>
       </q-input>
       <q-separator class="q-mx-sm" vertical></q-separator>
-      <q-btn flat round color="black" icon="add" @click="openCreateDialog">
+      <q-btn flat round color="black" icon="add" @click="showCreateDialog">
         <q-tooltip
           anchor="bottom left"
           :offset="[-20, 7]"
@@ -38,7 +38,7 @@
     </div>
 
     <div class="content">
-      <q-inner-loading :showing="typeStore.isTypesLoading">
+      <q-inner-loading :showing="typeStore.data.isTypesLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none bg-white">
@@ -130,7 +130,12 @@
           <td :width="filterWidthSettings.options.separatorWidth + 4"></td>
         </tr>
         <template v-for="(item, index) in typeStore.items" :key="index">
-          <type-component :itemInfo="item" :gap="5"></type-component>
+          <type-component
+            @show-remove-dialog="showRemoveDialog"
+            @show-edit-dialog="alert(`edit ${n}`)"
+            :itemInfo="item"
+            :gap="5"
+          ></type-component>
         </template>
       </table>
     </div>
@@ -148,16 +153,16 @@
         <q-pagination
           v-model="appConfigStore.currentPages.types"
           color="purple"
-          :max="typeStore.lastPage"
+          :max="typeStore.data.lastPage"
           :max-pages="6"
           boundary-numbers
         />
       </div>
       <div class="footer-right-part q-mr-md">
-        Кількість: {{ typeStore.amountOfItems }}
+        Кількість: {{ typeStore.data.amountOfItems }}
       </div>
     </div>
-
+    <!-- CREATION DIALOG -->
     <q-dialog v-model="typeStore.dialogs.create.isShown">
       <q-card>
         <q-card-section>
@@ -176,6 +181,7 @@
               class="q-mb-sm"
               outlined
               v-model="newType.article"
+              autofocus
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
@@ -208,11 +214,82 @@
         </q-form>
       </q-card>
     </q-dialog>
+
+    <!--EDITING DIALOG-->
+    <q-dialog v-model="typeStore.dialogs.update.isShown">
+      <q-card>
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 flex items-center">
+            <q-icon name="edit" color="black" size="md" /><b class="q-ml-sm"
+              >Редагування</b
+            >
+          </div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md flex justify-center">
+          <div class="q-pa-md" style="width: 400px">
+            <form
+              @submit.prevent.stop="onSubmit"
+              @reset.prevent.stop="onReset"
+              class="q-gutter-md"
+            >
+              <q-input
+                square
+                ref="editItemNameRef"
+                filled
+                label="Назва предмету"
+              />
+
+              <div>
+                <q-btn label="Submit" type="submit" color="primary" />
+                <q-btn
+                  label="Reset"
+                  type="reset"
+                  color="primary"
+                  flat
+                  class="q-ml-sm"
+                />
+              </div>
+            </form>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- DELETING DIALOG -->
+    <q-dialog v-model="typeStore.dialogs.delete.isShown">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon name="warning" color="red" size="md" class="q-mr-sm" />
+            Видалення
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-card-section style="width: 350px">
+          Ви справді бажаєте знищити вид: "{{ deletedType.name }}"?
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-form @submit="typeStore.delete(deletedType.id)">
+            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+            <q-btn
+              flat
+              type="submit"
+              color="negative"
+              :loading="typeStore.dialogs.delete.isLoading"
+              ><b>Так</b></q-btn
+            >
+          </q-form>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import TypeComponent from "src/components/TypeComponent.vue";
 import { useRouter } from "vue-router";
 import { useTypeStore } from "src/stores/typeStore";
@@ -220,11 +297,22 @@ import { useAppConfigStore } from "src/stores/appConfigStore";
 
 const appConfigStore = useAppConfigStore();
 const typeStore = useTypeStore();
-const itemsSequance = ["article", "name"];
+const fieldsSequance = ["article", "name"];
 const router = useRouter();
 
 let newType = reactive({
   article: "",
+  name: "",
+});
+
+let editedType = reactive({
+  id: "",
+  article: "",
+  name: "",
+});
+
+let deletedType = reactive({
+  id: "",
   name: "",
 });
 
@@ -264,10 +352,16 @@ let filterWidthSettings = {
   },
 };
 
-function openCreateDialog() {
+function showCreateDialog() {
   newType.article = "";
   newType.name = "";
   typeStore.dialogs.create.isShown = !typeStore.dialogs.create.isShown;
+}
+
+function showRemoveDialog(id, name) {
+  deletedType.id = id;
+  deletedType.name = name;
+  typeStore.dialogs.delete.isShown = true;
 }
 
 watch([() => appConfigStore.currentPages.types], ([currentPage]) => {
@@ -426,20 +520,24 @@ onMounted(() => {
     };
   }
 
-  for (let i = 0; i < itemsSequance.length; i++) {
+  for (let i = 0; i < fieldsSequance.length; i++) {
     let currentItem = document.querySelector(
-      `.filter-separator[name='${itemsSequance[i]}']`
+      `.filter-separator[name='${fieldsSequance[i]}']`
     );
 
     if (filterWidthSettings.options.resizeMode == "straight") {
-      addEventToSeparator(currentItem, itemsSequance[i]);
+      addEventToSeparator(currentItem, fieldsSequance[i]);
     }
 
     if (filterWidthSettings.options.resizeMode == "affected") {
-      if (i > itemsSequance.length - 2) {
+      if (i > fieldsSequance.length - 2) {
         continue;
       }
-      addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+      addEventToSeparator(
+        currentItem,
+        fieldsSequance[i],
+        fieldsSequance[i + 1]
+      );
     }
   }
 });

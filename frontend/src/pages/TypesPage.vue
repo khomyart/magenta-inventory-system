@@ -132,9 +132,11 @@
         <template v-for="(item, index) in typeStore.items" :key="index">
           <type-component
             @show-remove-dialog="showRemoveDialog"
-            @show-edit-dialog="alert(`edit ${n}`)"
+            @show-edit-dialog="showUpdateDialog"
+            @clear-updated-item-id="clearUpdatedItemId"
             :itemInfo="item"
             :gap="5"
+            :updated="item.id == typeStore.data.updatedItemId"
           ></type-component>
         </template>
       </table>
@@ -194,7 +196,7 @@
               label="Назва"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть назву',
-                (val) => val.length <= 8 || 'Не більше 128 символів',
+                (val) => val.length <= 128 || 'Не більше 128 символів',
               ]"
             />
           </q-card-section>
@@ -215,45 +217,56 @@
       </q-card>
     </q-dialog>
 
-    <!--EDITING DIALOG-->
+    <!--UPDATING DIALOG-->
     <q-dialog v-model="typeStore.dialogs.update.isShown">
       <q-card>
-        <q-card-section class="row items-center q-pb-none">
+        <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="edit" color="black" size="md" /><b class="q-ml-sm"
-              >Редагування</b
-            >
+            <q-icon name="interests" color="black" size="md" class="q-mr-sm" />
+            Вид
           </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-        <q-card-section class="q-pa-md flex justify-center">
-          <div class="q-pa-md" style="width: 400px">
-            <form
-              @submit.prevent.stop="onSubmit"
-              @reset.prevent.stop="onReset"
-              class="q-gutter-md"
-            >
-              <q-input
-                square
-                ref="editItemNameRef"
-                filled
-                label="Назва предмету"
-              />
+        <q-separator></q-separator>
+        <q-form @submit="typeStore.update(updatedType)">
+          <q-card-section
+            style="max-height: 50vh; width: 300px"
+            class="scroll q-pt-md"
+          >
+            <q-input
+              class="q-mb-sm"
+              outlined
+              v-model="updatedType.article"
+              autofocus
+              label="Артикль"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть артикль',
+                (val) => val.length <= 8 || 'Не більше 8 символів',
+              ]"
+            />
+            <q-input
+              outlined
+              v-model="updatedType.name"
+              label="Назва"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть назву',
+                (val) => val.length <= 128 || 'Не більше 128 символів',
+              ]"
+            />
+          </q-card-section>
 
-              <div>
-                <q-btn label="Submit" type="submit" color="primary" />
-                <q-btn
-                  label="Reset"
-                  type="reset"
-                  color="primary"
-                  flat
-                  class="q-ml-sm"
-                />
-              </div>
-            </form>
-          </div>
-        </q-card-section>
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+            <q-btn
+              flat
+              color="primary"
+              type="submit"
+              :loading="typeStore.dialogs.update.isLoading"
+              ><b>Редагувати</b></q-btn
+            >
+          </q-card-actions>
+        </q-form>
       </q-card>
     </q-dialog>
 
@@ -272,16 +285,15 @@
         </q-card-section>
         <q-separator></q-separator>
         <q-card-actions align="right">
-          <q-form @submit="typeStore.delete(deletedType.id)">
-            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
-            <q-btn
-              flat
-              type="submit"
-              color="negative"
-              :loading="typeStore.dialogs.delete.isLoading"
-              ><b>Так</b></q-btn
-            >
-          </q-form>
+          <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+          <q-btn
+            @click="typeStore.delete(deletedType.id)"
+            flat
+            type="submit"
+            color="negative"
+            :loading="typeStore.dialogs.delete.isLoading"
+            ><b>Так</b></q-btn
+          >
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -305,7 +317,7 @@ let newType = reactive({
   name: "",
 });
 
-let editedType = reactive({
+let updatedType = reactive({
   id: "",
   article: "",
   name: "",
@@ -352,10 +364,24 @@ let filterWidthSettings = {
   },
 };
 
+function clearUpdatedItemId() {
+  let interval = setTimeout(() => {
+    typeStore.data.updatedItemId = 0;
+    clearInterval(interval);
+  }, 2000);
+}
+
 function showCreateDialog() {
   newType.article = "";
   newType.name = "";
-  typeStore.dialogs.create.isShown = !typeStore.dialogs.create.isShown;
+  typeStore.dialogs.create.isShown = true;
+}
+
+function showUpdateDialog(item) {
+  updatedType.id = item.id;
+  updatedType.article = item.article;
+  updatedType.name = item.name;
+  typeStore.dialogs.update.isShown = true;
 }
 
 function showRemoveDialog(id, name) {

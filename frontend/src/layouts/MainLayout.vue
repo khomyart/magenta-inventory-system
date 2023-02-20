@@ -443,7 +443,10 @@ watch(
 );
 
 const secondsLabel = computed(() => {
-  if (appConfigStore.secondsToLogoutLeft > 5) {
+  if (
+    appConfigStore.secondsToLogoutLeft >= 5 ||
+    appConfigStore.secondsToLogoutLeft === 0
+  ) {
     return "секунд";
   } else if (
     appConfigStore.secondsToLogoutLeft <= 4 &&
@@ -451,6 +454,7 @@ const secondsLabel = computed(() => {
   ) {
     return "секунди";
   }
+
   return "секунду";
 });
 

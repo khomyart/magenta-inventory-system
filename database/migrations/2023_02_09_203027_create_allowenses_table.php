@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('allowenses', function (Blueprint $table) {
             $table->id();
             $table->string("section", 50);
-            $table->enum("action", ["show", "create", "update", "remove"]);
+            $table->enum("action", ["create", "read", "update", "delete"]);
         });
     }
 

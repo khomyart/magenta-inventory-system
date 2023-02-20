@@ -24,6 +24,7 @@ export const useTypeStore = defineStore("type", {
       isTypesLoading: false,
       amountOfItems: 0,
       lastPage: 0,
+      updatedItemId: 0,
     },
   }),
   getters: {},
@@ -46,7 +47,31 @@ export const useTypeStore = defineStore("type", {
           this.dialogs.create.isLoading = false;
         });
     },
-    edit(id, payload) {},
+    update(item) {
+      this.dialogs.update.isLoading = true;
+      api
+        .patch(`/types/${item.id}`, item)
+        .then((res) => {
+          this.data.updatedItemId = res.data.id;
+          let updatedItemIndex;
+          this.items.every((item, index) => {
+            if (item.id == res.data.id) {
+              updatedItemIndex = index;
+              return false;
+            }
+            return true;
+          });
+
+          this.items[updatedItemIndex] = res.data;
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.update.isLoading = false;
+          this.dialogs.update.isShown = false;
+        });
+    },
     delete(id) {
       this.dialogs.delete.isLoading = true;
       api
@@ -74,6 +99,7 @@ export const useTypeStore = defineStore("type", {
         });
     },
     receive() {
+      // this.items = [];
       this.data.isTypesLoading = true;
       api
         .get("/types", {

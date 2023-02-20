@@ -1,6 +1,12 @@
 <template>
   <tr :height="props.gap"></tr>
-  <tr class="item" :id="`item${props.itemInfo.id}`">
+  <tr
+    class="item"
+    :class="{
+      updated: isUpdated,
+    }"
+    :id="`item${props.itemInfo.id}`"
+  >
     <td class="item-cell">
       <div>
         <q-btn icon="list" round flat>
@@ -9,7 +15,7 @@
               <q-item
                 clickable
                 v-close-popup
-                @click="$emit('showEditDialog', props.itemInfo.id)"
+                @click="$emit('showEditDialog', props.itemInfo)"
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>
@@ -60,19 +66,21 @@
 
 <script setup>
 import { useQuasar } from "quasar";
-import { reactive } from "vue";
+import { onMounted, onUpdated, ref } from "vue";
 
-defineEmits(["showEditDialog", "showRemoveDialog"]);
+const emit = defineEmits([
+  "showEditDialog",
+  "showRemoveDialog",
+  "clearUpdatedItemId",
+]);
 
-const props = defineProps(["itemInfo", "gap"]);
+const props = defineProps(["itemInfo", "gap", "updated"]);
 const $q = useQuasar();
+let isUpdated = ref(false);
 
-let contextMenuOptions = reactive({
-  isShown: false,
-  offset: {
-    x: 0,
-    y: 0,
-  },
+onUpdated(() => {
+  isUpdated.value = props.updated;
+  emit("clearUpdatedItemId");
 });
 
 function copyValue(value, paramName) {
@@ -84,40 +92,6 @@ function copyValue(value, paramName) {
     group: false,
   });
 }
-function generateQrCode(itemId) {
-  console.log(itemId);
-}
-function removeItem(itemId) {
-  showRemoveItemDialog.value = false;
-  console.log(itemId);
-}
-function downloadImage(imageSrc) {
-  let link = document.createElement("a");
-  link.href = imageSrc;
-  link.download = imageSrc.split("/")[imageSrc.split("/").length - 1];
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-async function copyImage(imageSrc) {
-  try {
-    const response = await fetch("." + imageSrc);
-    const blob = await response.blob();
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        [blob.type]: blob,
-      }),
-    ]);
-    $q.notify({
-      position: "top",
-      color: "primary",
-      message: `Зображення зкопійовано`,
-      group: false,
-    });
-  } catch (err) {
-    console.error(err.name, err.message);
-  }
-}
 </script>
 
 <style>
@@ -125,11 +99,28 @@ async function copyImage(imageSrc) {
   --cell-height: 50px;
   --cell-border-style: 1px solid rgba(0, 0, 0, 0.18);
 }
-.item {
+.item td > div {
   /* border: 1px solid rgba(0, 0, 0, 0.12); */
 }
 .item:hover td > div {
   background-color: rgba(255, 0, 217, 0.088);
+}
+.updated td > div {
+  animation: 2s linear color-fading;
+}
+@keyframes color-fading {
+  0% {
+    background-color: rgba(255, 255, 255, 0);
+  }
+  10% {
+    background-color: rgba(43, 255, 0, 0.192);
+  }
+  60% {
+    background-color: rgba(43, 255, 0, 0.192);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0);
+  }
 }
 .item-cell {
   padding: 0px;

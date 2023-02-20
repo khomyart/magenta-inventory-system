@@ -25,6 +25,7 @@ class TypeController extends Controller
         $data = $request->validate([
             'itemsPerPage' => 'required|numeric',
         ]);
+
         return response(DB::table('types')->paginate($data['itemsPerPage']));
     }
 
@@ -38,7 +39,22 @@ class TypeController extends Controller
     }
 
     public function update(Request $request, $id) {
-        return response("OK", 200);
+        $data = $request->validate([
+            "article" => "required|string|max:8",
+            "name" => "required|string|max:155"
+        ]);
+
+        $type = Type::find($id);
+
+        if ($type) {
+            $type->article = $data["article"];
+            $type->name = $data["name"];
+            $type->save();
+
+            return response($type);
+        }
+
+        return response("Не знайдено", 404);
     }
 
     public function delete(Request $request, $id) {

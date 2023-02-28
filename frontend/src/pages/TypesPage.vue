@@ -1,22 +1,20 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-px-md q-my-md">
+    <div class="toolbar row q-px-md q-mt-md">
       <q-input
-        v-model="searchInput"
-        debounce="500"
+        v-model="appConfigStore.filters.types.selectedParams.name.value"
+        debounce="700"
         outlined
         placeholder="Введіть назву виду"
         rounded
         dense
         class="col-4 q-mr-md"
-        :loading="isSearching"
-        @keydown.enter="isSearching = isSearching == false ? true : false"
+        :loading="typeStore.data.isTypesLoading"
       >
-        <template v-slot:append v-if="!isSearching">
+        <template v-slot:append v-if="!typeStore.data.isTypesLoading">
           <q-icon name="search" />
         </template>
       </q-input>
-      <q-separator class="q-mx-sm" vertical></q-separator>
       <q-btn flat round color="black" icon="add" @click="showCreateDialog">
         <q-tooltip
           anchor="bottom left"
@@ -41,16 +39,74 @@
       <q-inner-loading :showing="typeStore.data.isTypesLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
-      <q-toolbar class="text-black filter q-px-none bg-white">
+      <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
         <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
-          <q-menu :offset="[11, 9]">
-            <q-list style="min-width: 100px">
-              <q-item clickable v-close-popup>
-                <q-item-section>Застосувати фільтр</q-item-section>
+          <q-badge
+            v-if="filterOrder.field === 'id'"
+            color="red"
+            floating
+            style="margin-top: -4px"
+            ><q-icon
+              size="14px"
+              :name="
+                filterOrder.field === 'id'
+                  ? filterOrder.value === 'asc'
+                    ? 'expand_less'
+                    : 'expand_more'
+                  : ''
+              "
+            />
+          </q-badge>
+          <q-tooltip
+            anchor="bottom left"
+            :offset="[55, -37]"
+            class="bg-black text-body2"
+          >
+            Сортування
+          </q-tooltip>
+          <q-menu self="top middle" :offset="[-24, 8]">
+            <q-list style="width: 270px">
+              <q-item
+                v-ripple
+                clickable
+                :active="
+                  filterOrder.field === 'id' && filterOrder.value === 'desc'
+                "
+                @click="setFilterOrder('id', 'desc')"
+                active-class="text-purple"
+              >
+                <q-item-section>Від новішого до старішого</q-item-section>
+                <q-item-section
+                  v-if="
+                    filterOrder.field === 'id' && filterOrder.value === 'desc'
+                  "
+                  avatar
+                >
+                  <q-icon name="done" />
+                </q-item-section>
               </q-item>
-              <q-separator />
-              <q-item clickable v-close-popup>
-                <q-item-section>Скинути значення</q-item-section>
+              <q-item
+                v-ripple
+                clickable
+                :active="
+                  filterOrder.field === 'id' && filterOrder.value === 'asc'
+                "
+                @click="setFilterOrder('id', 'asc')"
+                active-class="text-purple"
+              >
+                <q-item-section>Від старішого до новішого</q-item-section>
+                <q-item-section
+                  v-if="
+                    filterOrder.field === 'id' && filterOrder.value === 'asc'
+                  "
+                  avatar
+                >
+                  <q-icon name="done" />
+                </q-item-section>
+              </q-item>
+              <q-separator></q-separator>
+              <q-item v-ripple clickable v-close-popup @click="clearAllFilters">
+                <q-item-section>Скинути усі фільтри</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -59,6 +115,35 @@
           <div class="vertical-line"></div>
         </div>
         <q-btn flat stretch class="filter-button">
+          <q-badge
+            v-if="
+              filterLabels.article.value != '' ||
+              filterLabels.article.order != ''
+            "
+            color="red"
+            class="q-mr-sm"
+            floating
+            style="height: 19px"
+            align="middle"
+            ><span v-if="filterLabels.article.value != ''">
+              {{ filterLabels.article.mode }}
+            </span>
+            <span
+              style="margin-left: 4px"
+              v-if="
+                filterLabels.article.value != '' &&
+                filterLabels.article.order != ''
+              "
+            ></span>
+            <q-icon
+              v-if="filterLabels.article.order != ''"
+              size="14px"
+              :name="
+                filterLabels.article.order == 'asc'
+                  ? 'expand_less'
+                  : 'expand_more'
+              "
+          /></q-badge>
           <div
             :style="`min-width: ${fieldWidths.article}px; text-align: start`"
           >
@@ -67,22 +152,119 @@
 
           <q-menu
             self="bottom middle"
-            :offset="[-fieldWidths.article / 2 - 16, 102]"
+            :offset="[-fieldWidths.article / 2 - 16, -55]"
           >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
+            <q-inner-loading :showing="typeStore.data.isTypesLoading">
+              <q-spinner-gears size="50px" color="primary" />
+            </q-inner-loading>
+            <div style="min-width: 250px; min-height: fit-content">
+              <div class="row justify-end q-mb-sm">
+                <q-btn flat v-close-popup dense icon="close"></q-btn>
+              </div>
+              <div class="row">
+                <div class="filter-body col-12 q-px-md">
+                  <q-input
+                    class="col-12 q-mb-md"
+                    outlined
+                    v-model="
+                      appConfigStore.filters.types.selectedParams.article.value
+                    "
+                    placeholder="Значення артиклю"
+                    dense
+                    debounce="700"
+                  />
+                  <q-select
+                    class="col-12 q-mb-md"
+                    dense
+                    outlined
+                    v-model="
+                      appConfigStore.filters.types.selectedParams.article
+                        .filterMode
+                    "
+                    :options="appConfigStore.filters.availableParams.items"
+                    @update:model-value="onChangedFieldFilterMode('article')"
+                  >
+                  </q-select>
+                  <div class="row justify-between q-mb-md">
+                    <q-btn
+                      class="q-px-md"
+                      style="width: 46%"
+                      :color="
+                        filterOrder.field === 'article' &&
+                        filterOrder.value === 'asc'
+                          ? 'primary'
+                          : 'white'
+                      "
+                      :text-color="
+                        filterOrder.field === 'article' &&
+                        filterOrder.value === 'asc'
+                          ? 'white'
+                          : 'black'
+                      "
+                      @click="setFilterOrder('article', 'asc')"
+                      ><q-icon name="arrow_upward"
+                    /></q-btn>
+                    <q-btn
+                      class="q-px-md"
+                      style="width: 46%"
+                      :color="
+                        filterOrder.field === 'article' &&
+                        filterOrder.value === 'desc'
+                          ? 'primary'
+                          : 'white'
+                      "
+                      :text-color="
+                        filterOrder.field === 'article' &&
+                        filterOrder.value === 'desc'
+                          ? 'white'
+                          : 'black'
+                      "
+                      @click="setFilterOrder('article', 'desc')"
+                      ><q-icon name="arrow_downward"
+                    /></q-btn>
+                  </div>
+                  <div class="row q-mb-md">
+                    <q-btn
+                      v-close-popup
+                      class="col-12"
+                      @click="clearFilter('article')"
+                      >Скинути</q-btn
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
           </q-menu>
         </q-btn>
         <div class="filter-separator" name="article">
           <div class="vertical-line"></div>
         </div>
         <q-btn flat stretch class="filter-button">
+          <q-badge
+            v-if="
+              filterLabels.name.value != '' || filterLabels.name.order != ''
+            "
+            color="red"
+            class="q-mr-sm"
+            floating
+            style="height: 19px"
+            align="middle"
+            ><span v-if="filterLabels.name.value != ''">
+              {{ filterLabels.name.mode }}
+            </span>
+            <span
+              style="margin-left: 4px"
+              v-if="
+                filterLabels.name.value != '' && filterLabels.name.order != ''
+              "
+            ></span>
+            <q-icon
+              v-if="filterLabels.name.order != ''"
+              size="14px"
+              :name="
+                filterLabels.name.order == 'asc' ? 'expand_less' : 'expand_more'
+              "
+          /></q-badge>
           <div
             :style="`min-width: ${
               fieldWidths.name - filterWidthSettings.options.xScrollWidth
@@ -90,18 +272,91 @@
           >
             Назва
           </div>
+
           <q-menu
             self="bottom middle"
-            :offset="[-fieldWidths.name / 2 - 16, 102]"
+            :offset="[-fieldWidths.name / 2 - 16, -55]"
           >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
+            <q-inner-loading :showing="typeStore.data.isTypesLoading">
+              <q-spinner-gears size="50px" color="primary" />
+            </q-inner-loading>
+            <div style="min-width: 250px; min-height: fit-content">
+              <div class="row justify-end q-mb-sm">
+                <q-btn flat v-close-popup dense icon="close"></q-btn>
+              </div>
+              <div class="row">
+                <div class="filter-body col-12 q-px-md">
+                  <q-input
+                    class="col-12 q-mb-md"
+                    outlined
+                    v-model="
+                      appConfigStore.filters.types.selectedParams.name.value
+                    "
+                    placeholder="Значення назви"
+                    dense
+                    debounce="700"
+                  />
+                  <q-select
+                    class="col-12 q-mb-md"
+                    dense
+                    outlined
+                    v-model="
+                      appConfigStore.filters.types.selectedParams.name
+                        .filterMode
+                    "
+                    :options="appConfigStore.filters.availableParams.items"
+                    @update:model-value="onChangedFieldFilterMode('name')"
+                  >
+                  </q-select>
+                  <div class="row justify-between q-mb-md">
+                    <q-btn
+                      class="q-px-md"
+                      style="width: 46%"
+                      :color="
+                        filterOrder.field === 'name' &&
+                        filterOrder.value === 'asc'
+                          ? 'primary'
+                          : 'white'
+                      "
+                      :text-color="
+                        filterOrder.field === 'name' &&
+                        filterOrder.value === 'asc'
+                          ? 'white'
+                          : 'black'
+                      "
+                      @click="setFilterOrder('name', 'asc')"
+                      ><q-icon name="arrow_upward"
+                    /></q-btn>
+                    <q-btn
+                      class="q-px-md"
+                      style="width: 46%"
+                      :color="
+                        filterOrder.field === 'name' &&
+                        filterOrder.value === 'desc'
+                          ? 'primary'
+                          : 'white'
+                      "
+                      :text-color="
+                        filterOrder.field === 'name' &&
+                        filterOrder.value === 'desc'
+                          ? 'white'
+                          : 'black'
+                      "
+                      @click="setFilterOrder('name', 'desc')"
+                      ><q-icon name="arrow_downward"
+                    /></q-btn>
+                  </div>
+                  <div class="row q-mb-md">
+                    <q-btn
+                      v-close-popup
+                      class="col-12"
+                      @click="clearFilter('name')"
+                      >Скинути</q-btn
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
           </q-menu>
         </q-btn>
         <div class="filter-separator" name="name">
@@ -122,12 +377,11 @@
           <td
             :width="
               fieldWidths.name +
+              4 +
               filterWidthSettings.options.filterButtonXPadding -
-              filterWidthSettings.options.separatorWidth -
               filterWidthSettings.options.xScrollWidth
             "
           ></td>
-          <td :width="filterWidthSettings.options.separatorWidth + 4"></td>
         </tr>
         <template v-for="(item, index) in typeStore.items" :key="index">
           <type-component
@@ -301,7 +555,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import TypeComponent from "src/components/TypeComponent.vue";
 import { useRouter } from "vue-router";
 import { useTypeStore } from "src/stores/typeStore";
@@ -329,7 +583,6 @@ let deletedType = reactive({
 });
 
 let searchInput = ref("");
-let isSearching = ref(false);
 let fieldWidths = reactive({
   //px
   article: 0,
@@ -390,6 +643,88 @@ function showRemoveDialog(id, name) {
   typeStore.dialogs.delete.isShown = true;
 }
 
+function setFilterOrder(field, fieldOrder) {
+  let order = appConfigStore.filters.types.selectedParams.order;
+  if (order.field === field && order.value === fieldOrder) {
+    order.field = "";
+    order.value = "";
+    order.combined = "";
+  } else {
+    order.field = field;
+    order.value = fieldOrder;
+    order.combined = `${field}${fieldOrder}`;
+  }
+}
+
+function clearFilter(field) {
+  let filters = appConfigStore.filters;
+
+  filters.types.selectedParams[field].value = "";
+  filters.types.selectedParams[field].filterMode =
+    filters.availableParams.items[0];
+
+  if (filters.types.selectedParams.order.field === field) {
+    filters.types.selectedParams.order.field = "";
+    filters.types.selectedParams.order.value = "";
+    filters.types.selectedParams.order.combined = "";
+  }
+}
+
+function clearAllFilters() {
+  let filters = appConfigStore.filters;
+
+  for (const [key, value] of Object.entries(filters.types.selectedParams)) {
+    filters.types.selectedParams[key].value = "";
+    filters.types.selectedParams[key].filterMode =
+      filters.availableParams.items[0];
+  }
+
+  filters.types.selectedParams.order.field = "";
+  filters.types.selectedParams.order.value = "";
+  filters.types.selectedParams.order.combined = "";
+}
+
+function onChangedFieldFilterMode(fieldName) {
+  if (appConfigStore.filters.types.selectedParams[fieldName].value != "") {
+    typeStore.receive();
+  }
+}
+
+const filterOrder = computed(() => {
+  return {
+    field: appConfigStore.filters.types.selectedParams.order.field,
+    value: appConfigStore.filters.types.selectedParams.order.value,
+  };
+});
+
+const filterLabels = computed(() => {
+  let articleFilter = appConfigStore.filters.types.selectedParams.article;
+  let nameFilter = appConfigStore.filters.types.selectedParams.name;
+
+  return {
+    article: {
+      value: articleFilter.value != "" ? "V" : "",
+      mode: articleFilter.filterMode.shortName,
+      order:
+        appConfigStore.filters.types.selectedParams.order.field == "article"
+          ? appConfigStore.filters.types.selectedParams.order.value == "asc"
+            ? "asc"
+            : "desc"
+          : "",
+    },
+    name: {
+      value: nameFilter.value != "" ? "V" : "",
+      mode: nameFilter.filterMode.shortName,
+      order:
+        appConfigStore.filters.types.selectedParams.order.field == "name"
+          ? appConfigStore.filters.types.selectedParams.order.value == "asc"
+            ? "asc"
+            : "desc"
+          : "",
+    },
+  };
+});
+
 watch([() => appConfigStore.currentPages.types], ([currentPage]) => {
   router.push(`/types/${currentPage}`);
   typeStore.receive();
@@ -403,6 +738,18 @@ watch([() => appConfigStore.amountOfItemsPerPages.types], ([amountPerPage]) => {
   }
   router.push(`/types/${appConfigStore.currentPages.types}`);
 });
+
+//filter watcher
+watch(
+  [
+    () => appConfigStore.filters.types.selectedParams.order.combined,
+    () => appConfigStore.filters.types.selectedParams.article.value,
+    () => appConfigStore.filters.types.selectedParams.name.value,
+  ],
+  () => {
+    typeStore.receive();
+  }
+);
 
 onMounted(() => {
   typeStore.items = [];
@@ -466,7 +813,7 @@ onMounted(() => {
       devider.classList.add("filter-width-helper");
       devider.style.height = `${pageContainer.clientHeight}px`;
       pageContainer.appendChild(devider);
-      devider.style.top = `${filter.offsetTop}px`;
+      devider.style.top = `${pageContainer.offsetTop}px`;
       devider.style.left = `${
         separatorObject.getBoundingClientRect().x -
         pageContainer.getBoundingClientRect().x +

@@ -100,12 +100,26 @@ export const useTypeStore = defineStore("type", {
     },
     receive() {
       // this.items = [];
+      console.log(
+        appConfigStore.filters.types.selectedParams.name.filterMode.value
+      );
       this.data.isTypesLoading = true;
       api
         .get("/types", {
           params: {
             itemsPerPage: appConfigStore.amountOfItemsPerPages.types,
             page: appConfigStore.currentPages.types,
+            articleFilterValue:
+              appConfigStore.filters.types.selectedParams.article.value,
+            articleFilterMode:
+              appConfigStore.filters.types.selectedParams.article.filterMode
+                .value,
+            nameFilterValue:
+              appConfigStore.filters.types.selectedParams.name.value,
+            nameFilterMode:
+              appConfigStore.filters.types.selectedParams.name.filterMode.value,
+            orderField: appConfigStore.filters.types.selectedParams.order.field,
+            orderValue: appConfigStore.filters.types.selectedParams.order.value,
           },
         })
         .then((res) => {

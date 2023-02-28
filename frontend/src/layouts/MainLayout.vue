@@ -150,7 +150,7 @@
 
   <q-dialog
     persistent
-    v-model="appConfigStore.reauth.dialogs.renewPassword.isShown"
+    v-model="appConfigStore.errors.reauth.dialogs.renewPassword.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -206,7 +206,9 @@
             flat
             color="primary"
             type="submit"
-            :loading="appConfigStore.reauth.dialogs.renewPassword.isLoading"
+            :loading="
+              appConfigStore.errors.reauth.dialogs.renewPassword.isLoading
+            "
             ><b>Відновити</b></q-btn
           >
         </q-card-actions>
@@ -216,7 +218,7 @@
 
   <q-dialog
     persistent
-    v-model="appConfigStore.reauth.dialogs.unauthenticated.isShown"
+    v-model="appConfigStore.errors.reauth.dialogs.unauthenticated.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -246,7 +248,9 @@
             flat
             color="primary"
             type="submit"
-            :loading="appConfigStore.reauth.dialogs.unauthenticated.isLoading"
+            :loading="
+              appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading
+            "
             ><b>Гаразд</b></q-btn
           >
         </q-card-actions>
@@ -371,24 +375,24 @@ const menuItems = [
 ];
 
 function logout() {
-  appConfigStore.reauth.dialogs.unauthenticated.isLoading = true;
+  appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading = true;
   userStore.logout().finally(() => {
     sessionStorage.removeItem("data");
     userStore.data.email = "";
     userStore.data.name = "";
     userStore.data.token.value = null;
     userStore.data.token.expiredAt = "";
-    appConfigStore.reauth.data.attempt = 0;
-    appConfigStore.reauth.data.changingSecondsToLogout = 0;
-    appConfigStore.reauth.dialogs.renewPassword.isShown = false;
-    appConfigStore.reauth.dialogs.unauthenticated.isLoading = false;
-    appConfigStore.reauth.dialogs.unauthenticated.isShown = false;
+    appConfigStore.errors.reauth.data.attempt = 0;
+    appConfigStore.errors.reauth.data.changingSecondsToLogout = 0;
+    appConfigStore.errors.reauth.dialogs.renewPassword.isShown = false;
+    appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading = false;
+    appConfigStore.errors.reauth.dialogs.unauthenticated.isShown = false;
     router.push("/login");
   });
 }
 
 function renewSession() {
-  appConfigStore.reauth.dialogs.renewPassword.isLoading = true;
+  appConfigStore.errors.reauth.dialogs.renewPassword.isLoading = true;
   userStore
     .renewSession(sessionRenewPassword.value)
     .then((res) => {
@@ -401,22 +405,22 @@ function renewSession() {
 
       sessionStorage.setItem("data", JSON.stringify(userData));
 
-      appConfigStore.reauth.dialogs.renewPassword.isShown = false;
+      appConfigStore.errors.reauth.dialogs.renewPassword.isShown = false;
       window.location.reload();
     })
     .catch((err) => {
       appConfigStore.catchRequestError(err);
     })
     .finally(() => {
-      appConfigStore.reauth.dialogs.renewPassword.isLoading = false;
+      appConfigStore.errors.reauth.dialogs.renewPassword.isLoading = false;
       sessionRenewPassword.value = "";
     });
 }
 
 watch(
-  () => appConfigStore.reauth.data.attempt,
+  () => appConfigStore.errors.reauth.data.attempt,
   (attempt) => {
-    if (attempt >= appConfigStore.reauth.data.attemptsAllowed) {
+    if (attempt >= appConfigStore.errors.reauth.data.attemptsAllowed) {
       logout();
     }
   }
@@ -424,15 +428,15 @@ watch(
 
 let logoutInterval;
 watch(
-  () => appConfigStore.reauth.dialogs.unauthenticated.isShown,
+  () => appConfigStore.errors.reauth.dialogs.unauthenticated.isShown,
   (isShown) => {
     if (isShown) {
-      appConfigStore.reauth.data.secondsToLogout;
+      appConfigStore.errors.reauth.data.secondsToLogout;
       logoutInterval = setInterval(() => {
-        appConfigStore.reauth.data.changingSecondsToLogout += 1;
+        appConfigStore.errors.reauth.data.changingSecondsToLogout += 1;
         if (
-          appConfigStore.reauth.data.changingSecondsToLogout >=
-          appConfigStore.reauth.data.secondsToLogout
+          appConfigStore.errors.reauth.data.changingSecondsToLogout >=
+          appConfigStore.errors.reauth.data.secondsToLogout
         ) {
           clearInterval(logoutInterval);
           logout();

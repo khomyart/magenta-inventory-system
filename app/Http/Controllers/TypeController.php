@@ -24,9 +24,56 @@ class TypeController extends Controller
         $user = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
         $data = $request->validate([
             'itemsPerPage' => 'required|numeric',
+            'page' => 'required|numeric',
+            'orderField'=> ['string', 'regex:/^id$|^article$|^name$/i', 'nullable'],
+            'orderValue' => ['string', 'regex:/^desc$|^asc$/i', 'nullable'],
+            'articleFilterValue' => 'string|nullable',
+            'articleFilterMode' => ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'],
+            'nameFilterValue' => 'string|nullable',
+            'nameFilterMode' => ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'],
         ]);
 
-        return response(DB::table('types')->paginate($data['itemsPerPage']));
+        $types = DB::table('types');
+
+        //forming where query
+        $articleSearchValue = $data["articleFilterValue"];
+        $articleSearchOperator = $this->getWhereOperator($data["articleFilterMode"]);
+        $nameSearchValue = $data["nameFilterValue"];
+        $nameSearchOperator = $this->getWhereOperator($data["nameFilterMode"]);
+
+        if (!empty($articleSearchValue)) {
+            if ($articleSearchOperator === 'like') {
+                $types->where('article', 'like', "%{$articleSearchValue}%");
+            } elseif ($articleSearchOperator === 'notLike') {
+                $types->whereNot(function ($query) use ($articleSearchValue) {
+                    $query->where('article', 'like', "%{$articleSearchValue}%");
+                });
+            } else {
+                $types->where('article', $articleSearchOperator, $articleSearchValue);
+            }
+        }
+
+        if (!empty($nameSearchValue)) {
+            if ($nameSearchOperator === 'like') {
+                $types->where('name', 'like', "%{$nameSearchValue}%");
+            } elseif ($nameSearchOperator === 'notLike') {
+                $types->whereNot(function ($query) use ($nameSearchValue) {
+                    $query->where('name', 'like', "%{$nameSearchValue}%");
+                });
+            } else {
+                $types->where('name', $nameSearchOperator, $nameSearchValue);
+            }
+        }
+
+        //ordering query
+        if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
+            $types = $types->orderBy($data["orderField"], $data["orderValue"]);
+        } else {
+            $types = $types->latest();
+        }
+
+        return response($types->paginate($data['itemsPerPage']));
+
     }
 
     public function create(Request $request) {
@@ -66,6 +113,26 @@ class TypeController extends Controller
         }
 
         return response("type not found", 404);
+    }
+
+    private function getWhereOperator($operatorName) {
+        $operatorValue = "";
+        $equality = [
+            'include' => 'like',
+            'exclude' => 'notLike',
+            'more' => '>',
+            'less' => '<',
+            'equal'=> '=',
+            'notequal' => '<>'
+        ];
+
+        foreach ($equality as $key => $value) {
+            if ($key === $operatorName) {
+                $operatorValue = $value;
+            }
+        }
+
+        return $operatorValue;
     }
 
 }

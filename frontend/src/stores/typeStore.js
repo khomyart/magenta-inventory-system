@@ -99,10 +99,8 @@ export const useTypeStore = defineStore("type", {
         });
     },
     receive() {
+      appConfigStore.updateLocalStorageConfig();
       // this.items = [];
-      console.log(
-        appConfigStore.filters.types.selectedParams.name.filterMode.value
-      );
       this.data.isTypesLoading = true;
       api
         .get("/types", {
@@ -110,16 +108,19 @@ export const useTypeStore = defineStore("type", {
             itemsPerPage: appConfigStore.amountOfItemsPerPages.types,
             page: appConfigStore.currentPages.types,
             articleFilterValue:
-              appConfigStore.filters.types.selectedParams.article.value,
+              appConfigStore.filters.data.types.selectedParams.article.value,
             articleFilterMode:
-              appConfigStore.filters.types.selectedParams.article.filterMode
-                .value,
+              appConfigStore.filters.data.types.selectedParams.article
+                .filterMode.value,
             nameFilterValue:
-              appConfigStore.filters.types.selectedParams.name.value,
+              appConfigStore.filters.data.types.selectedParams.name.value,
             nameFilterMode:
-              appConfigStore.filters.types.selectedParams.name.filterMode.value,
-            orderField: appConfigStore.filters.types.selectedParams.order.field,
-            orderValue: appConfigStore.filters.types.selectedParams.order.value,
+              appConfigStore.filters.data.types.selectedParams.name.filterMode
+                .value,
+            orderField:
+              appConfigStore.filters.data.types.selectedParams.order.field,
+            orderValue:
+              appConfigStore.filters.data.types.selectedParams.order.value,
           },
         })
         .then((res) => {

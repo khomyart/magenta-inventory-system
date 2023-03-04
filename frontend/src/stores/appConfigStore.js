@@ -27,34 +27,46 @@ export const useAppConfigStore = defineStore("appConfig", {
     },
     allowenses: {},
     filters: {
-      types: {
-        width: {
-          article: "",
-          name: "",
-        },
-        selectedParams: {
-          order: {
-            field: "",
-            value: "",
-            //watcherVariable
-            combined: "",
-          },
-          article: {
-            value: "",
-            filterMode: {
-              label: "Містить",
-              value: "include",
-              shortName: "LIKE",
-              type: "universal",
+      data: {
+        types: {
+          width: {
+            default: {
+              article: 300,
+              name: 150,
+            },
+            dynamic: {
+              article: 0,
+              name: 0,
+            },
+            minimum: {
+              article: 100,
+              name: 100,
             },
           },
-          name: {
-            value: "",
-            filterMode: {
-              label: "Містить",
-              value: "include",
-              shortName: "LIKE",
-              type: "universal",
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            article: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
             },
           },
         },
@@ -92,11 +104,11 @@ export const useAppConfigStore = defineStore("appConfig", {
       },
     },
     amountOfItemsPerPages: {
-      items: 20,
-      types: 5,
+      items: 10,
+      types: 10,
     },
     currentPages: { items: 0, types: 0 },
-    availableAmaountOfItemsPerPage: [2, 5, 20, 50],
+    availableAmaountOfItemsPerPage: [10, 20, 50],
   }),
   getters: {
     attemptsLeft: (state) =>
@@ -131,6 +143,30 @@ export const useAppConfigStore = defineStore("appConfig", {
       ) {
         this.errors.reauth.data.attempt += 1;
         return;
+      }
+    },
+    updateLocalStorageConfig() {
+      localStorage.setItem("filters", JSON.stringify(this.filters.data));
+      localStorage.setItem(
+        "itemsPerPage",
+        JSON.stringify(this.amountOfItemsPerPages)
+      );
+    },
+    setUIdependsOnLocalStorage() {
+      if (
+        localStorage.getItem("filters") != null &&
+        localStorage.getItem("filters").length > 30
+      ) {
+        this.filters.data = JSON.parse(localStorage.getItem("filters"));
+      }
+
+      if (
+        localStorage.getItem("itemsPerPage") != null &&
+        localStorage.getItem("itemsPerPage").length > 10
+      ) {
+        this.amountOfItemsPerPages = JSON.parse(
+          localStorage.getItem("itemsPerPage")
+        );
       }
     },
   },

@@ -2,13 +2,14 @@
   <div class="page">
     <div class="toolbar row q-px-md q-mt-md">
       <q-input
-        v-model="appConfigStore.filters.types.selectedParams.name.value"
+        v-model="appConfigStore.filters.data.types.selectedParams.name.value"
         debounce="700"
         outlined
         placeholder="Введіть назву виду"
         rounded
         dense
-        class="col-4 q-mr-md"
+        class="q-mr-md"
+        style="width: 300px"
         :loading="typeStore.data.isTypesLoading"
       >
         <template v-slot:append v-if="!typeStore.data.isTypesLoading">
@@ -37,7 +38,7 @@
 
     <div class="content">
       <q-inner-loading :showing="typeStore.data.isTypesLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
         <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
@@ -65,6 +66,9 @@
             Сортування
           </q-tooltip>
           <q-menu self="top middle" :offset="[-24, 8]">
+            <q-inner-loading :showing="typeStore.data.isTypesLoading">
+              <q-spinner-puff size="50px" color="primary" />
+            </q-inner-loading>
             <q-list style="width: 270px">
               <q-item
                 v-ripple
@@ -155,7 +159,7 @@
             :offset="[-fieldWidths.article / 2 - 16, -55]"
           >
             <q-inner-loading :showing="typeStore.data.isTypesLoading">
-              <q-spinner-gears size="50px" color="primary" />
+              <q-spinner-puff size="50px" color="primary" />
             </q-inner-loading>
             <div style="min-width: 250px; min-height: fit-content">
               <div class="row justify-end q-mb-sm">
@@ -167,7 +171,8 @@
                     class="col-12 q-mb-md"
                     outlined
                     v-model="
-                      appConfigStore.filters.types.selectedParams.article.value
+                      appConfigStore.filters.data.types.selectedParams.article
+                        .value
                     "
                     placeholder="Значення артиклю"
                     dense
@@ -178,7 +183,7 @@
                     dense
                     outlined
                     v-model="
-                      appConfigStore.filters.types.selectedParams.article
+                      appConfigStore.filters.data.types.selectedParams.article
                         .filterMode
                     "
                     :options="appConfigStore.filters.availableParams.items"
@@ -265,11 +270,7 @@
                 filterLabels.name.order == 'asc' ? 'expand_less' : 'expand_more'
               "
           /></q-badge>
-          <div
-            :style="`min-width: ${
-              fieldWidths.name - filterWidthSettings.options.xScrollWidth
-            }px; text-align: start`"
-          >
+          <div :style="`min-width: ${fieldWidths.name}px; text-align: start`">
             Назва
           </div>
 
@@ -278,7 +279,7 @@
             :offset="[-fieldWidths.name / 2 - 16, -55]"
           >
             <q-inner-loading :showing="typeStore.data.isTypesLoading">
-              <q-spinner-gears size="50px" color="primary" />
+              <q-spinner-puff size="50px" color="primary" />
             </q-inner-loading>
             <div style="min-width: 250px; min-height: fit-content">
               <div class="row justify-end q-mb-sm">
@@ -290,7 +291,8 @@
                     class="col-12 q-mb-md"
                     outlined
                     v-model="
-                      appConfigStore.filters.types.selectedParams.name.value
+                      appConfigStore.filters.data.types.selectedParams.name
+                        .value
                     "
                     placeholder="Значення назви"
                     dense
@@ -301,7 +303,7 @@
                     dense
                     outlined
                     v-model="
-                      appConfigStore.filters.types.selectedParams.name
+                      appConfigStore.filters.data.types.selectedParams.name
                         .filterMode
                     "
                     :options="appConfigStore.filters.availableParams.items"
@@ -377,11 +379,10 @@
           <td
             :width="
               fieldWidths.name +
-              4 +
-              filterWidthSettings.options.filterButtonXPadding -
-              filterWidthSettings.options.xScrollWidth
+              filterWidthSettings.options.filterButtonXPadding
             "
           ></td>
+          <td :width="filterWidthSettings.options.separatorWidth / 2 - 1"></td>
         </tr>
         <template v-for="(item, index) in typeStore.items" :key="index">
           <type-component
@@ -582,12 +583,10 @@ let deletedType = reactive({
   name: "",
 });
 
-let searchInput = ref("");
 let fieldWidths = reactive({
   //px
   article: 0,
   name: 0,
-  icon: 0,
 });
 let tempFieldWidths = reactive({
   //px
@@ -601,16 +600,14 @@ let filterWidthSettings = {
     article: 100,
     name: 100,
   },
-  fieldWidthsInPercentages: {
-    //%
-    article: 5,
-    name: 5,
+  fieldDefaultWidth: {
+    article: 150,
+    name: 200,
   },
   options: {
     //px
-    minFilterWidth: 90,
+    minFilterWidth: 100,
     separatorWidth: 11,
-    xScrollWidth: 20,
     filterButtonXPadding: 32,
     //affected || straight
     resizeMode: "straight",
@@ -644,7 +641,7 @@ function showRemoveDialog(id, name) {
 }
 
 function setFilterOrder(field, fieldOrder) {
-  let order = appConfigStore.filters.types.selectedParams.order;
+  let order = appConfigStore.filters.data.types.selectedParams.order;
   if (order.field === field && order.value === fieldOrder) {
     order.field = "";
     order.value = "";
@@ -659,55 +656,59 @@ function setFilterOrder(field, fieldOrder) {
 function clearFilter(field) {
   let filters = appConfigStore.filters;
 
-  filters.types.selectedParams[field].value = "";
-  filters.types.selectedParams[field].filterMode =
+  filters.data.types.selectedParams[field].value = "";
+  filters.data.types.selectedParams[field].filterMode =
     filters.availableParams.items[0];
 
-  if (filters.types.selectedParams.order.field === field) {
-    filters.types.selectedParams.order.field = "";
-    filters.types.selectedParams.order.value = "";
-    filters.types.selectedParams.order.combined = "";
+  if (filters.data.types.selectedParams.order.field === field) {
+    filters.data.types.selectedParams.order.field = "";
+    filters.data.types.selectedParams.order.value = "";
+    filters.data.types.selectedParams.order.combined = "";
   }
 }
 
 function clearAllFilters() {
   let filters = appConfigStore.filters;
 
-  for (const [key, value] of Object.entries(filters.types.selectedParams)) {
-    filters.types.selectedParams[key].value = "";
-    filters.types.selectedParams[key].filterMode =
+  for (const [key, value] of Object.entries(
+    filters.data.types.selectedParams
+  )) {
+    filters.data.types.selectedParams[key].value = "";
+    filters.data.types.selectedParams[key].filterMode =
       filters.availableParams.items[0];
   }
 
-  filters.types.selectedParams.order.field = "";
-  filters.types.selectedParams.order.value = "";
-  filters.types.selectedParams.order.combined = "";
+  filters.data.types.selectedParams.order.field = "";
+  filters.data.types.selectedParams.order.value = "";
+  filters.data.types.selectedParams.order.combined = "";
 }
 
 function onChangedFieldFilterMode(fieldName) {
-  if (appConfigStore.filters.types.selectedParams[fieldName].value != "") {
+  if (appConfigStore.filters.data.types.selectedParams[fieldName].value != "") {
     typeStore.receive();
   }
 }
 
 const filterOrder = computed(() => {
   return {
-    field: appConfigStore.filters.types.selectedParams.order.field,
-    value: appConfigStore.filters.types.selectedParams.order.value,
+    field: appConfigStore.filters.data.types.selectedParams.order.field,
+    value: appConfigStore.filters.data.types.selectedParams.order.value,
   };
 });
 
 const filterLabels = computed(() => {
-  let articleFilter = appConfigStore.filters.types.selectedParams.article;
-  let nameFilter = appConfigStore.filters.types.selectedParams.name;
+  let articleFilter = appConfigStore.filters.data.types.selectedParams.article;
+  let nameFilter = appConfigStore.filters.data.types.selectedParams.name;
 
   return {
     article: {
       value: articleFilter.value != "" ? "V" : "",
       mode: articleFilter.filterMode.shortName,
       order:
-        appConfigStore.filters.types.selectedParams.order.field == "article"
-          ? appConfigStore.filters.types.selectedParams.order.value == "asc"
+        appConfigStore.filters.data.types.selectedParams.order.field ==
+        "article"
+          ? appConfigStore.filters.data.types.selectedParams.order.value ==
+            "asc"
             ? "asc"
             : "desc"
           : "",
@@ -716,8 +717,9 @@ const filterLabels = computed(() => {
       value: nameFilter.value != "" ? "V" : "",
       mode: nameFilter.filterMode.shortName,
       order:
-        appConfigStore.filters.types.selectedParams.order.field == "name"
-          ? appConfigStore.filters.types.selectedParams.order.value == "asc"
+        appConfigStore.filters.data.types.selectedParams.order.field == "name"
+          ? appConfigStore.filters.data.types.selectedParams.order.value ==
+            "asc"
             ? "asc"
             : "desc"
           : "",
@@ -742,9 +744,9 @@ watch([() => appConfigStore.amountOfItemsPerPages.types], ([amountPerPage]) => {
 //filter watcher
 watch(
   [
-    () => appConfigStore.filters.types.selectedParams.order.combined,
-    () => appConfigStore.filters.types.selectedParams.article.value,
-    () => appConfigStore.filters.types.selectedParams.name.value,
+    () => appConfigStore.filters.data.types.selectedParams.order.combined,
+    () => appConfigStore.filters.data.types.selectedParams.article.value,
+    () => appConfigStore.filters.data.types.selectedParams.name.value,
   ],
   () => {
     typeStore.receive();
@@ -763,29 +765,21 @@ onMounted(() => {
   //get .content div padding
   let contentWidth = contentElement.offsetWidth;
   let contentPaddingX =
+    2 +
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
   //get width of separator
   let separatorWidth = document.querySelector(".filter-separator").offsetWidth;
-
   let fieldNumber = 1;
   for (const fieldName in fieldWidths) {
     fieldWidths[fieldName] =
-      contentWidth *
-        (filterWidthSettings.fieldWidthsInPercentages[fieldName] / 100) -
-      filterWidthSettings.options.filterButtonXPadding;
+      filterWidthSettings.fieldDefaultWidth[fieldName] - contentPaddingX;
     //substracting value according to container padding devided by amount of filter parameters
-    fieldWidths[fieldName] -= contentPaddingX / Object.keys(fieldWidths).length;
+    // fieldWidths[fieldName] -= contentPaddingX / Object.keys(fieldWidths).length;
     //if filter item is not last -> substract width of separator
-    if (Object.keys(fieldWidths).length != fieldNumber) {
-      fieldWidths[fieldName] -= separatorWidth;
-    }
-    //set minimum width of fields in case, if calculated is less than established minimum
-    if (
-      fieldWidths[fieldName] < filterWidthSettings.fieldMinWidths[fieldName]
-    ) {
-      fieldWidths[fieldName] = filterWidthSettings.fieldMinWidths[fieldName];
-    }
+    // if (Object.keys(fieldWidths).length != fieldNumber) {
+    //   fieldWidths[fieldName] -= separatorWidth;
+    // }
 
     fieldNumber += 1;
   }

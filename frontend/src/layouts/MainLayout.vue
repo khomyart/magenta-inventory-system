@@ -463,6 +463,7 @@ const secondsLabel = computed(() => {
 });
 
 onMounted(() => {
+  appConfigStore.setUIdependsOnLocalStorage();
   let userData = JSON.parse(sessionStorage.getItem("data"));
   if (typeof userData === "object") {
     userStore.data.email = userData.email;

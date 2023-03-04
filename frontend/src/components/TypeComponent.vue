@@ -65,6 +65,7 @@
         </div>
       </div>
     </td>
+    <td class="separator-cell"><div></div></td>
   </tr>
 </template>
 

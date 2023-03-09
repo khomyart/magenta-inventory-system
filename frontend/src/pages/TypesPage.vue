@@ -149,14 +149,14 @@
               "
           /></q-badge>
           <div
-            :style="`min-width: ${fieldWidths.article}px; text-align: start`"
+            :style="`min-width: ${computedFilterWidth.buttons.article}px; text-align: start`"
           >
             Артикль
           </div>
 
           <q-menu
             self="bottom middle"
-            :offset="[-fieldWidths.article / 2 - 16, -55]"
+            :offset="[-computedFilterWidth.buttons.article / 2 - 16, -55]"
           >
             <q-inner-loading :showing="typeStore.data.isTypesLoading">
               <q-spinner-puff size="50px" color="primary" />
@@ -270,13 +270,15 @@
                 filterLabels.name.order == 'asc' ? 'expand_less' : 'expand_more'
               "
           /></q-badge>
-          <div :style="`min-width: ${fieldWidths.name}px; text-align: start`">
+          <div
+            :style="`min-width: ${computedFilterWidth.buttons.name}px; text-align: start`"
+          >
             Назва
           </div>
 
           <q-menu
             self="bottom middle"
-            :offset="[-fieldWidths.name / 2 - 16, -55]"
+            :offset="[-computedFilterWidth.buttons.name / 2 - 16, -55]"
           >
             <q-inner-loading :showing="typeStore.data.isTypesLoading">
               <q-spinner-puff size="50px" color="primary" />
@@ -368,21 +370,11 @@
       <table class="items">
         <tr>
           <td :width="60"></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.article +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.name +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth / 2 - 1"></td>
+          <td :width="computedFilterWidth.fields.separator"></td>
+          <td :width="computedFilterWidth.fields.article"></td>
+          <td :width="computedFilterWidth.fields.separator"></td>
+          <td :width="computedFilterWidth.fields.name"></td>
+          <td :width="computedFilterWidth.fields.lastSeparator"></td>
         </tr>
         <template v-for="(item, index) in typeStore.items" :key="index">
           <type-component
@@ -564,8 +556,13 @@ import { useAppConfigStore } from "src/stores/appConfigStore";
 
 const appConfigStore = useAppConfigStore();
 const typeStore = useTypeStore();
-const fieldsSequance = ["article", "name"];
 const router = useRouter();
+
+let currentSection = "types";
+let sectionStore = typeStore;
+let fieldsSequance = ["article", "name"];
+let appStore = appConfigStore;
+let localRouter = router;
 
 let newType = reactive({
   article: "",
@@ -583,36 +580,11 @@ let deletedType = reactive({
   name: "",
 });
 
-let fieldWidths = reactive({
-  //px
-  article: 0,
-  name: 0,
-});
 let tempFieldWidths = reactive({
   //px
   article: 0,
   name: 0,
 });
-
-let filterWidthSettings = {
-  fieldMinWidths: {
-    //px
-    article: 100,
-    name: 100,
-  },
-  fieldDefaultWidth: {
-    article: 150,
-    name: 200,
-  },
-  options: {
-    //px
-    minFilterWidth: 100,
-    separatorWidth: 11,
-    filterButtonXPadding: 32,
-    //affected || straight
-    resizeMode: "straight",
-  },
-};
 
 function clearUpdatedItemId() {
   let interval = setTimeout(() => {
@@ -727,6 +699,27 @@ const filterLabels = computed(() => {
   };
 });
 
+const computedFilterWidth = computed(() => {
+  return {
+    buttons: {
+      article:
+        appConfigStore.filters.data[currentSection].width.dynamic.article -
+        appConfigStore.filters.availableParams.filterButtonXPadding,
+      name:
+        appConfigStore.filters.data[currentSection].width.dynamic.name -
+        appConfigStore.filters.availableParams.filterButtonXPadding,
+    },
+    fields: {
+      article:
+        appConfigStore.filters.data[currentSection].width.dynamic.article,
+      name: appConfigStore.filters.data[currentSection].width.dynamic.name,
+      separator: appConfigStore.filters.availableParams.separatorWidth,
+      lastSeparator:
+        appConfigStore.filters.availableParams.separatorWidth / 2 - 1,
+    },
+  };
+});
+
 watch([() => appConfigStore.currentPages.types], ([currentPage]) => {
   router.push(`/types/${currentPage}`);
   typeStore.receive();
@@ -754,34 +747,25 @@ watch(
 );
 
 onMounted(() => {
-  typeStore.items = [];
-  appConfigStore.currentPages.types = Number(
-    router.currentRoute.value.params.page
+  sectionStore.items = [];
+  appStore.currentPages.types = Number(
+    localRouter.currentRoute.value.params.page
   );
   /*
     setting up default values for filter fields width according to config
   */
   let contentElement = document.querySelector(".content");
   //get .content div padding
-  let contentWidth = contentElement.offsetWidth;
   let contentPaddingX =
     2 +
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
-  //get width of separator
-  let separatorWidth = document.querySelector(".filter-separator").offsetWidth;
-  let fieldNumber = 1;
-  for (const fieldName in fieldWidths) {
-    fieldWidths[fieldName] =
-      filterWidthSettings.fieldDefaultWidth[fieldName] - contentPaddingX;
-    //substracting value according to container padding devided by amount of filter parameters
-    // fieldWidths[fieldName] -= contentPaddingX / Object.keys(fieldWidths).length;
-    //if filter item is not last -> substract width of separator
-    // if (Object.keys(fieldWidths).length != fieldNumber) {
-    //   fieldWidths[fieldName] -= separatorWidth;
-    // }
 
-    fieldNumber += 1;
+  //firstly we need to set all widths to default values
+  for (const fieldName in appStore.filters.data[currentSection].width.dynamic) {
+    appStore.filters.data[currentSection].width.dynamic[fieldName] =
+      appStore.filters.data[currentSection].width.default[fieldName] -
+      contentPaddingX;
   }
 
   /*
@@ -789,7 +773,6 @@ onMounted(() => {
   */
   let qApp = document.querySelector("#q-app");
   let pageContainer = document.querySelector(".content");
-  let filter = document.querySelector(".filter");
 
   /**
    * @param {htmlObject} separatorObject
@@ -811,7 +794,7 @@ onMounted(() => {
       devider.style.left = `${
         separatorObject.getBoundingClientRect().x -
         pageContainer.getBoundingClientRect().x +
-        filterWidthSettings.options.separatorWidth / 2
+        appStore.filters.availableParams.separatorWidth / 2
       }px`;
 
       return devider;
@@ -820,7 +803,6 @@ onMounted(() => {
     separatorObject.onmousedown = (mouseDownEvent) => {
       separatorObject.onmouseup = () => {
         onSeparatorRelease();
-        console.log("release");
       };
       document.body.onmouseup = () => {
         onSeparatorRelease();
@@ -828,15 +810,24 @@ onMounted(() => {
       //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
       //applying current filter width values to temp filter object
-      Object.keys(fieldWidths).forEach((field) => {
-        tempFieldWidths[field] = fieldWidths[field];
-      });
+      Object.keys(appStore.filters.data[currentSection].width.dynamic).forEach(
+        (field) => {
+          tempFieldWidths[field] =
+            appConfigStore.filters.data[currentSection].width.dynamic[field];
+        }
+      );
 
       let initCursorCoord = mouseDownEvent.pageX;
-      let initFieldWidth = fieldWidths[fieldName];
+      let initFieldWidth =
+        appStore.filters.data[currentSection].width.dynamic[fieldName];
       let initAffectedFieldWidth =
-        affectedFieldName == null ? null : fieldWidths[affectedFieldName];
-      let minFilterWidth = filterWidthSettings.options.minFilterWidth;
+        affectedFieldName == null
+          ? null
+          : appStore.filters.data[currentSection].width.dynamic[
+              affectedFieldName
+            ];
+
+      let minFilterWidth = appStore.filters.availableParams.minFilterWidth;
       //working with visualistion of separator movement
       let devider = separatorMovementVisualisation();
       let initDeviderOffsetLeft = devider.offsetLeft;
@@ -860,15 +851,21 @@ onMounted(() => {
           }
 
           //bringing active value back to actual fieldWidth object
-          fieldWidths[fieldName] = tempFieldWidths[fieldName];
-          fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+          appStore.filters.data[currentSection].width.dynamic[fieldName] =
+            tempFieldWidths[fieldName];
+          appStore.filters.data[currentSection].width.dynamic[
+            affectedFieldName
+          ] = tempFieldWidths[affectedFieldName];
         } else {
           if (tempFieldWidths[fieldName] < minFilterWidth) {
             tempFieldWidths[fieldName] = minFilterWidth;
           }
 
-          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+          appStore.filters.data[currentSection].width.dynamic[fieldName] =
+            tempFieldWidths[fieldName];
         }
+
+        appStore.updateLocalStorageConfig();
       }
 
       document.body.onmousemove = (mouseMoveEvent) => {
@@ -892,11 +889,11 @@ onMounted(() => {
       `.filter-separator[name='${fieldsSequance[i]}']`
     );
 
-    if (filterWidthSettings.options.resizeMode == "straight") {
+    if (appStore.filters.availableParams.resizeMode == "straight") {
       addEventToSeparator(currentItem, fieldsSequance[i]);
     }
 
-    if (filterWidthSettings.options.resizeMode == "affected") {
+    if (appStore.filters.availableParams.resizeMode == "affected") {
       if (i > fieldsSequance.length - 2) {
         continue;
       }
@@ -908,10 +905,6 @@ onMounted(() => {
     }
   }
 });
-// document.body.addEventListener("click", function (e) {
-//   console.log("bodya");
-//   console.log(e);
-// });
 </script>
 
 <style></style>

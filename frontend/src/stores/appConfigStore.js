@@ -38,10 +38,6 @@ export const useAppConfigStore = defineStore("appConfig", {
               article: 0,
               name: 0,
             },
-            minimum: {
-              article: 100,
-              name: 100,
-            },
           },
           selectedParams: {
             order: {
@@ -72,6 +68,11 @@ export const useAppConfigStore = defineStore("appConfig", {
         },
       },
       availableParams: {
+        minFilterWidth: 100,
+        separatorWidth: 11,
+        filterButtonXPadding: 32,
+        //affected || straight
+        resizeMode: "straight",
         items: [
           {
             label: "Містить",
@@ -146,6 +147,9 @@ export const useAppConfigStore = defineStore("appConfig", {
       }
     },
     updateLocalStorageConfig() {
+      console.log("updateStorage");
+      console.log(this.filters.data.types);
+
       localStorage.setItem("filters", JSON.stringify(this.filters.data));
       localStorage.setItem(
         "itemsPerPage",

@@ -548,7 +548,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from "vue";
+import { reactive, onMounted, watch, computed } from "vue";
 import TypeComponent from "src/components/TypeComponent.vue";
 import { useRouter } from "vue-router";
 import { useTypeStore } from "src/stores/typeStore";
@@ -559,8 +559,8 @@ const typeStore = useTypeStore();
 const router = useRouter();
 
 let currentSection = "types";
-let sectionStore = typeStore;
 let fieldsSequance = ["article", "name"];
+let sectionStore = typeStore;
 let appStore = appConfigStore;
 let localRouter = router;
 
@@ -761,11 +761,17 @@ onMounted(() => {
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
 
-  //firstly we need to set all widths to default values
-  for (const fieldName in appStore.filters.data[currentSection].width.dynamic) {
-    appStore.filters.data[currentSection].width.dynamic[fieldName] =
-      appStore.filters.data[currentSection].width.default[fieldName] -
-      contentPaddingX;
+  //firstly we need to set all widths to default values if atleast one element of dynamic param is less than minFilterWidth
+  if (
+    appStore.filters.data[currentSection].width.dynamic[fieldsSequance[0]] <
+    appStore.filters.availableParams.minFilterWidth
+  ) {
+    for (const fieldName in appStore.filters.data[currentSection].width
+      .dynamic) {
+      appStore.filters.data[currentSection].width.dynamic[fieldName] =
+        appStore.filters.data[currentSection].width.default[fieldName] -
+        contentPaddingX;
+    }
   }
 
   /*

@@ -147,9 +147,6 @@ export const useAppConfigStore = defineStore("appConfig", {
       }
     },
     updateLocalStorageConfig() {
-      console.log("updateStorage");
-      console.log(this.filters.data.types);
-
       localStorage.setItem("filters", JSON.stringify(this.filters.data));
       localStorage.setItem(
         "itemsPerPage",

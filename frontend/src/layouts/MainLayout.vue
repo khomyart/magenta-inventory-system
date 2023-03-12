@@ -91,7 +91,7 @@
             <q-list>
               <q-item>
                 <q-item-section style="text-align: center">
-                  {{ userStore.data.name }}
+                  {{ store.users.data.name }}
                 </q-item-section>
               </q-item>
               <q-separator />
@@ -121,7 +121,7 @@
               class="q-my-md"
             ></q-separator>
             <q-item
-              @click="menuItem.onClick"
+              @click="menuItem.onClick(menuItem.to.name)"
               :to="menuItem.to"
               clickable
               v-ripple
@@ -161,7 +161,7 @@
 
   <q-dialog
     persistent
-    v-model="appConfigStore.errors.reauth.dialogs.renewPassword.isShown"
+    v-model="store.app.errors.reauth.dialogs.renewPassword.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -181,7 +181,7 @@
       <q-form @submit="renewSession">
         <q-card-section class="q-pt-md">
           Термін дії сесії закінчився. Введіть пароль користувача ({{
-            userStore.data.email
+            store.users.data.email
           }}), щоб відновити роботу:
         </q-card-section>
 
@@ -206,7 +206,7 @@
           </q-input>
         </q-card-section>
         <q-card-section class="q-pt-none" style="text-align: end">
-          Залишилось спроб: {{ appConfigStore.attemptsLeft }}</q-card-section
+          Залишилось спроб: {{ store.app.attemptsLeft }}</q-card-section
         >
         <q-separator></q-separator>
         <q-card-actions align="right">
@@ -217,9 +217,7 @@
             flat
             color="primary"
             type="submit"
-            :loading="
-              appConfigStore.errors.reauth.dialogs.renewPassword.isLoading
-            "
+            :loading="store.app.errors.reauth.dialogs.renewPassword.isLoading"
             ><b>Відновити</b></q-btn
           >
         </q-card-actions>
@@ -229,7 +227,7 @@
 
   <q-dialog
     persistent
-    v-model="appConfigStore.errors.reauth.dialogs.unauthenticated.isShown"
+    v-model="store.app.errors.reauth.dialogs.unauthenticated.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -250,7 +248,7 @@
         <q-card-section class="q-pt-md">
           Сесія користувача була закрита, або користувач не ідентифікований. Ви
           будете перенаправлені на сторінку автентифікації через
-          {{ appConfigStore.secondsToLogoutLeft }} {{ secondsLabel }}
+          {{ store.app.secondsToLogoutLeft }} {{ secondsLabel }}
         </q-card-section>
 
         <q-separator></q-separator>
@@ -259,9 +257,7 @@
             flat
             color="primary"
             type="submit"
-            :loading="
-              appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading
-            "
+            :loading="store.app.errors.reauth.dialogs.unauthenticated.isLoading"
             ><b>Гаразд</b></q-btn
           >
         </q-card-actions>
@@ -280,9 +276,12 @@ import { useTypeStore } from "src/stores/typeStore";
 const enableRoleValidation = false;
 
 const router = useRouter();
-const userStore = useUserStore();
-const typeStore = useTypeStore();
-const appConfigStore = useAppConfigStore();
+
+const store = {
+  app: useAppConfigStore(),
+  types: useTypeStore(),
+  users: useUserStore(),
+};
 
 let sessionRenewPassword = ref("");
 let showSessionRenewPassword = ref(false);
@@ -292,127 +291,87 @@ const menuItems = [
     name: "Предмети",
     type: "header",
     isAllowed:
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "items") ||
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "logs"),
+      store.app.allowenses.renewAndCheckIsValidFor("read", "items") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "logs"),
   },
   {
     name: "Перелік",
     icon: "apps",
     to: { name: "items" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "items"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "items"),
   },
   {
     name: "Лог дій",
     icon: "checklist", //edit_square, bug_report
     to: { name: "logs" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "logs"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "logs"),
   },
   {
     type: "separator",
     isAllowed:
-      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "items") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "logs")) &&
-      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor(
-          "read",
-          "warehouses"
-        )),
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "items") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "logs")) &&
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses")),
   },
   {
     name: "Характеристики",
     type: "header",
     isAllowed:
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "warehouses"),
+      store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses"),
   },
   {
     name: "Види",
     icon: "interests",
-    to: "/types",
-    onClick: () => {
-      if (
-        router.currentRoute.value.name == "types" &&
-        appConfigStore.currentPages.types != 1
-      ) {
-        appConfigStore.currentPages.types = 1;
-      } else if (
-        router.currentRoute.value.name != "types" &&
-        appConfigStore.currentPages.types != 1
-      ) {
-        appConfigStore.currentPages.types = 1;
-        typeStore.receive(
-          appConfigStore.amountOfItemsPerPages.types,
-          appConfigStore.currentPages.types
-        );
-      } else {
-        typeStore.receive(
-          appConfigStore.amountOfItemsPerPages.types,
-          appConfigStore.currentPages.types
-        );
-      }
+    to: { name: "types" },
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
     },
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "types"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "types"),
   },
   {
     name: "Розміри",
     icon: "straighten",
     to: { name: "sizes" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "sizes"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "sizes"),
   },
   {
     name: "Гендери",
     icon: "face_retouching_natural",
     to: { name: "genders" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "genders"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "genders"),
   },
   {
     name: "Кольори",
     icon: "palette",
     to: { name: "colors" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "colors"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "colors"),
   },
   {
     name: "Склади",
     icon: "warehouse",
     to: { name: "warehouses" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor(
       "read",
       "warehouses"
     ),
@@ -420,85 +379,99 @@ const menuItems = [
   {
     type: "separator",
     isAllowed:
-      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-        appConfigStore.allowenses.renewAndCheckIsValidFor(
-          "read",
-          "warehouses"
-        )) &&
-      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "users"),
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses")) &&
+      store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
   {
     name: "Налаштування",
     type: "header",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "users"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
   {
     name: "Користувачі",
     icon: "manage_accounts",
     to: { name: "users" },
-    onClick: () => {},
+    onClick: (pageName) => {},
     type: "item",
-    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
-      "read",
-      "users"
-    ),
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
 ];
 
+function pageLoadAfterClickOnMenuItem(pageName) {
+  if (
+    router.currentRoute.value.name == pageName &&
+    store.app.currentPages[pageName] != 1
+  ) {
+    store.app.currentPages[pageName] = 1;
+  } else if (
+    router.currentRoute.value.name != pageName &&
+    store.app.currentPages[pageName] != 1
+  ) {
+    store.app.currentPages[pageName] = 1;
+    store.types.receive(
+      store.app.amountOfItemsPerPages[pageName],
+      store.app.currentPages[pageName]
+    );
+  } else {
+    store.types.receive(
+      store.app.amountOfItemsPerPages[pageName],
+      store.app.currentPages[pageName]
+    );
+  }
+}
+
 function logout() {
-  appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading = true;
-  userStore.logout().finally(() => {
+  store.app.errors.reauth.dialogs.unauthenticated.isLoading = true;
+  store.users.logout().finally(() => {
     sessionStorage.removeItem("data");
-    userStore.data.email = "";
-    userStore.data.name = "";
-    userStore.data.token.value = null;
-    userStore.data.token.expiredAt = "";
-    appConfigStore.allowenses.list = {};
-    appConfigStore.errors.reauth.data.attempt = 0;
-    appConfigStore.errors.reauth.data.changingSecondsToLogout = 0;
-    appConfigStore.errors.reauth.dialogs.renewPassword.isShown = false;
-    appConfigStore.errors.reauth.dialogs.unauthenticated.isLoading = false;
-    appConfigStore.errors.reauth.dialogs.unauthenticated.isShown = false;
+    store.users.data.email = "";
+    store.users.data.name = "";
+    store.users.data.token.value = null;
+    store.users.data.token.expiredAt = "";
+    store.app.allowenses.list = {};
+    store.app.errors.reauth.data.attempt = 0;
+    store.app.errors.reauth.data.changingSecondsToLogout = 0;
+    store.app.errors.reauth.dialogs.renewPassword.isShown = false;
+    store.app.errors.reauth.dialogs.unauthenticated.isLoading = false;
+    store.app.errors.reauth.dialogs.unauthenticated.isShown = false;
     router.push("/login");
   });
 }
 
 function renewSession() {
-  appConfigStore.errors.reauth.dialogs.renewPassword.isLoading = true;
-  userStore
+  store.app.errors.reauth.dialogs.renewPassword.isLoading = true;
+  store.users
     .renewSession(sessionRenewPassword.value)
     .then((res) => {
       let userData = JSON.parse(sessionStorage.getItem("data"));
 
       userData.token = res.data.auth.token;
       userData.expired_at = res.data.auth.expired_at;
-      userStore.data.token.value = res.data.auth.token;
-      userStore.data.token.expiredAt = res.data.auth.expired_at;
+      store.users.data.token.value = res.data.auth.token;
+      store.users.data.token.expiredAt = res.data.auth.expired_at;
 
       sessionStorage.setItem("data", JSON.stringify(userData));
 
-      appConfigStore.errors.reauth.dialogs.renewPassword.isShown = false;
+      store.app.errors.reauth.dialogs.renewPassword.isShown = false;
       window.location.reload();
     })
     .catch((err) => {
-      appConfigStore.catchRequestError(err);
+      store.app.catchRequestError(err);
     })
     .finally(() => {
-      appConfigStore.errors.reauth.dialogs.renewPassword.isLoading = false;
+      store.app.errors.reauth.dialogs.renewPassword.isLoading = false;
       sessionRenewPassword.value = "";
     });
 }
 
 watch(
-  () => appConfigStore.errors.reauth.data.attempt,
+  () => store.app.errors.reauth.data.attempt,
   (attempt) => {
-    if (attempt >= appConfigStore.errors.reauth.data.attemptsAllowed) {
+    if (attempt >= store.app.errors.reauth.data.attemptsAllowed) {
       logout();
     }
   }
@@ -506,15 +479,15 @@ watch(
 
 let logoutInterval;
 watch(
-  () => appConfigStore.errors.reauth.dialogs.unauthenticated.isShown,
+  () => store.app.errors.reauth.dialogs.unauthenticated.isShown,
   (isShown) => {
     if (isShown) {
-      appConfigStore.errors.reauth.data.secondsToLogout;
+      store.app.errors.reauth.data.secondsToLogout;
       logoutInterval = setInterval(() => {
-        appConfigStore.errors.reauth.data.changingSecondsToLogout += 1;
+        store.app.errors.reauth.data.changingSecondsToLogout += 1;
         if (
-          appConfigStore.errors.reauth.data.changingSecondsToLogout >=
-          appConfigStore.errors.reauth.data.secondsToLogout
+          store.app.errors.reauth.data.changingSecondsToLogout >=
+          store.app.errors.reauth.data.secondsToLogout
         ) {
           clearInterval(logoutInterval);
           logout();
@@ -526,13 +499,13 @@ watch(
 
 const secondsLabel = computed(() => {
   if (
-    appConfigStore.secondsToLogoutLeft >= 5 ||
-    appConfigStore.secondsToLogoutLeft === 0
+    store.app.secondsToLogoutLeft >= 5 ||
+    store.app.secondsToLogoutLeft === 0
   ) {
     return "секунд";
   } else if (
-    appConfigStore.secondsToLogoutLeft <= 4 &&
-    appConfigStore.secondsToLogoutLeft >= 2
+    store.app.secondsToLogoutLeft <= 4 &&
+    store.app.secondsToLogoutLeft >= 2
   ) {
     return "секунди";
   }
@@ -541,24 +514,21 @@ const secondsLabel = computed(() => {
 });
 
 onBeforeMount(() => {
-  appConfigStore.setUIdependsOnLocalStorage();
+  store.app.setUIdependsOnLocalStorage();
   let userData = JSON.parse(sessionStorage.getItem("data"));
 
   if (typeof userData === "object") {
-    userStore.data.email = userData.email;
-    userStore.data.name = userData.name;
-    userStore.data.token.expiredAt = userData.expired_at;
-    userStore.data.token.value = userData.token;
+    store.users.data.email = userData.email;
+    store.users.data.name = userData.name;
+    store.users.data.token.expiredAt = userData.expired_at;
+    store.users.data.token.value = userData.token;
     //not in every scenario we have a ready-to-use prepeared object of allowenses, so it needs to be recalculated
-    appConfigStore.allowenses.renew();
+    store.app.allowenses.renew();
   }
 });
 </script>
 
 <style scoped>
-.scroll {
-  /* overflow: hidden !important; */
-}
 .menu-list .q-item {
   border-radius: 0 10px 10px 0;
 }

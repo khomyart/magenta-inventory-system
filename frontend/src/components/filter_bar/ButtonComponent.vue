@@ -1,40 +1,30 @@
 <template>
   <q-btn flat stretch class="filter-button">
     <q-badge
-      v-if="
-        filterBadgeLabels[props.name].value != '' ||
-        filterBadgeLabels[props.name].order != ''
-      "
+      v-if="filterBadgeLabel.value != '' || filterBadgeLabel.order != ''"
       color="red"
       class="q-mr-sm"
       floating
       style="height: 19px"
       align="middle"
-      ><span v-if="filterBadgeLabels[props.name].value != ''">
-        {{ filterBadgeLabels[props.name].mode }}
+      ><span v-if="filterBadgeLabel.value != ''">
+        {{ filterBadgeLabel.mode }}
       </span>
       <span
         style="margin-left: 4px"
-        v-if="
-          filterBadgeLabels[props.name].value != '' &&
-          filterBadgeLabels[props.name].order != ''
-        "
+        v-if="filterBadgeLabel.value != '' && filterBadgeLabel.order != ''"
       ></span>
       <q-icon
-        v-if="filterBadgeLabels[props.name].order != ''"
+        v-if="filterBadgeLabel.order != ''"
         size="14px"
-        :name="
-          filterBadgeLabels[props.name].order == 'asc'
-            ? 'expand_less'
-            : 'expand_more'
-        "
+        :name="filterBadgeLabel.order == 'asc' ? 'expand_less' : 'expand_more'"
     /></q-badge>
     <div :style="`min-width: ${props.width}px; text-align: start`">
       {{ props.label }}
     </div>
 
     <q-menu self="bottom middle" :offset="[-props.width / 2 - 16, -55]">
-      <q-inner-loading :showing="store[props.buttonIn].data.isItemsLoading">
+      <q-inner-loading :showing="sectionStore.data.isItemsLoading">
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
       <div style="min-width: 250px; min-height: fit-content">
@@ -47,8 +37,9 @@
               class="col-12 q-mb-md"
               outlined
               v-model="
-                appStore.filters.data[props.buttonIn].selectedParams[props.name]
-                  .value
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].value
               "
               :placeholder="props.searchBarLabel"
               dense
@@ -59,8 +50,9 @@
               dense
               outlined
               v-model="
-                appStore.filters.data[props.buttonIn].selectedParams[props.name]
-                  .filterMode
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].filterMode
               "
               :options="appStore.filters.availableParams.items"
               @update:model-value="$emit('changeFilterMode', props.name)"
@@ -122,12 +114,15 @@
   </div>
 </template>
 <script setup>
-import { useAppConfigStore } from "src/stores/appConfigStore";
-import { useTypeStore } from "src/stores/typeStore";
 import { computed } from "vue";
-const appStore = useAppConfigStore();
+
+const appStore = props.appStore;
+const sectionStore = props.sectionStore;
+
 const props = defineProps([
-  "buttonIn",
+  "appStore",
+  "sectionName",
+  "sectionStore",
   "name",
   "label",
   "searchBarLabel",
@@ -138,42 +133,29 @@ const emits = defineEmits([
   "changeFilterMode",
   "setFilterOrder",
 ]);
-const store = {
-  types: useTypeStore(),
-};
 
 const filterOrder = computed(() => {
   return {
-    field: appStore.filters.data.types.selectedParams.order.field,
-    value: appStore.filters.data.types.selectedParams.order.value,
+    field: appStore.filters.data[props.sectionName].selectedParams.order.field,
+    value: appStore.filters.data[props.sectionName].selectedParams.order.value,
   };
 });
 
-const filterBadgeLabels = computed(() => {
-  let articleFilter = appStore.filters.data.types.selectedParams.article;
-  let nameFilter = appStore.filters.data.types.selectedParams.name;
+const filterBadgeLabel = computed(() => {
+  let filter =
+    appStore.filters.data[props.sectionName].selectedParams[props.name];
 
   return {
-    article: {
-      value: articleFilter.value != "" ? "V" : "",
-      mode: articleFilter.filterMode.shortName,
-      order:
-        appStore.filters.data.types.selectedParams.order.field == "article"
-          ? appStore.filters.data.types.selectedParams.order.value == "asc"
-            ? "asc"
-            : "desc"
-          : "",
-    },
-    name: {
-      value: nameFilter.value != "" ? "V" : "",
-      mode: nameFilter.filterMode.shortName,
-      order:
-        appStore.filters.data.types.selectedParams.order.field == "name"
-          ? appStore.filters.data.types.selectedParams.order.value == "asc"
-            ? "asc"
-            : "desc"
-          : "",
-    },
+    value: filter.value != "" ? "V" : "",
+    mode: filter.filterMode.shortName,
+    order:
+      appStore.filters.data[props.sectionName].selectedParams.order.field ==
+      props.name
+        ? appStore.filters.data[props.sectionName].selectedParams.order.value ==
+          "asc"
+          ? "asc"
+          : "desc"
+        : "",
   };
 });
 </script>

@@ -29,12 +29,12 @@ const routes = [
       },
       {
         path: "/types",
+        name: "types",
         redirect: "/types/1",
         children: [
           {
             path: ":page",
             component: () => import("pages/TypesPage.vue"),
-            name: "types",
           },
         ],
       },

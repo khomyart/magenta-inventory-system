@@ -47,7 +47,9 @@
         </div>
         <template v-for="(item, index) in fieldsSequance" :key="index">
           <ButtonComponent
-            :buttonIn="currentSection"
+            :appStore="appStore"
+            :sectionName="currentSection"
+            :sectionStore="sectionStore"
             :name="fieldsSequance[index]"
             :label="fieldsDetails[index].label"
             :searchBarLabel="fieldsDetails[index].searchBarLabel"

@@ -24,7 +24,7 @@
       Сортування
     </q-tooltip>
     <q-menu self="top middle" :offset="[-24, 8]">
-      <q-inner-loading :showing="store[props.filterIn].data.isItemsLoading">
+      <q-inner-loading :showing="sectionStore.data.isItemsLoading">
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
 
@@ -73,13 +73,11 @@
 <script setup>
 import { computed } from "vue";
 import { useAppConfigStore } from "src/stores/appConfigStore";
-import { useTypeStore } from "src/stores/typeStore";
 
 const appStore = useAppConfigStore();
-const props = defineProps(["filterIn"]);
-const store = {
-  types: useTypeStore(),
-};
+const sectionStore = props.sectionStore;
+
+const props = defineProps(["filterIn", "sectionStore"]);
 
 const filterOrder = computed(() => {
   return {

@@ -272,7 +272,7 @@ import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
 import { useTypeStore } from "src/stores/typeStore";
-
+import { useSizeStore } from "src/stores/sizeStore";
 const enableRoleValidation = false;
 
 const router = useRouter();
@@ -280,6 +280,7 @@ const router = useRouter();
 const store = {
   app: useAppConfigStore(),
   types: useTypeStore(),
+  sizes: useSizeStore(),
   users: useUserStore(),
 };
 
@@ -345,7 +346,9 @@ const menuItems = [
     name: "Розміри",
     icon: "straighten",
     to: { name: "sizes" },
-    onClick: (pageName) => {},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "sizes"),
   },
@@ -412,12 +415,12 @@ function pageLoadAfterClickOnMenuItem(pageName) {
     store.app.currentPages[pageName] != 1
   ) {
     store.app.currentPages[pageName] = 1;
-    store.types.receive(
+    store[pageName].receive(
       store.app.amountOfItemsPerPages[pageName],
       store.app.currentPages[pageName]
     );
   } else {
-    store.types.receive(
+    store[pageName].receive(
       store.app.amountOfItemsPerPages[pageName],
       store.app.currentPages[pageName]
     );

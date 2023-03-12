@@ -41,7 +41,13 @@ const routes = [
       {
         path: "/sizes",
         name: "sizes",
-        component: () => import("pages/SizesPage.vue"),
+        redirect: "/sizes/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/SizesPage.vue"),
+          },
+        ],
       },
       {
         path: "/genders",

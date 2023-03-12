@@ -90,6 +90,44 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        sizes: {
+          width: {
+            default: {
+              value: 300,
+              description: 150,
+            },
+            dynamic: {
+              value: 0,
+              description: 0,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            value: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            description: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 100,
@@ -131,8 +169,9 @@ export const useAppConfigStore = defineStore("appConfig", {
     amountOfItemsPerPages: {
       items: 10,
       types: 10,
+      sizes: 10,
     },
-    currentPages: { items: 0, types: 0 },
+    currentPages: { items: 0, types: 0, sizes: 0 },
     availableAmaountOfItemsPerPage: [10, 20, 50],
   }),
   getters: {

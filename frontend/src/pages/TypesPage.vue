@@ -41,7 +41,10 @@
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
-        <SortingComponent filterIn="types" />
+        <SortingComponent
+          :filterIn="currentSection"
+          :sectionStore="sectionStore"
+        />
         <div class="filter-separator">
           <div class="vertical-line"></div>
         </div>

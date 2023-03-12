@@ -3,10 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Type;
-use App\Http\Resources\TypeResource;
-use App\Http\Resources\TypeResourceCollection;
-use App\Http\Requests\StoreTypeRequest;
-use App\Http\Requests\UpdateTypeRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -41,7 +37,7 @@ class TypeController extends Controller
         $nameSearchValue = $data["nameFilterValue"];
         $nameSearchOperator = $this->getWhereOperator($data["nameFilterMode"]);
 
-        if (!empty($articleSearchValue)) {
+        if ($articleSearchValue != null) {
             if ($articleSearchOperator === 'like') {
                 $types->where('article', 'like', "%{$articleSearchValue}%");
             } elseif ($articleSearchOperator === 'notLike') {
@@ -53,7 +49,7 @@ class TypeController extends Controller
             }
         }
 
-        if (!empty($nameSearchValue)) {
+        if ($nameSearchValue != null) {
             if ($nameSearchOperator === 'like') {
                 $types->where('name', 'like', "%{$nameSearchValue}%");
             } elseif ($nameSearchOperator === 'notLike') {
@@ -112,11 +108,10 @@ class TypeController extends Controller
             return response("OK", 200);
         }
 
-        return response("type not found", 404);
+        return response("Не знайдено", 404);
     }
 
     private function getWhereOperator($operatorName) {
-        $operatorValue = "";
         $equality = [
             'include' => 'like',
             'exclude' => 'notLike',
@@ -126,13 +121,6 @@ class TypeController extends Controller
             'notequal' => '<>'
         ];
 
-        foreach ($equality as $key => $value) {
-            if ($key === $operatorName) {
-                $operatorValue = $value;
-            }
-        }
-
-        return $operatorValue;
+        return $equality[$operatorName];
     }
-
 }

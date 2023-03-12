@@ -1,7 +1,7 @@
 const routes = [
   {
     path: "/login",
-    name: "Login",
+    name: "login",
     component: () => import("layouts/LoginLayout.vue"),
   },
   {
@@ -9,17 +9,22 @@ const routes = [
     meta: {
       isAuthNeeded: true,
     },
-    redirect: "/items",
+    redirect: "/dashboard",
     component: () => import("layouts/MainLayout.vue"),
     children: [
       {
+        path: "/dashboard",
+        name: "dashboard",
+        component: () => import("pages/DashboardPage.vue"),
+      },
+      {
         path: "/items",
-        name: "Items",
+        name: "items",
         component: () => import("pages/ItemsPage.vue"),
       },
       {
         path: "/logs",
-        name: "Logs",
+        name: "logs",
         component: () => import("pages/LogsPage.vue"),
       },
       {
@@ -29,33 +34,33 @@ const routes = [
           {
             path: ":page",
             component: () => import("pages/TypesPage.vue"),
-            name: "Types",
+            name: "types",
           },
         ],
       },
       {
         path: "/sizes",
-        name: "Sizes",
+        name: "sizes",
         component: () => import("pages/SizesPage.vue"),
       },
       {
         path: "/genders",
-        name: "Genders",
+        name: "genders",
         component: () => import("pages/GendersPage.vue"),
       },
       {
         path: "/colors",
-        name: "Colors",
+        name: "colors",
         component: () => import("pages/ColorsPage.vue"),
       },
       {
         path: "/warehouses",
-        name: "Warehouses",
+        name: "warehouses",
         component: () => import("src/pages/WarehousesPage.vue"),
       },
       {
         path: "/users",
-        name: "Users",
+        name: "users",
         component: () => import("pages/UsersPage.vue"),
       },
     ],

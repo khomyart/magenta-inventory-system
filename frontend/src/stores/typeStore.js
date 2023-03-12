@@ -21,7 +21,7 @@ export const useTypeStore = defineStore("type", {
       },
     },
     data: {
-      isTypesLoading: false,
+      isItemsLoading: false,
       amountOfItems: 0,
       lastPage: 0,
       updatedItemId: 0,
@@ -101,7 +101,7 @@ export const useTypeStore = defineStore("type", {
     receive() {
       appConfigStore.updateLocalStorageConfig();
       // this.items = [];
-      this.data.isTypesLoading = true;
+      this.data.isItemsLoading = true;
       api
         .get("/types", {
           params: {
@@ -133,7 +133,7 @@ export const useTypeStore = defineStore("type", {
           appConfigStore.catchRequestError(err);
         })
         .finally(() => {
-          this.data.isTypesLoading = false;
+          this.data.isItemsLoading = false;
         });
     },
   },

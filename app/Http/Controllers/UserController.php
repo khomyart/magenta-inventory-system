@@ -35,7 +35,7 @@ class UserController extends Controller
 
             $token = $auth->hasToken() ? $auth->recreateAccessToken() : $auth->createAccessToken();
 
-            return response()->json(["user" => $user->toArray(), "auth" => $token->toArray()]);
+            return response()->json(["user" => $user->toArray(), "auth" => $token->toArray(), "allowenses" => $auth->getAllowenses()]);
         } else {
             return response("Невірні данні аутентифікації", 403);
         }

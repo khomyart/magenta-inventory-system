@@ -1,4 +1,3 @@
-import { data } from "autoprefixer";
 import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
@@ -25,7 +24,32 @@ export const useAppConfigStore = defineStore("appConfig", {
         },
       },
     },
-    allowenses: {},
+    allowenses: {
+      list: {},
+      renew: function () {
+        let userData = JSON.parse(sessionStorage.getItem("data"));
+        let allowenses = userData.allowenses;
+
+        allowenses.forEach((allowense) => {
+          this.list[allowense.section] = {};
+        });
+
+        allowenses.forEach((allowense) => {
+          this.list[allowense.section][allowense.action] = "";
+        });
+      },
+      isValidFor: function (action, section) {
+        if (this.list[section] === undefined) {
+          return false;
+        }
+
+        return this.list[section][action] != undefined;
+      },
+      renewAndCheckIsValidFor: function (action, section) {
+        this.renew();
+        return this.isValidFor(action, section);
+      },
+    },
     filters: {
       data: {
         types: {

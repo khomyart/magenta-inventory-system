@@ -7,6 +7,27 @@ import {
 } from "vue-router";
 import routes from "./routes";
 
+//is user authorized for needed route
+function isValidFor(action, section) {
+  let userData = JSON.parse(sessionStorage.getItem("data"));
+  let allowenses = userData.allowenses;
+  let localAllowenses = {};
+
+  allowenses.forEach((allowense) => {
+    localAllowenses[allowense.section] = {};
+  });
+
+  if (localAllowenses[section] === undefined) {
+    return false;
+  }
+
+  allowenses.forEach((allowense) => {
+    localAllowenses[allowense.section][allowense.action] = "";
+  });
+
+  return localAllowenses[section][action] != undefined;
+}
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -32,17 +53,33 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
+  const enableRoleValidation = false;
   Router.beforeEach((to, from, next) => {
     if (
       to.meta.isAuthNeeded === true &&
       sessionStorage.getItem("data") === null
     ) {
-      next({ name: "Login" });
-    } else if (sessionStorage.getItem("data") != null && to.name == "Login") {
-      next({ name: "Items" });
-    } else {
-      next();
+      next({ name: "login" });
+      return;
     }
+
+    if (sessionStorage.getItem("data") != null && to.name == "login") {
+      next({ name: "items" });
+      return;
+    }
+
+    if (
+      enableRoleValidation === true &&
+      to.meta.isAuthNeeded === true &&
+      !isValidFor("read", to.name) &&
+      to.name != "dashboard"
+    ) {
+      console.log("myamma");
+      next({ name: "dashboard" });
+      return;
+    }
+
+    next();
   });
 
   return Router;

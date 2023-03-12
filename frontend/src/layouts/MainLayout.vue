@@ -6,14 +6,16 @@
           stretch
           flat
           style="margin-right: -5px"
-          @click="showToolbarTitle = !showToolbarTitle"
+          @click="router.push({ name: 'dashboard' })"
         >
           <img src="../assets/magenta-menu-logo.png" style="height: 35px" />
         </q-btn>
 
         <q-toolbar-title>
           <transition appear name="title-appearing">
-            <span v-if="showToolbarTitle">Magenta print</span>
+            <span v-if="router.currentRoute.value.name == 'dashboard'"
+              >Magenta print</span
+            >
           </transition>
         </q-toolbar-title>
 
@@ -112,7 +114,10 @@
           <template v-for="(menuItem, index) in menuItems" :key="index">
             <q-separator
               inset
-              v-if="menuItem.type == 'separator'"
+              v-if="
+                menuItem.type == 'separator' &&
+                (menuItem.isAllowed == true || enableRoleValidation == false)
+              "
               class="q-my-md"
             ></q-separator>
             <q-item
@@ -120,7 +125,10 @@
               :to="menuItem.to"
               clickable
               v-ripple
-              v-if="menuItem.type == 'item'"
+              v-if="
+                menuItem.type == 'item' &&
+                (menuItem.isAllowed == true || enableRoleValidation == false)
+              "
             >
               <q-item-section avatar>
                 <q-icon :name="menuItem.icon" />
@@ -130,7 +138,10 @@
             </q-item>
             <div
               class="menu-header q-mt-md q-ml-md"
-              v-if="menuItem.type == 'header'"
+              v-if="
+                menuItem.type == 'header' &&
+                (menuItem.isAllowed == true || enableRoleValidation == false)
+              "
             >
               {{ menuItem.name }}
             </div>
@@ -260,18 +271,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, watch, computed, onBeforeMount } from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
 import { useTypeStore } from "src/stores/typeStore";
+
+const enableRoleValidation = false;
 
 const router = useRouter();
 const userStore = useUserStore();
 const typeStore = useTypeStore();
 const appConfigStore = useAppConfigStore();
 
-let showToolbarTitle = ref(false);
 let sessionRenewPassword = ref("");
 let showSessionRenewPassword = ref(false);
 
@@ -279,27 +291,55 @@ const menuItems = [
   {
     name: "Предмети",
     type: "header",
+    isAllowed:
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "items") ||
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "logs"),
   },
   {
     name: "Перелік",
     icon: "apps",
-    to: { name: "Items" },
+    to: { name: "items" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "items"
+    ),
   },
   {
     name: "Лог дій",
     icon: "checklist", //edit_square, bug_report
-    to: { name: "Logs" },
+    to: { name: "logs" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "logs"
+    ),
   },
   {
     type: "separator",
+    isAllowed:
+      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "items") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "logs")) &&
+      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor(
+          "read",
+          "warehouses"
+        )),
   },
   {
     name: "Характеристики",
     type: "header",
+    isAllowed:
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "warehouses"),
   },
   {
     name: "Види",
@@ -307,15 +347,14 @@ const menuItems = [
     to: "/types",
     onClick: () => {
       if (
-        router.currentRoute.value.name == "Types" &&
+        router.currentRoute.value.name == "types" &&
         appConfigStore.currentPages.types != 1
       ) {
         appConfigStore.currentPages.types = 1;
       } else if (
-        router.currentRoute.value.name != "Types" &&
+        router.currentRoute.value.name != "types" &&
         appConfigStore.currentPages.types != 1
       ) {
-        // console.log(123);
         appConfigStore.currentPages.types = 1;
         typeStore.receive(
           appConfigStore.amountOfItemsPerPages.types,
@@ -329,48 +368,86 @@ const menuItems = [
       }
     },
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "types"
+    ),
   },
   {
     name: "Розміри",
     icon: "straighten",
-    to: { name: "Sizes" },
+    to: { name: "sizes" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "sizes"
+    ),
   },
   {
     name: "Гендери",
     icon: "face_retouching_natural",
-    to: { name: "Genders" },
+    to: { name: "genders" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "genders"
+    ),
   },
   {
     name: "Кольори",
     icon: "palette",
-    to: { name: "Colors" },
+    to: { name: "colors" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "colors"
+    ),
   },
   {
     name: "Склади",
     icon: "warehouse",
-    to: { name: "Warehouses" },
+    to: { name: "warehouses" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "warehouses"
+    ),
   },
   {
     type: "separator",
+    isAllowed:
+      (appConfigStore.allowenses.renewAndCheckIsValidFor("read", "types") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+        appConfigStore.allowenses.renewAndCheckIsValidFor(
+          "read",
+          "warehouses"
+        )) &&
+      appConfigStore.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
   {
     name: "Налаштування",
     type: "header",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "users"
+    ),
   },
   {
     name: "Користувачі",
     icon: "manage_accounts",
-    to: { name: "Users" },
+    to: { name: "users" },
     onClick: () => {},
     type: "item",
+    isAllowed: appConfigStore.allowenses.renewAndCheckIsValidFor(
+      "read",
+      "users"
+    ),
   },
 ];
 
@@ -382,6 +459,7 @@ function logout() {
     userStore.data.name = "";
     userStore.data.token.value = null;
     userStore.data.token.expiredAt = "";
+    appConfigStore.allowenses.list = {};
     appConfigStore.errors.reauth.data.attempt = 0;
     appConfigStore.errors.reauth.data.changingSecondsToLogout = 0;
     appConfigStore.errors.reauth.dialogs.renewPassword.isShown = false;
@@ -462,14 +540,17 @@ const secondsLabel = computed(() => {
   return "секунду";
 });
 
-onMounted(() => {
+onBeforeMount(() => {
   appConfigStore.setUIdependsOnLocalStorage();
   let userData = JSON.parse(sessionStorage.getItem("data"));
+
   if (typeof userData === "object") {
     userStore.data.email = userData.email;
     userStore.data.name = userData.name;
     userStore.data.token.expiredAt = userData.expired_at;
     userStore.data.token.value = userData.token;
+    //not in every scenario we have a ready-to-use prepeared object of allowenses, so it needs to be recalculated
+    appConfigStore.allowenses.renew();
   }
 });
 </script>

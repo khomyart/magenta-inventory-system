@@ -9,10 +9,18 @@
   >
     <td class="item-cell">
       <div>
-        <q-btn icon="list" round flat>
+        <q-btn
+          v-if="
+            props.allowenses.update == true || props.allowenses.delete == true
+          "
+          icon="list"
+          round
+          flat
+        >
           <q-menu :offset="[5, 5]">
             <q-list style="min-width: 100px">
               <q-item
+                v-if="props.allowenses.update == true"
                 clickable
                 v-close-popup
                 @click="$emit('showEditDialog', props.itemInfo)"
@@ -23,6 +31,7 @@
                 </div>
               </q-item>
               <q-item
+                v-if="props.allowenses.delete == true"
                 clickable
                 v-close-popup
                 @click="
@@ -47,7 +56,7 @@
     <td class="item-cell">
       <div
         style="cursor: pointer"
-        @click="copyValue(props.itemInfo.article, 'Артикль')"
+        @click="$emit('copyValue', props.itemInfo.article, 'Артикль')"
       >
         <div class="item-article">
           {{ props.itemInfo.article }}
@@ -58,7 +67,7 @@
     <td class="item-cell">
       <div
         style="cursor: pointer"
-        @click="copyValue(props.itemInfo.name, 'Назву')"
+        @click="$emit('copyValue', props.itemInfo.name, 'Назву')"
       >
         <div class="item-name">
           {{ props.itemInfo.name }}
@@ -70,31 +79,23 @@
 </template>
 
 <script setup>
-import { useQuasar } from "quasar";
-import { onMounted, onUpdated, ref } from "vue";
+import { onUpdated, ref } from "vue";
 
 const emit = defineEmits([
   "showEditDialog",
   "showRemoveDialog",
   "clearUpdatedItemId",
+  "copyValue",
 ]);
 
-const props = defineProps(["itemInfo", "gap", "updated"]);
-const $q = useQuasar();
+const props = defineProps(["itemInfo", "gap", "updated", "allowenses"]);
 let isUpdated = ref(false);
 
 onUpdated(() => {
   isUpdated.value = props.updated;
-  emit("clearUpdatedItemId");
-});
 
-function copyValue(value, paramName) {
-  navigator.clipboard.writeText(value);
-  $q.notify({
-    position: "top",
-    color: "primary",
-    message: `${paramName} зкопійовано: "${value}"`,
-    group: false,
-  });
-}
+  if (isUpdated.value == true) {
+    emit("clearUpdatedItemId");
+  }
+});
 </script>

@@ -68,6 +68,7 @@ function onSubmit() {
         name: res.data.user.name,
         token: res.data.auth.token,
         expired_at: res.data.auth.expired_at,
+        allowenses: res.data.allowenses,
       };
       sessionStorage.setItem("data", JSON.stringify(userData));
       router.push("/items");

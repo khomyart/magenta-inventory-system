@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 include "sections/auth.php";
 include "sections/types.php";
 include "sections/sizes.php";
+include "sections/genders.php";
 
 
 

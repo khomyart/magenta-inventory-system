@@ -273,15 +273,17 @@ import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
 import { useTypeStore } from "src/stores/typeStore";
 import { useSizeStore } from "src/stores/sizeStore";
+import { useGenderStore } from "src/stores/genderStore";
 const enableRoleValidation = false;
 
 const router = useRouter();
 
 const store = {
+  users: useUserStore(),
   app: useAppConfigStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
-  users: useUserStore(),
+  genders: useGenderStore(),
 };
 
 let sessionRenewPassword = ref("");
@@ -356,7 +358,9 @@ const menuItems = [
     name: "Гендери",
     icon: "face_retouching_natural",
     to: { name: "genders" },
-    onClick: (pageName) => {},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "genders"),
   },

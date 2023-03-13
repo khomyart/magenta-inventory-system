@@ -52,7 +52,13 @@ const routes = [
       {
         path: "/genders",
         name: "genders",
-        component: () => import("pages/GendersPage.vue"),
+        redirect: "/genders/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/GendersPage.vue"),
+          },
+        ],
       },
       {
         path: "/colors",

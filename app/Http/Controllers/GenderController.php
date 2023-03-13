@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Size;
+use App\Models\Gender;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\Helpers\AuthAPI;
 
-class SizeController extends Controller
+class GenderController extends Controller
 {
-    public $section = "sizes";
-    public $fields = ["value", "description"];
-    public $fieldsValidationRules = ["required|string|max:8", "required|string|max:250"];
+    public $section = "genders";
+    public $fields = ["name"];
+    public $fieldsValidationRules = ["required|string|max:150"];
 
     //templated access to section model
     public function getSectionModel() {
-        return new Size;
+        return new Gender;
     }
 
     /**

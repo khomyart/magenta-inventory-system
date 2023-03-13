@@ -59,7 +59,7 @@ class TypeController extends Controller
                 if ($searchOperator === "like") {
                     $section->where($field, "like", "%{$searchValue}%");
                 } elseif ($searchOperator === "notLike") {
-                    $section->whereNot(function ($query) use ($searchValue) {
+                    $section->whereNot(function ($query) use ($searchValue, $field) {
                         $query->where($field, "like", "%{$searchValue}%");
                     });
                 } else {

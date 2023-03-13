@@ -145,9 +145,9 @@
             <q-input
               outlined
               v-model="updatedItem.name"
-              label="Назва"
+              label="Вид"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть назву',
+                (val) => (val !== null && val !== '') || 'Введіть назву виду',
                 (val) => val.length <= 128 || 'Не більше 128 символів',
               ]"
             />
@@ -223,8 +223,8 @@ const fieldsDetails = [
     searchBarLabel: "Значення артиклю",
   },
   {
-    label: "Назва",
-    searchBarLabel: "Значення назви",
+    label: "Вид",
+    searchBarLabel: "Значення виду",
   },
 ];
 

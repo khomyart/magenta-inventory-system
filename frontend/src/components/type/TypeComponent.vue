@@ -58,7 +58,7 @@
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.article, 'Артикль')"
       >
-        <div class="item-article">
+        <div class="item-text">
           {{ props.itemInfo.article }}
         </div>
       </div>
@@ -69,7 +69,7 @@
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.name, 'Назву')"
       >
-        <div class="item-name">
+        <div class="item-text">
           {{ props.itemInfo.name }}
         </div>
       </div>

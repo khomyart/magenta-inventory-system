@@ -8,7 +8,6 @@
         debounce="700"
         outlined
         placeholder="Введіть значення розміру"
-        rounded
         dense
         class="q-mr-md"
         style="width: 300px"
@@ -278,7 +277,7 @@ function showUpdateDialog(item) {
 
 function showRemoveDialog(id, name) {
   deletedItem.id = id;
-  deletedItem.name = name;
+  deletedItem.value = name;
   sectionStore.dialogs.delete.isShown = true;
 }
 

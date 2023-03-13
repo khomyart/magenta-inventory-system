@@ -10,6 +10,15 @@ use App\Helpers\AuthAPI;
 
 class SizeController extends Controller
 {
+    public $section = "sizes";
+    public $fields = ["value", "description"];
+    public $fieldsValidationRules = ["required|string|max:8", "required|string|max:250"];
+
+    //templated access to section model
+    public function getSectionModel() {
+        return new Size;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,93 +27,99 @@ class SizeController extends Controller
     public function read(Request $request)
     {
         $user = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
-        $data = $request->validate([
-            'itemsPerPage' => 'required|numeric',
-            'page' => 'required|numeric',
-            'orderField'=> ['string', 'regex:/^id$|^value$|^description$/i', 'nullable'],
-            'orderValue' => ['string', 'regex:/^desc$|^asc$/i', 'nullable'],
-            'valueFilterValue' => 'string|nullable',
-            'valueFilterMode' => ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'],
-            'descriptionFilterValue' => 'string|nullable',
-            'descriptionFilterMode' => ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'],
-        ]);
+        $compiledRegexRule = "";
+        $validationRules = [
+            "itemsPerPage" => "required|numeric",
+            "page" => "required|numeric",
+            "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
+        ];
 
-        $sizes = DB::table('sizes');
+        foreach ($this->fields as $key => $field) {
+            //forming regular exp. for orderField validation
+            $compiledRegexRule .= "^{$field}$";
+            $key != count($this->fields) - 1 ? $compiledRegexRule .= "|" : "";
 
-        //forming where query
-        $valueSearchValue = $data["valueFilterValue"];
-        $valueSearchOperator = $this->getWhereOperator($data["valueFilterMode"]);
-        $descriptionSearchValue = $data["descriptionFilterValue"];
-        $descriptionSearchOperator = $this->getWhereOperator($data["descriptionFilterMode"]);
-
-        if ($valueSearchValue != null) {
-            if ($valueSearchOperator === 'like') {
-                $sizes->where('value', 'like', "%{$valueSearchValue}%");
-            } elseif ($valueSearchOperator === 'notLike') {
-                $sizes->whereNot(function ($query) use ($valueSearchValue) {
-                    $query->where('value', 'like', "%{$valueSearchValue}%");
-                });
-            } else {
-                $sizes->where('value', $valueSearchOperator, $valueSearchValue);
-            }
+            //setting rules for each field
+            $validationRules["{$field}FilterValue"] = "string|nullable";
+            $validationRules["{$field}FilterMode"] = ["string", "regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i", "nullable"];
         }
 
-        if ($descriptionSearchValue != null) {
-            if ($descriptionSearchOperator === 'like') {
-                $sizes->where('description', 'like', "%{$descriptionSearchValue}%");
-            } elseif ($descriptionSearchOperator === 'notLike') {
-                $sizes->whereNot(function ($query) use ($descriptionSearchValue) {
-                    $query->where('description', 'like', "%{$descriptionSearchValue}%");
-                });
-            } else {
-                $sizes->where('description', $descriptionSearchValue, $descriptionSearchValue);
+        $validationRules["orderField"] = ["string", "regex:/^id$|{$compiledRegexRule}/i", "nullable"];
+
+        $data = $request->validate($validationRules);
+
+        $section = DB::table($this->section);
+
+        //forming where query
+        foreach ($this->fields as $key => $field) {
+            $searchValue = $data["{$field}FilterValue"];
+            $searchOperator = $this->getWhereOperator($data["{$field}FilterMode"]);
+
+            if ($searchValue != null) {
+                if ($searchOperator === "like") {
+                    $section->where("value", "like", "%{$searchValue}%");
+                } elseif ($searchOperator === "notLike") {
+                    $section->whereNot(function ($query) use ($searchValue) {
+                        $query->where("value", "like", "%{$searchValue}%");
+                    });
+                } else {
+                    $section->where("value", $searchOperator, $searchValue);
+                }
             }
         }
 
         //ordering query
         if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
-            $sizes = $sizes->orderBy($data["orderField"], $data["orderValue"]);
+            $section = $section->orderBy($data["orderField"], $data["orderValue"]);
         } else {
-            $sizes = $sizes->latest();
+            $section = $section->latest();
         }
 
-        return response($sizes->paginate($data['itemsPerPage']));
-
+        return response($section->paginate($data["itemsPerPage"]));
     }
 
     public function create(Request $request) {
-        $data = $request->validate([
-            "value" => "required|string|max:8",
-            "description" => "required|string|max:250"
-        ]);
+        $sectionModel = $this->getSectionModel();
+        $rules = [];
 
-        return Size::create($data);
+        foreach ($this->fields as $key => $field) {
+            $rules[$field] = $this->fieldsValidationRules[$key];
+        }
+
+        $data = $request->validate($rules);
+
+        return $sectionModel::create($data);
     }
 
     public function update(Request $request, $id) {
-        $data = $request->validate([
-            "value" => "required|string|max:8",
-            "description" => "required|string|max:250"
-        ]);
+        $sectionModel = $this->getSectionModel();
+        $rules = [];
 
-        $size = Size::find($id);
+        foreach ($this->fields as $key => $field) {
+            $rules[$field] = $this->fieldsValidationRules[$key];
+        }
 
-        if ($size) {
-            $size->value = $data["value"];
-            $size->description = $data["description"];
-            $size->save();
+        $data = $request->validate($rules);
+        $section = $sectionModel::find($id);
 
-            return response($size);
+        if ($section) {
+            foreach ($this->fields as $key => $field) {
+                $section->{$field} = $data[$field];
+            }
+            $section->save();
+
+            return response($section);
         }
 
         return response("Не знайдено", 404);
     }
 
     public function delete(Request $request, $id) {
-        $size = Size::find($id);
+        $sectionModel = $this->getSectionModel();
+        $section = $sectionModel::find($id);
 
-        if ($size) {
-            $size->delete();
+        if ($section) {
+            $section->delete();
             return response("OK", 200);
         }
 
@@ -113,12 +128,12 @@ class SizeController extends Controller
 
     private function getWhereOperator($operatorName) {
         $equality = [
-            'include' => 'like',
-            'exclude' => 'notLike',
-            'more' => '>',
-            'less' => '<',
-            'equal'=> '=',
-            'notequal' => '<>'
+            "include" => "like",
+            "exclude" => "notLike",
+            "more" => ">",
+            "less" => "<",
+            "equal"=> "=",
+            "notequal" => "<>"
         ];
 
         return $equality[$operatorName];

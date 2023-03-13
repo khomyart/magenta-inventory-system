@@ -50,6 +50,7 @@
 .toolbar {
   overflow: visible;
   height: auto;
+  padding-left: 10px;
 }
 .filter-width-helper {
   width: 1px;

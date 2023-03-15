@@ -108,4 +108,5 @@ tr td:last-child > div {
   align-items: center;
   border-radius: 5px;
   cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.18);
 }

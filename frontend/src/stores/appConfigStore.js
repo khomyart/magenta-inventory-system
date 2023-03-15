@@ -155,9 +155,69 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        colors: {
+          width: {
+            default: {
+              value: 300,
+              article: 150,
+              description: 150,
+              text_color_value: 150,
+            },
+            dynamic: {
+              value: 0,
+              article: 0,
+              description: 0,
+              text_color_value: 0,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            value: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            article: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            description: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            text_color_value: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+          },
+        },
       },
       availableParams: {
-        minFilterWidth: 100,
+        minFilterWidth: 140,
         separatorWidth: 11,
         filterButtonXPadding: 32,
         //affected || straight
@@ -198,8 +258,9 @@ export const useAppConfigStore = defineStore("appConfig", {
       types: 10,
       sizes: 10,
       genders: 10,
+      colors: 10,
     },
-    currentPages: { items: 0, types: 0, sizes: 0, genders: 0 },
+    currentPages: { items: 0, types: 0, sizes: 0, genders: 0, colors: 0 },
     availableAmaountOfItemsPerPage: [10, 20, 50],
   }),
   getters: {

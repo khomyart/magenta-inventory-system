@@ -34,6 +34,7 @@
         <div class="row">
           <div class="filter-body col-12 q-px-md">
             <q-input
+              v-if="props.justOrder != true"
               class="col-12 q-mb-md"
               outlined
               v-model="
@@ -46,6 +47,7 @@
               debounce="700"
             />
             <q-select
+              v-if="props.justOrder != true"
               class="col-12 q-mb-md"
               dense
               outlined
@@ -127,6 +129,7 @@ const props = defineProps([
   "label",
   "searchBarLabel",
   "width",
+  "justOrder",
 ]);
 const emits = defineEmits([
   "clearFilter",

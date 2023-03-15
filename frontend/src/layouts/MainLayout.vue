@@ -274,6 +274,8 @@ import { useUserStore } from "src/stores/userStore";
 import { useTypeStore } from "src/stores/typeStore";
 import { useSizeStore } from "src/stores/sizeStore";
 import { useGenderStore } from "src/stores/genderStore";
+import { useColorStore } from "src/stores/colorStore";
+
 const enableRoleValidation = false;
 
 const router = useRouter();
@@ -284,6 +286,7 @@ const store = {
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
+  colors: useColorStore(),
 };
 
 let sessionRenewPassword = ref("");
@@ -368,7 +371,9 @@ const menuItems = [
     name: "Кольори",
     icon: "palette",
     to: { name: "colors" },
-    onClick: (pageName) => {},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "colors"),
   },

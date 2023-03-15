@@ -5,7 +5,7 @@
     style="width: 400px; margin-left: 0px"
   >
     <q-input
-      filled
+      outlined
       square
       class="q-mb-lg"
       type="email"
@@ -13,7 +13,7 @@
       v-model="userData.email"
     />
     <q-input
-      filled
+      outlined
       square
       v-model="userData.password"
       class="q-mb-lg"

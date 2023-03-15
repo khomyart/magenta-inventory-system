@@ -8,6 +8,7 @@ include "sections/auth.php";
 include "sections/types.php";
 include "sections/sizes.php";
 include "sections/genders.php";
+include "sections/colors.php";
 
 
 

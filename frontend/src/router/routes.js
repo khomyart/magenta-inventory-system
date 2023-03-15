@@ -63,7 +63,13 @@ const routes = [
       {
         path: "/colors",
         name: "colors",
-        component: () => import("pages/ColorsPage.vue"),
+        redirect: "/colors/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/ColorsPage.vue"),
+          },
+        ],
       },
       {
         path: "/warehouses",

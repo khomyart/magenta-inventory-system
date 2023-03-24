@@ -64,10 +64,12 @@ export default route(function (/* { store, ssrContext } */) {
     }
 
     if (sessionStorage.getItem("data") != null && to.name == "login") {
-      next({ name: "items" });
+      console.log("to DASHBOARD!");
+      next({ name: "dashboard" });
       return;
     }
 
+    //if not allowed to read page, but is authenticated -> redirect to dashboard
     if (
       enableRoleValidation === true &&
       to.meta.isAuthNeeded === true &&

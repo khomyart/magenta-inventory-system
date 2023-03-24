@@ -17,7 +17,7 @@ class EnsureRequestIsAuthenticated
      */
     public function handle(Request $request, Closure $next)
     {
-        if (AuthAPI::isAuthenticated($request->bearerToken())) {
+        if (AuthAPI::isAuthenticated($request->bearerToken(), $request->ip())) {
             return $next($request);
         }
 

@@ -21,60 +21,67 @@
       <q-form @submit="sectionStore.create(newItem)">
         <q-card-section
           style="max-height: 50vh; width: 95vw; max-width: 450px"
-          class="scroll q-pt-md"
+          class="scroll col-12 q-pt-lg"
         >
-          <div class="row q-mb-lg justify-between">
-            <div
-              class="flex-center"
-              :style="{
-                width: '47%',
-                height: '50px',
-                fontSize: '20px',
-                padding: '5px',
-                fontWeight: 'bold',
-                borderRadius: '4px',
-                border: '1px solid rgba(0, 0, 0, 0.18)',
-                backgroundColor: newItem.value,
-                color: newItem.text_color_value,
-              }"
-            >
-              <q-tooltip class="bg-black text-body2" :offset="[0, 5]">
-                {{ colorTooltip }}
-              </q-tooltip>
-              {{ newItem.article }}
+          <div class="row q-col-gutter-lg q-mb-lg">
+            <div class="col-6">
+              <div
+                class="flex-center col-12"
+                :style="{
+                  height: '56px',
+                  fontSize: '20px',
+                  padding: '5px',
+                  fontWeight: 'bold',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(0, 0, 0, 0.18)',
+                  backgroundColor: newItem.value,
+                  color: newItem.text_color_value,
+                }"
+              >
+                <q-tooltip class="bg-black text-body2" :offset="[0, 5]">
+                  {{ colorTooltip }}
+                </q-tooltip>
+                {{ newItem.article }}
+              </div>
             </div>
-            <div class="row justify-between" style="width: 47%">
-              <q-btn
-                :color="`${
-                  newItem.text_color_value == '#000000' ? 'purple' : 'white'
-                }`"
-                :text-color="`${
-                  newItem.text_color_value == '#000000' ? 'white' : 'black'
-                }`"
-                style="width: 44%"
-                @click="newItem.text_color_value = '#000000'"
-                >Чорний</q-btn
-              >
-              <q-btn
-                :color="`${
-                  newItem.text_color_value == '#ffffff' ? 'purple' : 'white'
-                }`"
-                :text-color="`${
-                  newItem.text_color_value == '#ffffff' ? 'white' : 'black'
-                }`"
-                style="width: 44%"
-                @click="newItem.text_color_value = '#ffffff'"
-                >Білий</q-btn
-              >
+            <div class="col-6">
+              <div class="row q-col-gutter-lg">
+                <div class="col-6">
+                  <q-btn
+                    style="height: 56px"
+                    :color="`${
+                      newItem.text_color_value == '#000000' ? 'purple' : 'white'
+                    }`"
+                    :text-color="`${
+                      newItem.text_color_value == '#000000' ? 'white' : 'black'
+                    }`"
+                    @click="newItem.text_color_value = '#000000'"
+                    >Чорний</q-btn
+                  >
+                </div>
+                <div class="col-6">
+                  <q-btn
+                    style="width: 100%; height: 56px"
+                    :color="`${
+                      newItem.text_color_value == '#ffffff' ? 'purple' : 'white'
+                    }`"
+                    :text-color="`${
+                      newItem.text_color_value == '#ffffff' ? 'white' : 'black'
+                    }`"
+                    @click="newItem.text_color_value = '#ffffff'"
+                    >Білий</q-btn
+                  >
+                </div>
+              </div>
             </div>
           </div>
-          <div class="row justify-between q-mb-sm">
+          <div class="row q-mb-sm q-col-gutter-lg">
             <q-input
               outlined
               v-model="newItem.value"
               :rules="['anyColor']"
-              style="width: 47%"
-              label="Головний"
+              class="col-6"
+              label="Головний колір"
             >
               <template v-slot:append>
                 <q-icon name="colorize" class="cursor-pointer">
@@ -93,8 +100,8 @@
               outlined
               v-model="newItem.text_color_value"
               :rules="['anyColor']"
-              label="Артикль"
-              style="width: 47%"
+              label="Колір артиклю"
+              class="col-6"
             >
               <template v-slot:append>
                 <q-icon name="colorize" class="cursor-pointer">

@@ -275,6 +275,7 @@ import { useTypeStore } from "src/stores/typeStore";
 import { useSizeStore } from "src/stores/sizeStore";
 import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
+import { useWarehouseStore } from "src/stores/warehouseStore";
 
 const enableRoleValidation = false;
 
@@ -287,6 +288,7 @@ const store = {
   sizes: useSizeStore(),
   genders: useGenderStore(),
   colors: useColorStore(),
+  warehouses: useWarehouseStore(),
 };
 
 let sessionRenewPassword = ref("");
@@ -381,12 +383,24 @@ const menuItems = [
     name: "Склади",
     icon: "warehouse",
     to: { name: "warehouses" },
-    onClick: (pageName) => {},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor(
       "read",
       "warehouses"
     ),
+  },
+  {
+    name: "Одиниці",
+    icon: "dataset",
+    to: { name: "units" },
+    onClick: (pageName) => {
+      // pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "units"),
   },
   {
     type: "separator",
@@ -395,7 +409,8 @@ const menuItems = [
         store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
         store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
         store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses")) &&
+        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "units")) &&
       store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
   {

@@ -121,8 +121,13 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="interests" color="black" size="md" class="q-mr-sm" />
-            Вид
+            <q-icon
+              name="face_retouching_natural"
+              color="black"
+              size="md"
+              class="q-mr-sm"
+            />
+            Гендер
           </div>
         </q-card-section>
         <q-separator></q-separator>
@@ -153,7 +158,7 @@
               color="primary"
               type="submit"
               :loading="sectionStore.dialogs.update.isLoading"
-              ><b>Редагувати</b></q-btn
+              ><b>Оновити</b></q-btn
             >
           </q-card-actions>
         </q-form>

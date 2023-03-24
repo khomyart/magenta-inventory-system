@@ -162,7 +162,7 @@
               color="primary"
               type="submit"
               :loading="sectionStore.dialogs.update.isLoading"
-              ><b>Редагувати</b></q-btn
+              ><b>Оновити</b></q-btn
             >
           </q-card-actions>
         </q-form>

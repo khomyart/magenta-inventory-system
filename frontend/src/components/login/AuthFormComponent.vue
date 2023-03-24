@@ -71,7 +71,7 @@ function onSubmit() {
         allowenses: res.data.allowenses,
       };
       sessionStorage.setItem("data", JSON.stringify(userData));
-      router.push("/items");
+      router.push("/dashboard");
       if (notification != null) {
         notification();
       }

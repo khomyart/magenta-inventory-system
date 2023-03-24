@@ -215,6 +215,104 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        warehouses: {
+          width: {
+            default: {
+              country_name: 150,
+              city_name: 150,
+              address: 150,
+              name: 150,
+              description: 800,
+            },
+            dynamic: {
+              country_name: 0,
+              city_name: 0,
+              address: 0,
+              name: 0,
+              description: 0,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            country_name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            city_name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            address: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+            description: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+          },
+        },
+        countries: {
+          width: {
+            default: {
+              name: 150,
+            },
+            dynamic: {
+              name: 0,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+                type: "universal",
+              },
+            },
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 140,
@@ -259,8 +357,16 @@ export const useAppConfigStore = defineStore("appConfig", {
       sizes: 10,
       genders: 10,
       colors: 10,
+      warehouses: 10,
     },
-    currentPages: { items: 0, types: 0, sizes: 0, genders: 0, colors: 0 },
+    currentPages: {
+      items: 0,
+      types: 0,
+      sizes: 0,
+      genders: 0,
+      colors: 0,
+      warehouses: 0,
+    },
     availableAmaountOfItemsPerPage: [10, 20, 50],
   }),
   getters: {

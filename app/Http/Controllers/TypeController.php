@@ -26,7 +26,6 @@ class TypeController extends Controller
      */
     public function read(Request $request)
     {
-        $user = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
         $compiledRegexRule = "";
         $validationRules = [
             "itemsPerPage" => "required|numeric",

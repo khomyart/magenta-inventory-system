@@ -188,13 +188,13 @@
                 >
               </div>
             </div>
-            <div class="row justify-between q-mb-sm">
+            <div class="row q-col-gutter-lg q-mb-sm">
               <q-input
                 outlined
                 v-model="updatedItem.value"
                 :rules="['anyColor']"
-                style="width: 47%"
-                label="Головний"
+                class="col-6"
+                label="Головний колір"
               >
                 <template v-slot:append>
                   <q-icon name="colorize" class="cursor-pointer">
@@ -213,8 +213,8 @@
                 outlined
                 v-model="updatedItem.text_color_value"
                 :rules="['anyColor']"
-                label="Артикль"
-                style="width: 47%"
+                label="Колір артиклю"
+                class="col-6"
               >
                 <template v-slot:append>
                   <q-icon name="colorize" class="cursor-pointer">

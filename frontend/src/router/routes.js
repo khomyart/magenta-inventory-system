@@ -74,7 +74,26 @@ const routes = [
       {
         path: "/warehouses",
         name: "warehouses",
-        component: () => import("src/pages/WarehousesPage.vue"),
+        redirect: "/warehouses/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/WarehousesPage.vue"),
+          },
+        ],
+      },
+      {
+        path: "/units",
+        name: "units",
+        component: () => import("pages/UnitsPage.vue"),
+
+        // redirect: "/units/1",
+        // children: [
+        //   {
+        //     path: ":page",
+        //     component: () => import("pages/UnitsPage.vue"),
+        //   },
+        // ],
       },
       {
         path: "/users",

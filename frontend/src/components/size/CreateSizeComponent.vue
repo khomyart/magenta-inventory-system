@@ -21,7 +21,7 @@
       <q-form @submit="sectionStore.create(newItem)">
         <q-card-section
           style="max-height: 50vh; width: 300px"
-          class="scroll q-pt-md"
+          class="scroll q-pt-lg"
         >
           <q-input
             class="q-mb-sm"

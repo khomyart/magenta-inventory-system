@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Size;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class SizeController extends Controller
+class UnitController extends Controller
 {
-    public $section = "sizes";
-    public $fields = ["value", "description"];
-    public $fieldsValidationRules = ["required|string|max:8", "required|string|max:250"];
+    public $section = "units";
+    public $fields = ["name", "description"];
+    public $fieldsValidationRules = ["required|string|max:20", "required|string|max:50"];
 
     //templated access to section model
     public function getSectionModel() {
-        return new Size;
+        return new Unit;
     }
 
     /**

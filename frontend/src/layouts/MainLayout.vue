@@ -276,6 +276,7 @@ import { useSizeStore } from "src/stores/sizeStore";
 import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
+import { useUnitStore } from "src/stores/unitStore";
 
 const enableRoleValidation = false;
 
@@ -289,6 +290,7 @@ const store = {
   genders: useGenderStore(),
   colors: useColorStore(),
   warehouses: useWarehouseStore(),
+  units: useUnitStore(),
 };
 
 let sessionRenewPassword = ref("");
@@ -397,7 +399,7 @@ const menuItems = [
     icon: "dataset",
     to: { name: "units" },
     onClick: (pageName) => {
-      // pageLoadAfterClickOnMenuItem(pageName);
+      pageLoadAfterClickOnMenuItem(pageName);
     },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "units"),

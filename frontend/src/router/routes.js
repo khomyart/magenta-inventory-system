@@ -85,15 +85,13 @@ const routes = [
       {
         path: "/units",
         name: "units",
-        component: () => import("pages/UnitsPage.vue"),
-
-        // redirect: "/units/1",
-        // children: [
-        //   {
-        //     path: ":page",
-        //     component: () => import("pages/UnitsPage.vue"),
-        //   },
-        // ],
+        redirect: "/units/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/UnitsPage.vue"),
+          },
+        ],
       },
       {
         path: "/users",

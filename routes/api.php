@@ -9,6 +9,7 @@ include "sections/sizes.php";
 include "sections/genders.php";
 include "sections/colors.php";
 include "sections/warehouses.php";
+include "sections/units.php";
 //additional entities
 include "sections/countries.php";
 include "sections/cities.php";

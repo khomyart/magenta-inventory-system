@@ -69,10 +69,19 @@ class SizeController extends Controller
         if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
             $section = $section->orderBy($data["orderField"], $data["orderValue"]);
         } else {
-            $section = $section->latest();
+            $section = $section->orderBy("number_in_row", "asc");
         }
 
-        return response($section->paginate($data["itemsPerPage"]));
+        $firstItemInRow = $this->getSectionModel()::orderBy("number_in_row", "asc")->limit(1)->get();
+        $lastItemInRow = $this->getSectionModel()::orderBy("number_in_row", "desc")->limit(1)->get();
+
+        $response = $section->paginate($data["itemsPerPage"]);
+        $response["first_item_number_in_row"] =
+            count($firstItemInRow) === 0 ? null : $firstItemInRow[0]["number_in_row"];
+        $response["last_item_number_in_row"] =
+            count($lastItemInRow) === 0 ? null : $lastItemInRow[0]["number_in_row"];
+
+        return response($response);
     }
 
     public function create(Request $request) {
@@ -84,7 +93,7 @@ class SizeController extends Controller
         }
 
         $data = $request->validate($rules);
-
+        $data["number_in_row"] = $this->getLastNumberInRow() + 1;
         return $sectionModel::create($data);
     }
 
@@ -134,5 +143,69 @@ class SizeController extends Controller
         ];
 
         return $equality[$operatorName];
+    }
+
+    private function getLastNumberInRow() {
+        $sectionModel = $this->getSectionModel();
+        $queryResult = $sectionModel::orderBy("number_in_row", "desc")->limit(1)->get();
+
+        return count($queryResult) != 0 ? $queryResult[0]["number_in_row"] : 0;
+    }
+
+    public function moveInRow(Request $request, $id) {
+        $data = $request->validate([
+            "direction" => ["required", "string", "regex:/^up$|^down$/i"],
+        ]);
+        $direction = $data["direction"];
+
+        $sectionModel = $this->getSectionModel();
+        $currentElement = $sectionModel::find($id);
+        if ($currentElement === null) { return response("Розмір не знайдено", 404); }
+
+        $previousElementInRow = $sectionModel
+            ::where("number_in_row", ">", $currentElement["number_in_row"])
+            ->orderBy("number_in_row", "asc")->limit(1)->get();
+        $previousElementInRow = count($previousElementInRow) === 0 ? null : $previousElementInRow[0];
+
+        $nextElementInRow = $sectionModel
+            ::where("number_in_row", "<", $currentElement["number_in_row"])
+            ->orderBy("number_in_row", "desc")->limit(1)->get();
+        $nextElementInRow = count($nextElementInRow) === 0 ? null : $nextElementInRow[0];
+
+        if ($direction === "up" && $nextElementInRow !== null) {
+            $currentElementNumberInRow = $currentElement["number_in_row"];
+            $nextElementNumberInRow = $nextElementInRow["number_in_row"];
+
+            $currentElement->number_in_row = $nextElementNumberInRow;
+            $nextElementInRow->number_in_row = $currentElementNumberInRow;
+
+            $currentElement->save();
+            $nextElementInRow->save();
+
+            return response()->json([
+                "previousElementInRow" => $previousElementInRow,
+                "currentElement" => $currentElement,
+                "nextElementInRow" => $nextElementInRow,
+            ]);
+        }
+
+        if ($direction === "down" && $previousElementInRow !== null) {
+            $currentElementNumberInRow = $currentElement["number_in_row"];
+            $previousElementNumberInRow = $previousElementInRow["number_in_row"];
+
+            $currentElement->number_in_row = $previousElementNumberInRow;
+            $previousElementInRow->number_in_row = $currentElementNumberInRow;
+
+            $currentElement->save();
+            $previousElementInRow->save();
+
+            return response()->json([
+                "previousElementInRow" => $previousElementInRow,
+                "currentElement" => $currentElement,
+                "nextElementInRow" => $nextElementInRow,
+            ]);
+        }
+
+        return response("Неможливо виконати рух", 422);
     }
 }

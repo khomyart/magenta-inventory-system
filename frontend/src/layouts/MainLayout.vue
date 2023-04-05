@@ -544,6 +544,7 @@ const secondsLabel = computed(() => {
 
 onBeforeMount(() => {
   store.app.setUIdependsOnLocalStorage();
+  console.log(store.app.filters.data.warehouses);
   let userData = JSON.parse(sessionStorage.getItem("data"));
 
   if (typeof userData === "object") {

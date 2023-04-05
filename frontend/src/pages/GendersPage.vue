@@ -81,6 +81,7 @@
             @show-edit-dialog="showUpdateDialog"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
+            @move-in-row="moveItem"
             :allowenses="{
               update: allowenses.update,
               delete: allowenses.delete,
@@ -88,6 +89,11 @@
             :itemInfo="item"
             :gap="5"
             :updated="item.id == sectionStore.data.updatedItemId"
+            :sectionStore="sectionStore"
+            :isMoveAllowed="
+              appStore.filters.data.genders.selectedParams.order.value === '' &&
+              appStore.filters.data.genders.selectedParams.name.value === ''
+            "
           />
         </template>
       </table>
@@ -259,6 +265,10 @@ function copyValue(value, paramName) {
   });
 }
 
+function moveItem(id, direction) {
+  sectionStore.move(id, direction);
+}
+
 function showUpdateDialog(item) {
   updatedItem.id = item.id;
   updatedItem.name = item.name;
@@ -365,16 +375,14 @@ onMounted(() => {
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
 
-  //firstly we need to set all widths to default values if atleast one element of dynamic param is less than minFilterWidth
-  if (
-    appStore.filters.data[currentSection].width.dynamic[fieldsSequance[0]] <
-    appStore.filters.availableParams.minFilterWidth
-  ) {
-    for (const fieldName in appStore.filters.data[currentSection].width
-      .dynamic) {
+  //firstly we need to set all widths to default values if its dynamic param is less than minFilterWidth
+  for (const fieldName in appStore.filters.data[currentSection].width.dynamic) {
+    if (
+      appStore.filters.data[currentSection].width.dynamic[fieldName] <
+      appStore.filters.availableParams.minFilterWidth
+    ) {
       appStore.filters.data[currentSection].width.dynamic[fieldName] =
-        appStore.filters.data[currentSection].width.default[fieldName] -
-        contentPaddingX;
+        appStore.filters.data[currentSection].width.default[fieldName];
     }
   }
 

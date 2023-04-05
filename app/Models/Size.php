@@ -9,6 +9,6 @@ class Size extends Model
 {
     use HasFactory;
 
-    protected $fillable=["value", "description"];
+    protected $fillable=["value", "description", "number_in_row"];
     protected $hidden=["created_at", "updated_at"];
 }

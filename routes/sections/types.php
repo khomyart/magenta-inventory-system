@@ -10,5 +10,8 @@ Route::get('/types', [TypeController::class,'read'])
 Route::patch('/types/{id}', [TypeController::class,'update'])
 ->middleware('api.authorization:update,types')->whereNumber('id');
 
+Route::patch('/types/move/{id}', [TypeController::class,'moveInRow'])
+->middleware('api.authorization:update,types')->whereNumber('id');
+
 Route::delete('/types/{id}', [TypeController::class,'delete'])
 ->middleware('api.authorization:delete,types')->whereNumber('id');

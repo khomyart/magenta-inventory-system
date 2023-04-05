@@ -11,7 +11,7 @@ class AuthAPI {
     const TOKEN_LIFE_TIME = 180;
     const AWAY_FROM_KEYBOARD_TIME = 20;
 
-    public $data;
+    public $user;
     public $tokenTime;
     public $ip;
 
@@ -23,7 +23,8 @@ class AuthAPI {
 
     public static function isAuthenticated($bearerToken, $ip) {
         $token = AccessToken::firstWhere('token', $bearerToken);
-        if (isset($token) && $token->where('ip_adress', $ip) != null) {
+
+        if (isset($token)) {
             return new self(user: $token->user, ip: $ip);
         }
 
@@ -32,7 +33,7 @@ class AuthAPI {
 
     public function hasToken() {
         $token = $this->user->accessToken;
-        return isset($token) ? $token->firstWhere("ip_address", $this->ip) : false;
+        return isset($token) ? $token : false;
     }
 
     public function isTokenExpired() {
@@ -62,7 +63,7 @@ class AuthAPI {
     }
 
     public function refreshAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
-        $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
+        $accessToken = $this->user->accessToken;
 
         $accessToken->last_used = Carbon::now();
         $accessToken->expired_at = Carbon::now()->addMinutes($tokenLifeTime);
@@ -73,7 +74,7 @@ class AuthAPI {
     }
 
     public function recreateAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME) {
-        $accessToken = $this->user->accessToken->firstWhere('ip_address', $this->ip);
+        $accessToken = $this->user->accessToken;
 
         $accessToken->token = Hash::make(today());
         $accessToken->last_used = Carbon::now();
@@ -97,7 +98,6 @@ class AuthAPI {
 
         return $isAuthorized;
     }
-
     public function getAllowenses() {
         return DB::table('users')
         ->select('allowenses.action', 'allowenses.section')

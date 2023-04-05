@@ -512,15 +512,13 @@ onMounted(() => {
     parseFloat(getComputedStyle(contentElement).paddingRight);
 
   //firstly we need to set all widths to default values if its dynamic param is less than minFilterWidth
-
   for (const fieldName in appStore.filters.data[currentSection].width.dynamic) {
     if (
       appStore.filters.data[currentSection].width.dynamic[fieldName] <
       appStore.filters.availableParams.minFilterWidth
     ) {
       appStore.filters.data[currentSection].width.dynamic[fieldName] =
-        appStore.filters.data[currentSection].width.default[fieldName] -
-        contentPaddingX;
+        appStore.filters.data[currentSection].width.default[fieldName];
     }
   }
 

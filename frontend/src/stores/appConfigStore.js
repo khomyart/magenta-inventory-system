@@ -445,6 +445,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       }
     },
     updateLocalStorageConfig() {
+      console.log("ui stored");
       localStorage.setItem("filters", JSON.stringify(this.filters.data));
       localStorage.setItem(
         "itemsPerPage",
@@ -452,6 +453,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       );
     },
     setUIdependsOnLocalStorage() {
+      console.log("ui renewed");
       if (
         localStorage.getItem("filters") != null &&
         localStorage.getItem("filters").length > 30

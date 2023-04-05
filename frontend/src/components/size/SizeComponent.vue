@@ -20,6 +20,38 @@
           <q-menu :offset="[5, 5]">
             <q-list style="min-width: 100px">
               <q-item
+                v-if="
+                  props.allowenses.update == true &&
+                  props.itemInfo.number_in_row !==
+                    props.sectionStore.data.firstItemNumberInRow &&
+                  props.isMoveAllowed == true
+                "
+                clickable
+                v-close-popup
+                @click="$emit('moveInRow', props.itemInfo.id, 'up')"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="expand_less" left></q-icon>
+                  <span>Перемістити вгору</span>
+                </div>
+              </q-item>
+              <q-item
+                v-if="
+                  props.allowenses.update == true &&
+                  props.itemInfo.number_in_row !==
+                    props.sectionStore.data.lastItemNumberInRow &&
+                  props.isMoveAllowed == true
+                "
+                clickable
+                v-close-popup
+                @click="$emit('moveInRow', props.itemInfo.id, 'down')"
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="expand_more" left></q-icon>
+                  <span>Перемістити вниз</span>
+                </div>
+              </q-item>
+              <q-item
                 v-if="props.allowenses.update == true"
                 clickable
                 v-close-popup
@@ -86,9 +118,17 @@ const emit = defineEmits([
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",
+  "moveInRow",
 ]);
 
-const props = defineProps(["itemInfo", "gap", "updated", "allowenses"]);
+const props = defineProps([
+  "itemInfo",
+  "gap",
+  "updated",
+  "allowenses",
+  "sectionStore",
+  "isMoveAllowed",
+]);
 let isUpdated = ref(false);
 
 onUpdated(() => {

@@ -25,6 +25,8 @@ export const useSizeStore = defineStore("size", {
       amountOfItems: 0,
       lastPage: 0,
       updatedItemId: 0,
+      firstItemNumberInRow: 0,
+      lastItemNumberInRow: 0,
     },
   }),
   getters: {},
@@ -128,7 +130,14 @@ export const useSizeStore = defineStore("size", {
         .then((res) => {
           console.log("sizes");
           console.log(res);
+          this.data.firstItemNumberInRow =
+            res.data.data.first_item_number_in_row;
+          this.data.lastItemNumberInRow = res.data.data.last_item_number_in_row;
+
+          delete res.data.data.first_item_number_in_row;
+          delete res.data.data.last_item_number_in_row;
           this.items = res.data.data;
+
           this.data.amountOfItems = res.data.total;
           this.data.lastPage = res.data.last_page;
         })
@@ -138,6 +147,20 @@ export const useSizeStore = defineStore("size", {
         .finally(() => {
           this.data.isItemsLoading = false;
         });
+    },
+    move(id, direction) {
+      this.data.isItemsLoading = true;
+      api
+        .patch(`/sizes/move/${id}`, {
+          direction: direction,
+        })
+        .then((res) => {
+          this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {});
     },
   },
 });

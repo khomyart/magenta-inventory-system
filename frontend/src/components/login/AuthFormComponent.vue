@@ -6,7 +6,6 @@
   >
     <q-input
       outlined
-      square
       class="q-mb-lg"
       type="email"
       label="Пошта"
@@ -14,7 +13,6 @@
     />
     <q-input
       outlined
-      square
       v-model="userData.password"
       class="q-mb-lg"
       :type="isPwd ? 'password' : 'text'"

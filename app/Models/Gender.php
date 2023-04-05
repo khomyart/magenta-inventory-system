@@ -9,6 +9,6 @@ class Gender extends Model
 {
     use HasFactory;
 
-    protected $fillable = ["name"];
+    protected $fillable = ["name", "number_in_row"];
     protected $hidden = ["created_at", "updated_at"];
 }

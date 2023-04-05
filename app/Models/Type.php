@@ -9,6 +9,6 @@ class Type extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['article', 'name'];
+    protected $fillable = ['article', 'name', "number_in_row"];
     protected $hidden = ['created_at', 'updated_at'];
 }

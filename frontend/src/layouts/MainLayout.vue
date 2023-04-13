@@ -271,6 +271,7 @@ import { ref, watch, computed, onBeforeMount } from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
+import { useItemStore } from "src/stores/itemStore";
 import { useTypeStore } from "src/stores/typeStore";
 import { useSizeStore } from "src/stores/sizeStore";
 import { useGenderStore } from "src/stores/genderStore";
@@ -285,6 +286,7 @@ const router = useRouter();
 const store = {
   users: useUserStore(),
   app: useAppConfigStore(),
+  items: useItemStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -308,7 +310,9 @@ const menuItems = [
     name: "Перелік",
     icon: "apps",
     to: { name: "items" },
-    onClick: (pageName) => {},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "items"),
   },
@@ -441,15 +445,9 @@ function pageLoadAfterClickOnMenuItem(pageName) {
     store.app.currentPages[pageName] != 1
   ) {
     store.app.currentPages[pageName] = 1;
-    store[pageName].receive(
-      store.app.amountOfItemsPerPages[pageName],
-      store.app.currentPages[pageName]
-    );
+    store[pageName].receive();
   } else {
-    store[pageName].receive(
-      store.app.amountOfItemsPerPages[pageName],
-      store.app.currentPages[pageName]
-    );
+    store[pageName].receive();
   }
 }
 

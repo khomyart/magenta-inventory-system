@@ -20,7 +20,13 @@ const routes = [
       {
         path: "/items",
         name: "items",
-        component: () => import("pages/ItemsPage.vue"),
+        redirect: "/items/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/ItemsPage.vue"),
+          },
+        ],
       },
       {
         path: "/logs",

@@ -48,14 +48,16 @@
           <div class="vertical-line"></div>
         </div>
         <template v-for="(item, index) in fieldsSequance" :key="index">
-          <WarehouseButtonComponent
+          <ButtonComponent
             :appStore="appStore"
             :sectionName="currentSection"
             :sectionStore="sectionStore"
             :name="fieldsSequance[index]"
             :label="fieldsDetails[index].label"
             :searchBarLabel="fieldsDetails[index].searchBarLabel"
+            :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
             :width="computedFilterWidth.buttons[fieldsSequance[index]]"
+            :mode="fieldsDetails[index].type"
             @clear-filter="clearFilter"
             @change-filter-mode="onChangedFieldFilterMode"
             @set-filter-order="setFilterOrder"
@@ -99,6 +101,7 @@
         <q-select
           class="item-per-page-selector"
           outlined
+          dense
           v-model="appStore.amountOfItemsPerPages[currentSection]"
           :options="appStore.availableAmaountOfItemsPerPage"
         />
@@ -275,7 +278,8 @@ import { useCityStore } from "src/stores/helpers/cityStore";
 import { useQuasar } from "quasar";
 import WarehouseComponent from "src/components/warehouse/WarehouseComponent.vue";
 import CreateWarehouseComponent from "src/components/warehouse/CreateWarehouseComponent.vue";
-import WarehouseButtonComponent from "src/components/warehouse/WarehouseButtonComponent.vue";
+// import WarehouseButtonComponent from "src/components/warehouse/WarehouseButtonComponent.vue";
+import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 
 const currentSection = "warehouses";
@@ -297,22 +301,47 @@ const fieldsDetails = [
   {
     label: "Країна",
     searchBarLabel: "Назва країни",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
   },
   {
     label: "Місто",
     searchBarLabel: "Назва міста",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
   },
   {
     label: "Адреса",
     searchBarLabel: "Адреса складу",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
   },
   {
     label: "Назва",
     searchBarLabel: "Назва складу",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
   },
   {
     label: "Опис",
     searchBarLabel: "Опис складу",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
   },
 ];
 
@@ -545,7 +574,7 @@ watch(
 );
 
 onMounted(() => {
-  sectionStore.items = [];
+  // sectionStore.items = [];
   appStore.currentPages[currentSection] = Number(
     router.currentRoute.value.params.page
   );

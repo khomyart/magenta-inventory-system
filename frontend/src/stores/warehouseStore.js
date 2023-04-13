@@ -116,7 +116,7 @@ export const useWarehouseStore = defineStore("warehouse", {
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
-      // this.items = [];
+      this.items = [];
       this.data.isItemsLoading = true;
       console.log("received warehouse");
       api

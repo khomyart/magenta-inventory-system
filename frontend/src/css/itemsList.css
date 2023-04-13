@@ -36,6 +36,7 @@
   height: var(--cell-height);
   display: flex;
   align-items: center;
+  /* justify-content: center; */
 }
 
 .separator-cell div {
@@ -101,7 +102,7 @@ tr td:last-child > div {
   align-items: center;
 }
 .item-color {
-  width: 70%;
+  width: 100%;
   height: 80%;
   display: flex;
   justify-content: center;

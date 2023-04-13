@@ -7,6 +7,9 @@ Route::post('/types', [TypeController::class,'create'])
 Route::get('/types', [TypeController::class,'read'])
 ->middleware('api.authorization:read,types');
 
+Route::get('/types/simple', [TypeController::class,'simpleRead'])
+->middleware('api.authorization:read,types');
+
 Route::patch('/types/{id}', [TypeController::class,'update'])
 ->middleware('api.authorization:update,types')->whereNumber('id');
 

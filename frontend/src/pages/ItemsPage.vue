@@ -1,432 +1,229 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-px-md q-my-md">
+    <div class="toolbar row q-mt-md">
       <q-input
-        v-model="searchInput"
-        debounce="500"
+        v-model="
+          appStore.filters.data[currentSection].selectedParams.title.value
+        "
+        debounce="700"
         outlined
         placeholder="Введіть назву предмету"
-        rounded
         dense
-        class="col-4"
-        :loading="isSearching"
-        @keydown.enter="isSearching = isSearching == false ? true : false"
+        class="q-mr-md"
+        style="width: 300px"
+        :loading="sectionStore.data.isItemsLoading"
       >
-        <template v-slot:append v-if="!isSearching">
+        <template v-slot:append v-if="!sectionStore.data.isItemsLoading">
           <q-icon name="search" />
         </template>
       </q-input>
-      <q-space></q-space>
-      <q-btn flat round color="white" text-color="black" icon="warehouse">
-        <q-badge color="red" floating rounded> </q-badge>
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="center left"
-          self="center right"
-          :offset="[10, 10]"
-        >
-          Пошук за складами
-        </q-tooltip>
-        <q-menu self="bottom middle" :offset="[-20, -50]">
-          <q-list style="min-width: 150px">
-            <q-item clickable v-close-popup>
-              <q-item-section>New tab</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>New incognito tab</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Recent tabs</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>History</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>Downloads</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Settings</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Help &amp; Feedback</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
-      </q-btn>
-      <q-separator vertical class="q-mx-sm"></q-separator>
-      <q-btn flat round color="black" icon="arrow_downward">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[-18, 7]"
-        >
-          Зарахувати надходження
-        </q-tooltip>
-      </q-btn>
-      <q-btn flat round color="black" icon="arrow_upward">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[-20, 7]"
-        >
-          Зарахувати списання
-        </q-tooltip>
-      </q-btn>
       <q-btn
         flat
         round
         color="black"
-        @click="switchItemsView"
-        :icon="showGroupedItems ? 'unfold_more' : 'unfold_less'"
+        icon="sync"
+        @click="sectionStore.receive()"
       >
         <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[-20, 7]"
-        >
-          {{ groupedItemsButtonTooltip }}
-        </q-tooltip>
-      </q-btn>
-      <q-btn
-        flat
-        round
-        color="black"
-        icon="add"
-        @click="createItemButtonAction"
-      >
-        <q-tooltip
-          v-model="isCreateItemButtonActivated"
           anchor="bottom left"
           :offset="[-20, 7]"
           class="bg-black text-body2"
         >
-          Створити
-        </q-tooltip>
-        <q-menu self="bottom middle" :offset="[0, -50]">
-          <q-list style="min-width: 150px">
-            <q-item clickable v-close-popup>
-              <q-item-section>Одиночний предмет</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>Групу предметів</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
-      </q-btn>
-      <q-btn flat round color="black" icon="sync_alt">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[0, 7]"
-        >
-          Перемістити
+          Оновити список
         </q-tooltip>
       </q-btn>
     </div>
 
     <div class="content">
-      <q-toolbar class="text-black filter q-px-none bg-white">
-        <q-btn icon="filter_list" round flat style="margin: 0px 5px 0px 11px">
-          <q-menu :offset="[11, 9]">
-            <q-list style="min-width: 100px">
-              <q-item clickable v-close-popup>
-                <q-item-section>Застосувати фільтр</q-item-section>
-              </q-item>
-              <q-separator />
-              <q-item clickable v-close-popup>
-                <q-item-section>Скинути значення</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
+      <q-inner-loading :showing="sectionStore.data.isItemsLoading">
+        <q-spinner-puff size="50px" color="primary" />
+      </q-inner-loading>
+      <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
+        <SortingComponent
+          :filterIn="currentSection"
+          :sectionStore="sectionStore"
+        />
         <div class="filter-separator">
           <div class="vertical-line"></div>
         </div>
-        <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${fieldWidths.article}px; text-align: start`"
-          >
-            Артикль
-          </div>
-
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.article / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="article">
-          <div class="vertical-line"></div>
-        </div>
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.name}px; text-align: start`">
-            Назва
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.name / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="name">
-          <div class="vertical-line"></div>
-        </div>
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.type}px; text-align: start`">
-            Вид
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.type / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="type">
-          <div class="vertical-line"></div>
-        </div>
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.gender}px; text-align: start`">
-            Стать
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.gender / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="gender">
-          <div class="vertical-line"></div>
-        </div>
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.size}px; text-align: start`">
-            Розмір
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.size / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="size">
-          <div class="vertical-line"></div>
-        </div>
-
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.color}px; text-align: start`">
-            Колір
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.color / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="color">
-          <div class="vertical-line"></div>
-        </div>
-
-        <q-btn flat stretch class="filter-button">
-          <div :style="`min-width: ${fieldWidths.amount}px; text-align: start`">
-            Кількість
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.amount / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab 1</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="amount">
-          <div class="vertical-line"></div>
-        </div>
-        <q-btn flat stretch class="filter-button">
-          <div
-            :style="`min-width: ${
-              fieldWidths.units - filterWidthSettings.options.xScrollWidth
-            }px; text-align: start`"
-          >
-            Одиниці
-          </div>
-          <q-menu
-            self="bottom middle"
-            :offset="[-fieldWidths.units / 2 - 16, 102]"
-          >
-            <q-list style="min-width: 250px">
-              <q-item clickable v-close-popup>
-                <q-item-section>New tab 1</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup>
-                <q-item-section>New incognito tab</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-        <div class="filter-separator" name="units">
-          <div class="vertical-line"></div>
-        </div>
+        <template v-for="(item, index) in fieldsSequance" :key="index">
+          <component
+            :is="item === 'color' ? ColorButtonComponent : ButtonComponent"
+            :appStore="appStore"
+            :sectionName="currentSection"
+            :sectionStore="sectionStore"
+            :name="fieldsSequance[index]"
+            :label="fieldsDetails[index].label"
+            :searchBarLabel="fieldsDetails[index].searchBarLabel"
+            :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
+            :width="computedFilterWidth.buttons[fieldsSequance[index]]"
+            :mode="fieldsDetails[index].type"
+            @clear-filter="clearFilter"
+            @change-filter-mode="onChangedFieldFilterMode"
+            @set-filter-order="setFilterOrder"
+          />
+        </template>
       </q-toolbar>
       <table class="items">
         <tr>
           <td :width="60"></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.article +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.name +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.type +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.gender +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.size +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.color +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.amount +
-              filterWidthSettings.options.filterButtonXPadding
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth"></td>
-          <td
-            :width="
-              fieldWidths.units +
-              filterWidthSettings.options.filterButtonXPadding -
-              filterWidthSettings.options.separatorWidth -
-              filterWidthSettings.options.xScrollWidth
-            "
-          ></td>
-          <td :width="filterWidthSettings.options.separatorWidth + 4"></td>
+          <td :width="computedFilterWidth.fields.separator"></td>
+          <template v-for="(item, index) in fieldsSequance" :key="index">
+            <td :width="computedFilterWidth.fields[fieldsSequance[index]]"></td>
+            <td
+              v-if="index != fieldsSequance.length - 1"
+              :width="computedFilterWidth.fields.separator"
+            ></td>
+            <td v-else :width="computedFilterWidth.fields.lastSeparator"></td>
+          </template>
         </tr>
-        <template v-for="(item, index) in newArrayOfItems" :key="index">
-          <item-component :itemInfo="item" :gap="5"></item-component>
+        <template v-for="(item, index) in sectionStore.items" :key="index">
+          <ItemComponent
+            @show-remove-dialog="showRemoveDialog"
+            @show-edit-dialog="showUpdateDialog"
+            @clear-updated-item-id="clearUpdatedItemId"
+            @copy-value="copyValue"
+            :allowenses="{
+              update: allowenses.update,
+              delete: allowenses.delete,
+            }"
+            :itemInfo="item"
+            :gap="5"
+            :updated="item.id == sectionStore.data.updatedItemId"
+            :appStore="appStore"
+          />
         </template>
       </table>
     </div>
 
     <div class="footer">
       <div class="footer-left-part flex items-center">
+        <span class="q-mr-sm">Записів на сторінці</span>
+        <q-select
+          class="item-per-page-selector"
+          outlined
+          dense
+          v-model="appStore.amountOfItemsPerPages[currentSection]"
+          :options="appStore.availableAmaountOfItemsPerPage"
+        />
+        <q-separator vertical class="q-mx-md"></q-separator>
         <q-pagination
-          class="q-mr-xl"
-          v-model="currentPage"
+          v-model="appStore.currentPages[currentSection]"
           color="purple"
-          :max="10"
+          :max="sectionStore.data.lastPage"
           :max-pages="6"
           boundary-numbers
         />
-
-        <span class="q-mr-sm">Записів на сторінці</span>
-        <q-select
-          outlined
-          v-model="itemsPegPage"
-          :options="amountOfItemsOptions"
-          class="item-per-page-selector"
-        />
       </div>
       <div class="footer-right-part q-mr-md">
-        Кількість: {{ amountOfItems }}
+        Кількість: {{ sectionStore.data.amountOfItems }}
       </div>
     </div>
+
+    <!--UPDATING DIALOG-->
+    <q-dialog v-model="sectionStore.dialogs.update.isShown">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon name="interests" color="black" size="md" class="q-mr-sm" />
+            Вид
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-form @submit="sectionStore.update(updatedItem)">
+          <q-card-section
+            style="max-height: 50vh; width: 300px"
+            class="scroll q-pt-md"
+          >
+            <q-input
+              class="q-mb-sm"
+              outlined
+              v-model="updatedItem.article"
+              autofocus
+              label="Артикль"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть артикль',
+                (val) => val.length <= 8 || 'Не більше 8 символів',
+              ]"
+            />
+            <q-input
+              outlined
+              v-model="updatedItem.name"
+              label="Вид"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть назву виду',
+                (val) => val.length <= 128 || 'Не більше 128 символів',
+              ]"
+            />
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+            <q-btn
+              flat
+              color="primary"
+              type="submit"
+              :loading="sectionStore.dialogs.update.isLoading"
+              ><b>Оновити</b></q-btn
+            >
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
+
+    <!-- DELETING DIALOG -->
+    <q-dialog v-model="sectionStore.dialogs.delete.isShown">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon name="warning" color="red" size="md" class="q-mr-sm" />
+            Видалення
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-card-section style="width: 350px">
+          Ви справді бажаєте знищити вид: "{{ deletedItem.name }}"?
+        </q-card-section>
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
+          <q-btn
+            @click="sectionStore.delete(deletedItem.id)"
+            flat
+            type="submit"
+            color="negative"
+            :loading="sectionStore.dialogs.delete.isLoading"
+            ><b>Так</b></q-btn
+          >
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import ItemComponent from "components/ItemComponent.vue";
-
+import { reactive, onMounted, watch, computed } from "vue";
+import { useRouter } from "vue-router";
 import { useItemStore } from "src/stores/itemStore";
+import { useAppConfigStore } from "src/stores/appConfigStore";
+import { useQuasar } from "quasar";
+import ItemComponent from "src/components/item/ItemComponent.vue";
+// import CreateTypeComponent from "src/components/type/CreateTypeComponent.vue";
+import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
+import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
+import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";
 
-const itemsSequance = [
+const currentSection = "items";
+const appStore = useAppConfigStore();
+const sectionStore = useItemStore();
+const router = useRouter();
+const $q = useQuasar();
+
+const fieldsSequance = [
   "article",
-  "name",
+  "title",
   "type",
   "gender",
   "size",
@@ -434,139 +231,283 @@ const itemsSequance = [
   "amount",
   "units",
 ];
-const groupedItemsButtonTooltip = computed(() => {
-  return showGroupedItems.value ? "Розділити" : "Групувати";
-});
-const store = useItemStore();
+const fieldsDetails = [
+  {
+    label: "Артикль",
+    searchBarLabel: "Значення артиклю",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+  {
+    label: "Назва",
+    searchBarLabel: "Назва",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+  {
+    label: "Тип",
+    searchBarLabel: "Значення типу",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від першого до останнього (за списком)",
+      down: "Від останнього до першого (за списком)",
+    },
+  },
+  {
+    label: "Гендер",
+    searchBarLabel: "Назва гендеру",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від першого до останнього (за списком)",
+      down: "Від останнього до першого (за списком)",
+    },
+  },
+  {
+    label: "Розмір",
+    searchBarLabel: "Значення розміру",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від першого до останнього (за списком)",
+      down: "Від останнього до першого (за списком)",
+    },
+  },
+  {
+    label: "Колір",
+    searchBarLabel: "Назва кольору",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+  {
+    label: "Кількість",
+    searchBarLabel: "Кількість",
+    type: "number",
+    orderButtonLabels: {
+      up: "Від меншого до більшого",
+      down: "Від більшого до меншого",
+    },
+  },
+  {
+    label: "Одиниці",
+    searchBarLabel: "Назва одиниці",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+];
 
-let searchInput = ref("");
-let isSearching = ref(false);
-let showGroupedItems = ref(false);
-let isCreateItemButtonActivated = ref(false);
-let newArrayOfItems = [];
-let fieldWidths = reactive({
-  //px
-  article: 0,
-  name: 0,
-  type: 0,
-  gender: 0,
-  size: 0,
-  color: 0,
-  amount: 0,
-  units: 0,
+const allowenses = {
+  create: appStore.allowenses.isValidFor("create", currentSection),
+  update: appStore.allowenses.isValidFor("update", currentSection),
+  delete: appStore.allowenses.isValidFor("delete", currentSection),
+};
+
+let updatedItem = reactive({
+  id: "",
+  article: "",
+  name: "",
 });
+
+let deletedItem = reactive({
+  id: "",
+  name: "",
+});
+
 let tempFieldWidths = reactive({
   //px
   article: 0,
   name: 0,
-  type: 0,
-  gender: 0,
-  size: 0,
-  color: 0,
-  amount: 0,
-  units: 0,
 });
-let filterWidthSettings = {
-  fieldMinWidths: {
-    //px
-    article: 180,
-    name: 260,
-    type: 180,
-    gender: 180,
-    size: 180,
-    color: 180,
-    amount: 180,
-    units: 180,
-  },
-  fieldWidthsInPercentages: {
-    //%
-    article: 14,
-    name: 30,
-    type: 14,
-    gender: 14,
-    size: 14,
-    color: 14,
-    amount: 14,
-    units: 14,
-  },
-  options: {
-    //px
-    minFilterWidth: 90,
-    separatorWidth: 11,
-    xScrollWidth: 20,
-    filterButtonXPadding: 32,
-    //affected || straight
-    resizeMode: "straight",
-  },
-};
 
-//footer
-let currentPage = ref(1),
-  itemsPegPage = ref(50),
-  itemsOnPage = ref(3),
-  amountOfItemsOptions = [10, 20, 50],
-  amountOfItems = ref(958);
-
-function switchItemsView() {
-  showGroupedItems.value = !showGroupedItems.value;
+function clearUpdatedItemId() {
+  let interval = setTimeout(() => {
+    sectionStore.data.updatedItemId = 0;
+    clearInterval(interval);
+  }, 2000);
 }
 
-function createItemButtonAction() {
-  isCreateItemButtonActivated.value = !isCreateItemButtonActivated.value;
+function copyValue(value, paramName) {
+  navigator.clipboard.writeText(value);
+  $q.notify({
+    position: "top",
+    color: "primary",
+    message: `${paramName} зкопійовано: "${value}"`,
+    group: false,
+  });
 }
+
+function showUpdateDialog(item) {
+  updatedItem.id = item.id;
+  updatedItem.article = item.article;
+  updatedItem.name = item.name;
+  sectionStore.dialogs.update.isShown = true;
+}
+
+function showRemoveDialog(id, name) {
+  deletedItem.id = id;
+  deletedItem.name = name;
+  sectionStore.dialogs.delete.isShown = true;
+}
+
+/**
+ * button events
+ */
+function clearFilter(field, filterType = "all") {
+  let filters = appStore.filters;
+
+  filters.data[currentSection].selectedParams[field].value = "";
+  filters.data[currentSection].selectedParams[field].filterMode =
+    filters.availableParams.items[0];
+
+  if (filterType === "number") {
+    filters.data[currentSection].selectedParams[field].filterMode =
+      filters.availableParams.items[2];
+  }
+
+  if (filters.data[currentSection].selectedParams.order.field === field) {
+    filters.data[currentSection].selectedParams.order.field = "";
+    filters.data[currentSection].selectedParams.order.value = "";
+    filters.data[currentSection].selectedParams.order.combined = "";
+  }
+}
+
+function onChangedFieldFilterMode(field) {
+  if (appStore.filters.data[currentSection].selectedParams[field].value != "") {
+    sectionStore.receive();
+  }
+}
+
+function setFilterOrder(field, fieldOrder) {
+  let order = appStore.filters.data[currentSection].selectedParams.order;
+  if (order.field === field && order.value === fieldOrder) {
+    order.field = "";
+    order.value = "";
+    order.combined = "";
+  } else {
+    order.field = field;
+    order.value = fieldOrder;
+    order.combined = `${field}${fieldOrder}`;
+  }
+}
+
+const computedFilterWidth = computed(() => {
+  return {
+    buttons: {
+      article:
+        appStore.filters.data[currentSection].width.dynamic.article -
+        appStore.filters.availableParams.filterButtonXPadding,
+      title:
+        appStore.filters.data[currentSection].width.dynamic.title -
+        appStore.filters.availableParams.filterButtonXPadding,
+      type:
+        appStore.filters.data[currentSection].width.dynamic.type -
+        appStore.filters.availableParams.filterButtonXPadding,
+      gender:
+        appStore.filters.data[currentSection].width.dynamic.gender -
+        appStore.filters.availableParams.filterButtonXPadding,
+      size:
+        appStore.filters.data[currentSection].width.dynamic.size -
+        appStore.filters.availableParams.filterButtonXPadding,
+      color:
+        appStore.filters.data[currentSection].width.dynamic.color -
+        appStore.filters.availableParams.filterButtonXPadding,
+      amount:
+        appStore.filters.data[currentSection].width.dynamic.amount -
+        appStore.filters.availableParams.filterButtonXPadding,
+      units:
+        appStore.filters.data[currentSection].width.dynamic.units -
+        appStore.filters.availableParams.filterButtonXPadding,
+    },
+    fields: {
+      article: appStore.filters.data[currentSection].width.dynamic.article,
+      title: appStore.filters.data[currentSection].width.dynamic.title,
+      type: appStore.filters.data[currentSection].width.dynamic.type,
+      gender: appStore.filters.data[currentSection].width.dynamic.gender,
+      size: appStore.filters.data[currentSection].width.dynamic.size,
+      color: appStore.filters.data[currentSection].width.dynamic.color,
+      amount: appStore.filters.data[currentSection].width.dynamic.amount,
+      units: appStore.filters.data[currentSection].width.dynamic.units,
+      separator: appStore.filters.availableParams.separatorWidth,
+      lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 1,
+    },
+  };
+});
+
+watch([() => appStore.currentPages[currentSection]], ([currentPage]) => {
+  router.push(`/${currentSection}/${currentPage}`);
+  sectionStore.receive();
+});
+
+watch(
+  [() => appStore.amountOfItemsPerPages[currentSection]],
+  ([amountPerPage]) => {
+    if (appStore.currentPages[currentSection] != 1) {
+      appStore.currentPages[currentSection] = 1;
+    } else {
+      sectionStore.receive();
+    }
+    router.push(`/${currentSection}/${appStore.currentPages[currentSection]}`);
+  }
+);
+//filter watcher
+watch(
+  [
+    () => appStore.filters.data[currentSection].selectedParams.order.combined,
+    () => appStore.filters.data[currentSection].selectedParams.article.value,
+    () => appStore.filters.data[currentSection].selectedParams.title.value,
+    () => appStore.filters.data[currentSection].selectedParams.type.value,
+    () => appStore.filters.data[currentSection].selectedParams.gender.value,
+    () => appStore.filters.data[currentSection].selectedParams.size.value,
+    () => appStore.filters.data[currentSection].selectedParams.color.value,
+    () => appStore.filters.data[currentSection].selectedParams.amount.value,
+    () => appStore.filters.data[currentSection].selectedParams.units.value,
+  ],
+  () => {
+    sectionStore.receive();
+  }
+);
 
 onMounted(() => {
-  //just placeholder for spamming more items
-  let amountOfMultiplies = 10;
-  let tempItemsList = [...store.itemsList];
-  let lengthOfItemsList = tempItemsList.length;
-  for (let i = 0; i < amountOfMultiplies; i++) {
-    tempItemsList.forEach((item, index) => {
-      newArrayOfItems.push(Object.assign({}, item));
-      newArrayOfItems[index + lengthOfItemsList * i].id =
-        index + lengthOfItemsList * i;
-    });
-  }
+  // sectionStore.items = [];
+  appStore.currentPages[currentSection] = Number(
+    router.currentRoute.value.params.page
+  );
   /*
-    setting up default values for filter fields width according to config
-  */
+      setting up default values for filter fields width according to config
+    */
   let contentElement = document.querySelector(".content");
   //get .content div padding
-  let contentWidth = contentElement.offsetWidth;
   let contentPaddingX =
+    2 +
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
-  //get width of separator
-  let separatorWidth = document.querySelector(".filter-separator").offsetWidth;
 
-  let fieldNumber = 1;
-  for (const fieldName in fieldWidths) {
-    fieldWidths[fieldName] =
-      contentWidth *
-        (filterWidthSettings.fieldWidthsInPercentages[fieldName] / 100) -
-      filterWidthSettings.options.filterButtonXPadding;
-    //substracting value according to container padding devided by amount of filter parameters
-    fieldWidths[fieldName] -= contentPaddingX / Object.keys(fieldWidths).length;
-    //if filter item is not last -> substract width of separator
-    if (Object.keys(fieldWidths).length != fieldNumber) {
-      fieldWidths[fieldName] -= separatorWidth;
-    }
-    //set minimum width of fields in case, if calculated is less than established minimum
+  //firstly we need to set all widths to default values if its dynamic param is less than minFilterWidth
+  for (const fieldName in appStore.filters.data[currentSection].width.dynamic) {
     if (
-      fieldWidths[fieldName] < filterWidthSettings.fieldMinWidths[fieldName]
+      appStore.filters.data[currentSection].width.dynamic[fieldName] <
+      appStore.filters.availableParams.minFilterWidth
     ) {
-      fieldWidths[fieldName] = filterWidthSettings.fieldMinWidths[fieldName];
+      appStore.filters.data[currentSection].width.dynamic[fieldName] =
+        appStore.filters.data[currentSection].width.default[fieldName];
     }
-
-    fieldNumber += 1;
   }
 
   /*
-    adding to all separators drag actions
-  */
+      adding to all separators drag actions
+    */
   let qApp = document.querySelector("#q-app");
   let pageContainer = document.querySelector(".content");
-  let filter = document.querySelector(".filter");
 
   /**
    * @param {htmlObject} separatorObject
@@ -584,11 +525,11 @@ onMounted(() => {
       devider.classList.add("filter-width-helper");
       devider.style.height = `${pageContainer.clientHeight}px`;
       pageContainer.appendChild(devider);
-      devider.style.top = `${filter.offsetTop}px`;
+      devider.style.top = `${pageContainer.offsetTop}px`;
       devider.style.left = `${
         separatorObject.getBoundingClientRect().x -
         pageContainer.getBoundingClientRect().x +
-        filterWidthSettings.options.separatorWidth / 2
+        appStore.filters.availableParams.separatorWidth / 2
       }px`;
 
       return devider;
@@ -597,7 +538,6 @@ onMounted(() => {
     separatorObject.onmousedown = (mouseDownEvent) => {
       separatorObject.onmouseup = () => {
         onSeparatorRelease();
-        console.log("release");
       };
       document.body.onmouseup = () => {
         onSeparatorRelease();
@@ -605,15 +545,24 @@ onMounted(() => {
       //disabling interaction with other element except filter separator
       qApp.classList.add("disable-interaction");
       //applying current filter width values to temp filter object
-      Object.keys(fieldWidths).forEach((field) => {
-        tempFieldWidths[field] = fieldWidths[field];
-      });
+      Object.keys(appStore.filters.data[currentSection].width.dynamic).forEach(
+        (field) => {
+          tempFieldWidths[field] =
+            appStore.filters.data[currentSection].width.dynamic[field];
+        }
+      );
 
       let initCursorCoord = mouseDownEvent.pageX;
-      let initFieldWidth = fieldWidths[fieldName];
+      let initFieldWidth =
+        appStore.filters.data[currentSection].width.dynamic[fieldName];
       let initAffectedFieldWidth =
-        affectedFieldName == null ? null : fieldWidths[affectedFieldName];
-      let minFilterWidth = filterWidthSettings.options.minFilterWidth;
+        affectedFieldName == null
+          ? null
+          : appStore.filters.data[currentSection].width.dynamic[
+              affectedFieldName
+            ];
+
+      let minFilterWidth = appStore.filters.availableParams.minFilterWidth;
       //working with visualistion of separator movement
       let devider = separatorMovementVisualisation();
       let initDeviderOffsetLeft = devider.offsetLeft;
@@ -637,15 +586,21 @@ onMounted(() => {
           }
 
           //bringing active value back to actual fieldWidth object
-          fieldWidths[fieldName] = tempFieldWidths[fieldName];
-          fieldWidths[affectedFieldName] = tempFieldWidths[affectedFieldName];
+          appStore.filters.data[currentSection].width.dynamic[fieldName] =
+            tempFieldWidths[fieldName];
+          appStore.filters.data[currentSection].width.dynamic[
+            affectedFieldName
+          ] = tempFieldWidths[affectedFieldName];
         } else {
           if (tempFieldWidths[fieldName] < minFilterWidth) {
             tempFieldWidths[fieldName] = minFilterWidth;
           }
 
-          fieldWidths[fieldName] = tempFieldWidths[fieldName];
+          appStore.filters.data[currentSection].width.dynamic[fieldName] =
+            tempFieldWidths[fieldName];
         }
+
+        appStore.updateLocalStorageConfig();
       }
 
       document.body.onmousemove = (mouseMoveEvent) => {
@@ -664,27 +619,27 @@ onMounted(() => {
     };
   }
 
-  for (let i = 0; i < itemsSequance.length; i++) {
+  for (let i = 0; i < fieldsSequance.length; i++) {
     let currentItem = document.querySelector(
-      `.filter-separator[name='${itemsSequance[i]}']`
+      `.filter-separator[name='${fieldsSequance[i]}']`
     );
 
-    if (filterWidthSettings.options.resizeMode == "straight") {
-      addEventToSeparator(currentItem, itemsSequance[i]);
+    if (appStore.filters.availableParams.resizeMode == "straight") {
+      addEventToSeparator(currentItem, fieldsSequance[i]);
     }
 
-    if (filterWidthSettings.options.resizeMode == "affected") {
-      if (i > itemsSequance.length - 2) {
+    if (appStore.filters.availableParams.resizeMode == "affected") {
+      if (i > fieldsSequance.length - 2) {
         continue;
       }
-      addEventToSeparator(currentItem, itemsSequance[i], itemsSequance[i + 1]);
+      addEventToSeparator(
+        currentItem,
+        fieldsSequance[i],
+        fieldsSequance[i + 1]
+      );
     }
   }
 });
-// document.body.addEventListener("click", function (e) {
-//   console.log("bodya");
-//   console.log(e);
-// });
 </script>
 
 <style></style>

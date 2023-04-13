@@ -103,7 +103,7 @@ export const useColorStore = defineStore("color", {
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
-      // this.items = [];
+      this.items = [];
       this.data.isItemsLoading = true;
       api
         .get(`/${sectionName}`, {

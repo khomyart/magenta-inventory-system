@@ -112,6 +112,34 @@ class WarehouseController extends Controller
         return response($section->paginate($data["itemsPerPage"]));
     }
 
+    /**
+     * Display a list of warehouses depends on city id and its name
+     * (use for "select" item (<select></select>))
+     */
+    public function simpleRead(Request $request, $id) {
+        $city = City::find($id);
+        $warehouses = [];
+
+        if ($city == null) {
+            return response('Міста не знайдено', 404);
+        }
+
+        $data = $request->validate([
+            "nameFilterValue" => "string|nullable",
+        ]);
+
+        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+            $warehouses = $city->warehouses()->orderBy('name', 'asc')->get();
+        } else {
+            $warehouses = $city->warehouses()
+                ->where('name', 'like', "%{$data["nameFilterValue"]}%")
+                ->orderBy('name', 'asc')
+                ->get();
+        }
+
+        return response($warehouses);
+    }
+
     public function create(Request $request) {
         $sectionModel = $this->getSectionModel();
         $rules = [];

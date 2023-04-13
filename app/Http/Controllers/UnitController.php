@@ -75,6 +75,22 @@ class UnitController extends Controller
         return response($section->paginate($data["itemsPerPage"]));
     }
 
+    public function simpleRead(Request $request) {
+        $data = $request->validate([
+            'nameFilterValue' => 'string|nullable',
+        ]);
+        $items = [];
+        $sectionModel = $this->getSectionModel();
+
+        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+            $items = $sectionModel::orderBy('name', 'asc')->get();
+        } else {
+            $items = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('name', 'asc')->get();
+        }
+
+        return response($items);
+    }
+
     public function create(Request $request) {
         $sectionModel = $this->getSectionModel();
         $rules = [];

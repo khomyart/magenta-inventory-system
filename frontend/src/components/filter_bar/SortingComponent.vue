@@ -3,8 +3,7 @@
     <q-badge
       v-if="filterOrder.field === 'id'"
       color="red"
-      floating
-      style="margin-top: -4px"
+      style="margin-top: -4px; position: absolute; top: -8px; left: 0px"
       ><q-icon
         size="14px"
         :name="

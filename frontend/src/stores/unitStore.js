@@ -101,7 +101,7 @@ export const useUnitStore = defineStore("unit", {
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
-      // this.items = [];
+      this.items = [];
       this.data.isItemsLoading = true;
       api
         .get("/units", {

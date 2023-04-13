@@ -13,6 +13,10 @@ class City extends Model
     protected $hidden = ['created_at', 'updated_at'];
 
     public function country() {
-        $this->belongsTo(Country::class, 'country_id', 'id');
+        return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
+    public function warehouses() {
+        return $this->hasMany(Warehouse::class, 'city_id', 'id');
     }
 }

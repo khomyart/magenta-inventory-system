@@ -59,6 +59,7 @@ export const useGenderStore = defineStore("gender", {
         .then((res) => {
           this.data.updatedItemId = res.data.id;
           let updatedItemIndex;
+          console.log(typeof this.items);
           this.items.every((item, index) => {
             if (item.id == res.data.id) {
               updatedItemIndex = index;
@@ -69,9 +70,9 @@ export const useGenderStore = defineStore("gender", {
 
           this.items[updatedItemIndex] = res.data;
         })
-        .catch((err) => {
-          appConfigStore.catchRequestError(err);
-        })
+        // .catch((err) => {
+        //   appConfigStore.catchRequestError(err);
+        // })
         .finally(() => {
           this.dialogs.update.isLoading = false;
           this.dialogs.update.isShown = false;
@@ -105,7 +106,7 @@ export const useGenderStore = defineStore("gender", {
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
-      // this.items = [];
+      this.items = [];
       this.data.isItemsLoading = true;
       api
         .get(`/${sectionName}`, {
@@ -128,12 +129,9 @@ export const useGenderStore = defineStore("gender", {
         })
         .then((res) => {
           console.log(res);
-          this.data.firstItemNumberInRow =
-            res.data.data.first_item_number_in_row;
-          this.data.lastItemNumberInRow = res.data.data.last_item_number_in_row;
+          this.data.firstItemNumberInRow = res.data.first_item_number_in_row;
+          this.data.lastItemNumberInRow = res.data.last_item_number_in_row;
 
-          delete res.data.data.first_item_number_in_row;
-          delete res.data.data.last_item_number_in_row;
           this.items = res.data.data;
 
           this.data.amountOfItems = res.data.total;

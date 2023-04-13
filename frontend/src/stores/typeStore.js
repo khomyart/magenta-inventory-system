@@ -102,7 +102,7 @@ export const useTypeStore = defineStore("type", {
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
-      // this.items = [];
+      this.items = [];
       this.data.isItemsLoading = true;
       api
         .get("/types", {
@@ -127,12 +127,9 @@ export const useTypeStore = defineStore("type", {
         })
         .then((res) => {
           console.log(res);
-          this.data.firstItemNumberInRow =
-            res.data.data.first_item_number_in_row;
-          this.data.lastItemNumberInRow = res.data.data.last_item_number_in_row;
+          this.data.firstItemNumberInRow = res.data.first_item_number_in_row;
+          this.data.lastItemNumberInRow = res.data.last_item_number_in_row;
 
-          delete res.data.data.first_item_number_in_row;
-          delete res.data.data.last_item_number_in_row;
           this.items = res.data.data;
 
           this.data.amountOfItems = res.data.total;

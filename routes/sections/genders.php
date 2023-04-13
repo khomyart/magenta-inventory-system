@@ -7,6 +7,9 @@ Route::post('/genders', [GenderController::class,'create'])
 Route::get('/genders', [GenderController::class,'read'])
 ->middleware('api.authorization:read,genders');
 
+Route::get('/genders/simple', [GenderController::class,'simpleRead'])
+->middleware('api.authorization:read,genders');
+
 Route::patch('/genders/{id}', [GenderController::class,'update'])
 ->middleware('api.authorization:update,genders')->whereNumber('id');
 

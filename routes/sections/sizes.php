@@ -7,6 +7,9 @@ Route::post('/sizes', [SizeController::class,'create'])
 Route::get('/sizes', [SizeController::class,'read'])
 ->middleware('api.authorization:read,sizes');
 
+Route::get('/sizes/simple', [SizeController::class,'simpleRead'])
+->middleware('api.authorization:read,sizes');
+
 Route::patch('/sizes/{id}', [SizeController::class,'update'])
 ->middleware('api.authorization:update,sizes')->whereNumber('id');
 

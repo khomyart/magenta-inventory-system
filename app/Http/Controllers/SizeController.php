@@ -75,13 +75,29 @@ class SizeController extends Controller
         $firstItemInRow = $this->getSectionModel()::orderBy("number_in_row", "asc")->limit(1)->get();
         $lastItemInRow = $this->getSectionModel()::orderBy("number_in_row", "desc")->limit(1)->get();
 
-        $response = $section->paginate($data["itemsPerPage"]);
+        $response = json_decode(json_encode($section->paginate($data["itemsPerPage"])), true);
         $response["first_item_number_in_row"] =
             count($firstItemInRow) === 0 ? null : $firstItemInRow[0]["number_in_row"];
         $response["last_item_number_in_row"] =
             count($lastItemInRow) === 0 ? null : $lastItemInRow[0]["number_in_row"];
 
         return response($response);
+    }
+
+    public function simpleRead(Request $request) {
+        $data = $request->validate([
+            'nameFilterValue' => 'string|nullable',
+        ]);
+        $items = [];
+        $sectionModel = $this->getSectionModel();
+
+        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+            $items = $sectionModel::orderBy('number_in_row', 'asc')->get();
+        } else {
+            $items = $sectionModel::where('value', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc')->get();
+        }
+
+        return response($items);
     }
 
     public function create(Request $request) {

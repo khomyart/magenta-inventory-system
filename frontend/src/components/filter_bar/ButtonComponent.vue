@@ -1,11 +1,10 @@
 <template>
-  <q-btn flat stretch class="filter-button">
+  <div class="filter-button">
     <q-badge
       v-if="filterBadgeLabel.value != '' || filterBadgeLabel.order != ''"
       color="red"
       class="q-mr-sm"
-      floating
-      style="height: 19px"
+      style="height: 19px; position: absolute; top: -10px; left: 0px"
       align="middle"
       ><span v-if="filterBadgeLabel.value != ''">
         {{ filterBadgeLabel.mode }}
@@ -19,7 +18,7 @@
         size="14px"
         :name="filterBadgeLabel.order == 'asc' ? 'expand_less' : 'expand_more'"
     /></q-badge>
-    <div :style="`min-width: ${props.width}px; text-align: start`">
+    <div class="filter-button-text" :style="`width: ${props.width}px;`">
       {{ props.label }}
     </div>
 
@@ -56,7 +55,7 @@
                   props.name
                 ].filterMode
               "
-              :options="appStore.filters.availableParams.items"
+              :options="filterModes"
               @update:model-value="$emit('changeFilterMode', props.name)"
             >
             </q-select>
@@ -77,8 +76,16 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'asc')"
-                ><q-icon name="arrow_upward"
-              /></q-btn>
+                ><q-icon name="arrow_upward" />
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="bottom middle"
+                  :offset="[0, 40]"
+                >
+                  {{ props.orderButtonLabels.up }}
+                </q-tooltip></q-btn
+              >
               <q-btn
                 class="q-px-md"
                 style="width: 46%"
@@ -95,14 +102,22 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'desc')"
-                ><q-icon name="arrow_downward"
-              /></q-btn>
+                ><q-icon name="arrow_downward" />
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="bottom middle"
+                  :offset="[0, 40]"
+                >
+                  {{ props.orderButtonLabels.down }}
+                </q-tooltip>
+              </q-btn>
             </div>
             <div class="row q-mb-md">
               <q-btn
                 v-close-popup
                 class="col-12"
-                @click="$emit('clearFilter', props.name)"
+                @click="$emit('clearFilter', props.name, props.mode)"
                 >Скинути</q-btn
               >
             </div>
@@ -110,7 +125,7 @@
         </div>
       </div>
     </q-menu>
-  </q-btn>
+  </div>
   <div class="filter-separator" :name="props.name">
     <div class="vertical-line"></div>
   </div>
@@ -128,8 +143,11 @@ const props = defineProps([
   "name",
   "label",
   "searchBarLabel",
+  "orderButtonLabels",
   "width",
   "justOrder",
+  //universal|text|number
+  "mode",
 ]);
 const emits = defineEmits([
   "clearFilter",
@@ -161,5 +179,41 @@ const filterBadgeLabel = computed(() => {
         : "",
   };
 });
+
+const filterModes = computed(() => {
+  let modes = appStore.filters.availableParams.items;
+
+  if (props.mode != "universal") {
+    modes = appStore.filters.availableParams.items.filter(
+      (item) => item.type === props.mode
+    );
+  }
+
+  return modes;
+});
 </script>
-<style></style>
+<style scoped>
+.filter-button {
+  position: relative;
+  padding: 0px 16px;
+  width: fit-content;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-radius: 5px;
+}
+
+.filter-button:hover {
+  background-color: rgb(237, 237, 237);
+}
+
+.filter-button-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>

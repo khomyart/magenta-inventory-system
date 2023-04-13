@@ -23,7 +23,7 @@ class CityController extends Controller
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
             $cities = $country->cities()->orderBy('name', 'asc')->get();
         } else {
-            $cities = $country->cities()->where('name', 'like', "%{$data["nameFilterValue"]}%")->get();
+            $cities = $country->cities()->where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('name', 'asc')->get();
         }
 
         return response($cities);

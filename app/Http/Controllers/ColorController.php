@@ -24,8 +24,7 @@ class ColorController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function read(Request $request)
-    {
+    public function read(Request $request) {
         $compiledRegexRule = "";
         $validationRules = [
             "itemsPerPage" => "required|numeric",
@@ -75,6 +74,27 @@ class ColorController extends Controller
         }
 
         return response($section->paginate($data["itemsPerPage"]));
+    }
+
+    public function simpleRead(Request $request) {
+        $data = $request->validate([
+            "nameFilterValue" => "string|nullable",
+        ]);
+        $items = [];
+        $sectionModel = $this->getSectionModel();
+
+        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+            $items = $sectionModel::orderBy("description", "asc")->get();
+        } else {
+            //if input param starts with "#"
+            if ($data["nameFilterValue"][0] === "#") {
+                $items = $sectionModel::where("value", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc")->get();
+            } else {
+                $items = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc")->get();
+            }
+        }
+
+        return response($items);
     }
 
     public function create(Request $request) {

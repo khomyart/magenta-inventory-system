@@ -1,11 +1,10 @@
 <template>
-  <q-btn flat stretch class="filter-button">
+  <div class="filter-button">
     <q-badge
       v-if="filterBadgeLabel.value != '' || filterBadgeLabel.order != ''"
       color="red"
       class="q-mr-sm"
-      floating
-      style="height: 19px"
+      style="height: 19px; position: absolute; top: -10px; left: 0px"
       align="middle"
       ><span v-if="filterBadgeLabel.value != ''">
         {{ filterBadgeLabel.mode }}
@@ -19,17 +18,52 @@
         size="14px"
         :name="filterBadgeLabel.order == 'asc' ? 'expand_less' : 'expand_more'"
     /></q-badge>
-    <div :style="`min-width: ${props.width}px; text-align: start`">
-      {{ props.label }}
+    <div class="filter-button-text" :style="`width: ${props.width}px;`">
+      {{ props.label + 123 }}
     </div>
 
     <q-menu self="bottom middle" :offset="[-props.width / 2 - 16, -55]">
       <q-inner-loading :showing="sectionStore.data.isItemsLoading">
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
-      <div style="min-width: 250px; min-height: fit-content">
+      <div style="min-width: 300px; min-height: fit-content">
         <div class="row justify-end q-mb-sm">
           <q-btn flat v-close-popup dense icon="close"></q-btn>
+        </div>
+        <div class="row q-px-md q-mb-md justify-around">
+          <q-radio
+            dense
+            v-model="searchType"
+            val="description"
+            label="Назва"
+            @click="
+              appStore.filters.data[props.sectionName].selectedParams[
+                props.name
+              ].value = ''
+            "
+          />
+          <q-radio
+            dense
+            v-model="searchType"
+            val="value"
+            label="Значення"
+            @click="
+              appStore.filters.data[props.sectionName].selectedParams[
+                props.name
+              ].value = '#'
+            "
+          />
+          <q-radio
+            dense
+            v-model="searchType"
+            val="article"
+            label="Артикль"
+            @click="
+              appStore.filters.data[props.sectionName].selectedParams[
+                props.name
+              ].value = '!'
+            "
+          />
         </div>
         <div class="row">
           <div class="filter-body col-12 q-px-md">
@@ -56,7 +90,7 @@
                   props.name
                 ].filterMode
               "
-              :options="appStore.filters.availableParams.items"
+              :options="filterModes"
               @update:model-value="$emit('changeFilterMode', props.name)"
             >
             </q-select>
@@ -77,8 +111,16 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'asc')"
-                ><q-icon name="arrow_upward"
-              /></q-btn>
+                ><q-icon name="arrow_upward" />
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="bottom middle"
+                  :offset="[0, 40]"
+                >
+                  {{ orderingLabels.up }}
+                </q-tooltip></q-btn
+              >
               <q-btn
                 class="q-px-md"
                 style="width: 46%"
@@ -95,14 +137,22 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'desc')"
-                ><q-icon name="arrow_downward"
-              /></q-btn>
+                ><q-icon name="arrow_downward" />
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="bottom middle"
+                  :offset="[0, 40]"
+                >
+                  {{ orderingLabels.down }}
+                </q-tooltip>
+              </q-btn>
             </div>
             <div class="row q-mb-md">
               <q-btn
                 v-close-popup
                 class="col-12"
-                @click="$emit('clearFilter', props.name)"
+                @click="$emit('clearFilter', props.name, props.mode)"
                 >Скинути</q-btn
               >
             </div>
@@ -110,13 +160,13 @@
         </div>
       </div>
     </q-menu>
-  </q-btn>
+  </div>
   <div class="filter-separator" :name="props.name">
     <div class="vertical-line"></div>
   </div>
 </template>
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 
 const appStore = props.appStore;
 const sectionStore = props.sectionStore;
@@ -128,8 +178,11 @@ const props = defineProps([
   "name",
   "label",
   "searchBarLabel",
+  "orderButtonLabels",
   "width",
   "justOrder",
+  //universal|text|number
+  "mode",
 ]);
 const emits = defineEmits([
   "clearFilter",
@@ -161,5 +214,100 @@ const filterBadgeLabel = computed(() => {
         : "",
   };
 });
+
+const filterModes = computed(() => {
+  let modes = appStore.filters.availableParams.items;
+
+  if (props.mode != "universal") {
+    modes = appStore.filters.availableParams.items.filter(
+      (item) => item.type === props.mode
+    );
+  }
+
+  return modes;
+});
+
+const orderingLabels = computed(() => {
+  let up =
+    searchType.value === "value"
+      ? localOrderButtonLabels.up
+      : props.orderButtonLabels.up;
+  let down =
+    searchType.value === "value"
+      ? localOrderButtonLabels.down
+      : props.orderButtonLabels.down;
+  return {
+    up: up,
+    down: down,
+  };
+});
+
+watch(
+  () =>
+    appStore.filters.data[props.sectionName].selectedParams[props.name].value,
+  (newValue) => {
+    if (newValue[0] === "!") {
+      searchType.value = "article";
+      return;
+    }
+
+    if (newValue[0] === "#") {
+      searchType.value = "value";
+      return;
+    }
+
+    searchType.value = "description";
+  }
+);
+
+onMounted(() => {
+  if (
+    appStore.filters.data[props.sectionName].selectedParams[props.name]
+      .value[0] === "!"
+  ) {
+    searchType.value = "article";
+    return;
+  }
+
+  if (
+    appStore.filters.data[props.sectionName].selectedParams[props.name]
+      .value[0] === "#"
+  ) {
+    searchType.value = "value";
+    return;
+  }
+
+  searchType.value = "description";
+});
+
+let searchType = ref("description");
+let localOrderButtonLabels = {
+  up: "Від #0 до #f",
+  down: "Від #f до #0",
+};
 </script>
-<style></style>
+<style scoped>
+.filter-button {
+  position: relative;
+  padding: 0px 16px;
+  width: fit-content;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-radius: 5px;
+}
+
+.filter-button:hover {
+  background-color: rgb(237, 237, 237);
+}
+
+.filter-button-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>

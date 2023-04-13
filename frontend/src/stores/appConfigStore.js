@@ -2,6 +2,9 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
+    //axios has its own config
+    backendUrl: "http://localhost",
+    imagesStoreUrl: "http://localhost/images",
     errors: {
       reauth: {
         notifications: {},
@@ -76,7 +79,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             name: {
@@ -85,7 +87,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -114,7 +115,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             description: {
@@ -123,7 +123,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -150,7 +149,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -183,7 +181,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             article: {
@@ -192,7 +189,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             description: {
@@ -201,7 +197,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             text_color_value: {
@@ -210,7 +205,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -245,7 +239,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             city_name: {
@@ -254,7 +247,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             address: {
@@ -263,7 +255,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             name: {
@@ -272,7 +263,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             description: {
@@ -281,7 +271,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -308,7 +297,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
           },
@@ -337,7 +325,6 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
               },
             },
             description: {
@@ -346,14 +333,109 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
-                type: "universal",
+              },
+            },
+          },
+        },
+        items: {
+          width: {
+            default: {
+              article: 150,
+              title: 150,
+              type: 150,
+              gender: 150,
+              size: 150,
+              color: 150,
+              amount: 150,
+              units: 150,
+            },
+            dynamic: {
+              article: 0,
+              title: 0,
+              type: 0,
+              gender: 0,
+              size: 0,
+              color: 0,
+              amount: 0,
+              units: 0,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            article: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            title: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            type: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            gender: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            size: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            color: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            amount: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            units: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
               },
             },
           },
         },
       },
       availableParams: {
-        minFilterWidth: 140,
+        minFilterWidth: 60,
         separatorWidth: 11,
         filterButtonXPadding: 32,
         //affected || straight
@@ -363,13 +445,13 @@ export const useAppConfigStore = defineStore("appConfig", {
             label: "Містить",
             value: "include",
             shortName: "LIKE",
-            type: "universal",
+            type: "text",
           },
           {
             label: "Не містить",
             value: "exclude",
             shortName: "EXCL",
-            type: "universal",
+            type: "text",
           },
           { label: "Більше", value: "more", shortName: "MORE", type: "number" },
           { label: "Менше", value: "less", shortName: "LESS", type: "number" },
@@ -377,13 +459,13 @@ export const useAppConfigStore = defineStore("appConfig", {
             label: "Дорівнює",
             value: "equal",
             shortName: "EQL",
-            type: "universal",
+            type: "number",
           },
           {
             label: "Не дорівнює",
             value: "notequal",
             shortName: "NEQL",
-            type: "universal",
+            type: "number",
           },
           //...
         ],

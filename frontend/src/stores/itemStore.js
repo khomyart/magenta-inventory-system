@@ -143,6 +143,13 @@ export const useItemStore = defineStore("item", {
             typeFilterMode:
               appConfigStore.filters.data[sectionName].selectedParams.type
                 .filterMode.value,
+            //type
+            priceFilterValue:
+              appConfigStore.filters.data[sectionName].selectedParams.price
+                .value,
+            priceFilterMode:
+              appConfigStore.filters.data[sectionName].selectedParams.price
+                .filterMode.value,
             //gender
             genderFilterValue:
               appConfigStore.filters.data[sectionName].selectedParams.gender

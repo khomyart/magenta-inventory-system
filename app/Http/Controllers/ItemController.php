@@ -4,17 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Image;
-use App\Models\ItemsPricesWarehouses;
+use App\Models\Batches;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ItemController extends Controller
 {
     public $section = "items";
-    //field names used for using filters in db
-    public $readFieldsInDB = ["items.article", "items.title", "types.name", "genders.name", "sizes.value", "colors.description", "items_prices_warehouses.amount_of_items", "units.name"];
-    //field names used for validating incoming data
-    public $readFieldsFromFrontend = ["article", "title", "type", "gender", "size", "color", "amount", "units"];
+    public $currencyForSearching = null;
+    //field names are used for accepting filters while searching db
+    public $readFieldsInDB = ["items.article", "items.title", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "batches.amount_of_items", "units.name"];
+    //field names are used for validating incoming data
+    public $readFieldsFromFrontend = ["article", "title", "price", "type", "gender", "size", "color", "amount", "units"];
 
     /**
      * Templated access to section model
@@ -32,6 +34,8 @@ class ItemController extends Controller
      */
     public function read(Request $request)
     {
+        $today = Carbon::now()->format("Ymd");
+
         $compiledRegexRule = "";
         $validationRules = [
             "itemsPerPage" => "required|numeric",
@@ -41,15 +45,15 @@ class ItemController extends Controller
 
         foreach ($this->readFieldsFromFrontend as $key => $field) {
             /**
-             * forming regular exp. for validation of ordering depending on fields name
-             * (makes possible to set order only with existing fields)
+             * forming regular exp. for validation of ordering, depending on fields name
+             * (makes possible to set order only for existing ("prepeared") fields)
              */
             $compiledRegexRule .= "^{$field}$";
             $key != count($this->readFieldsFromFrontend) - 1 ? $compiledRegexRule .= "|" : "";
 
             /**
              * setting validation rule for each field
-             * (filter value of its field and filter mode)
+             * (field filter value and field filter mode)
              */
             $validationRules["{$field}FilterValue"] = "string|nullable";
             $validationRules["{$field}FilterMode"] = ["string", "regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i", "nullable"];
@@ -63,6 +67,23 @@ class ItemController extends Controller
             "items.id AS id",
             "items.article AS article",
             "items.title AS title",
+            "items.price AS unconverted_price",
+            "items.currency AS currency",
+        )
+        ->selectRaw('
+            IF(items.currency = "USD", items.price * ?,
+                IF(items.currency = "EUR", items.price * ?,
+                    IF(items.currency = "UAH", items.price, NULL)
+                )
+            )
+            AS converted_price_to_uah
+            ',
+            [
+                $this->getNbuCurrencyExchangeCourse($today, "USD"),
+                $this->getNbuCurrencyExchangeCourse($today, "EUR")
+            ]
+        )
+        ->addSelect(
             "types.name AS type_name",
             "types.number_in_row AS type", //extra field for ordering
             "types.article AS type_article",
@@ -75,7 +96,7 @@ class ItemController extends Controller
             "colors.description AS color", //extra field for ordering
             "colors.value AS color_value",
             "colors.text_color_value AS text_color_value",
-            DB::raw('SUM(items_prices_warehouses.amount_of_items) AS amount'),
+            DB::raw('SUM(batches.amount_of_items) AS amount'),
             "units.name AS unit_name",
             "units.name AS units", //extra field for ordering
             "units.description AS unit_description",
@@ -85,7 +106,7 @@ class ItemController extends Controller
         ->join('sizes', 'items.size_id', '=', 'sizes.id')
         ->join('colors', 'items.color_id', '=', 'colors.id')
         ->join('units', 'items.unit_id', '=', 'units.id')
-        ->join('items_prices_warehouses', 'items.id', '=', 'items_prices_warehouses.item_id');
+        ->join('batches', 'items.id', '=', 'batches.item_id');
 
         //forming 'WHERE' query for each field
         foreach ($this->readFieldsInDB as $key => $field) {
@@ -95,6 +116,54 @@ class ItemController extends Controller
 
             //skip WHERE condition for "amount" param, HAVING will be used later
             if ($this->readFieldsFromFrontend[$key] === "amount") {
+                continue;
+            }
+
+            //skip general WHERE condition cycle for "price" param, HAVING will be used later
+            if ($this->readFieldsFromFrontend[$key] === "price") {
+                if ($data["orderField"] === "price") {
+                    $data["orderField"] = "converted_price_to_uah";
+                }
+
+                if (strlen($searchValue) === 0) {
+                    continue;
+                }
+
+                //add WHERE condition for price, as a exception (with special symbols):
+                $matches = [];
+                preg_match('/(^₴|^\$|^€)(\d*)/', $searchValue, $matches);
+
+                //if matches is not empty:
+                if (count($matches) !== 0) {
+                    $currencySymbol = $matches[1];
+                    $amountOfMoney = $matches[2];
+
+                    switch ($currencySymbol) {
+                        case "₴":
+                            $this->currencyForSearching = "UAH";
+                            break;
+                        case "$":
+                            $this->currencyForSearching = "USD";
+                            break;
+                        case "€":
+                            $this->currencyForSearching = "EUR";
+                            break;
+                    }
+                }
+
+                if (
+                    $this->currencyForSearching !== null
+                    && $searchOperator !== "like"
+                    && $searchOperator !== "notLike"
+                ) {
+                    $searchValue = $amountOfMoney;
+                    $section->where("items.currency", "=", $this->currencyForSearching);
+                    //search by price only when $searchValue is not empty
+                    if (strlen($searchValue) !== 0) {
+                        $section->where("items.price", $searchOperator, $searchValue);
+                    }
+                }
+
                 continue;
             }
 
@@ -145,7 +214,20 @@ class ItemController extends Controller
             && $amountSearchOperator !== "like"
             && $amountSearchOperator !== "notLike"
         ) {
-            $section->havingRaw("SUM(items_prices_warehouses.amount_of_items) {$amountSearchOperator} ?", [$amountFilterValue]);
+            $section->havingRaw("SUM(batches.amount_of_items) {$amountSearchOperator} ?", [$amountFilterValue]);
+        }
+
+        //forming 'HAVING' query for "price" field
+        $priceFilterValue = $data["priceFilterValue"];
+        $priceSearchOperator = $this->getWhereOperator($data["priceFilterMode"]);
+
+        if (
+            $priceFilterValue != null
+            && $priceSearchOperator !== "like"
+            && $priceSearchOperator !== "notLike"
+            && $this->currencyForSearching === null
+        ) {
+            $section->havingRaw("converted_price_to_uah {$priceSearchOperator} ?", [$priceFilterValue]);
         }
 
         //ordering query
@@ -213,7 +295,7 @@ class ItemController extends Controller
             //pricessing warehouses info
             foreach ($warehousesData as $key => $warehouse) {
                 foreach ($warehouse["batches"] as $key => $batch) {
-                    ItemsPricesWarehouses::create([
+                    Batches::create([
                         "item_id" => $item->id,
                         "warehouse_id" => $warehouse["id"],
                         "price_per_item" => $batch["price"],
@@ -246,6 +328,16 @@ class ItemController extends Controller
         ];
 
         return $equality[$operatorName];
+    }
+    /**
+     * @return array with currencies (EUR, USD)
+     *
+     * date - yyyymm
+     * currencyCode - USD|EUR|etc...
+     */
+    private function getNbuCurrencyExchangeCourse($date, $currencyCode) {
+        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={$currencyCode}&date={$date}&json");
+        return json_decode($response, true)[0]["rate"];
     }
 
 }

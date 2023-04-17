@@ -48,7 +48,13 @@
         </div>
         <template v-for="(item, index) in fieldsSequance" :key="index">
           <component
-            :is="item === 'color' ? ColorButtonComponent : ButtonComponent"
+            :is="
+              item === 'color'
+                ? ColorButtonComponent
+                : item === 'price'
+                ? PriceButtonComponent
+                : ButtonComponent
+            "
             :appStore="appStore"
             :sectionName="currentSection"
             :sectionStore="sectionStore"
@@ -88,7 +94,7 @@
               delete: allowenses.delete,
             }"
             :itemInfo="item"
-            :gap="5"
+            :gap="1"
             :updated="item.id == sectionStore.data.updatedItemId"
             :appStore="appStore"
           />
@@ -214,6 +220,7 @@ import ItemComponent from "src/components/item/ItemComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";
+import PriceButtonComponent from "src/components/filter_bar/PriceButtonComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();
@@ -224,6 +231,7 @@ const $q = useQuasar();
 const fieldsSequance = [
   "article",
   "title",
+  "price",
   "type",
   "gender",
   "size",
@@ -248,6 +256,15 @@ const fieldsDetails = [
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
       down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+  {
+    label: "Вартість",
+    searchBarLabel: "Вартість (грн.)",
+    type: "number",
+    orderButtonLabels: {
+      up: "Від дешевшого до дорожчого",
+      down: "Від дорожчого до дешевшого",
     },
   },
   {
@@ -412,6 +429,9 @@ const computedFilterWidth = computed(() => {
       type:
         appStore.filters.data[currentSection].width.dynamic.type -
         appStore.filters.availableParams.filterButtonXPadding,
+      price:
+        appStore.filters.data[currentSection].width.dynamic.price -
+        appStore.filters.availableParams.filterButtonXPadding,
       gender:
         appStore.filters.data[currentSection].width.dynamic.gender -
         appStore.filters.availableParams.filterButtonXPadding,
@@ -432,6 +452,7 @@ const computedFilterWidth = computed(() => {
       article: appStore.filters.data[currentSection].width.dynamic.article,
       title: appStore.filters.data[currentSection].width.dynamic.title,
       type: appStore.filters.data[currentSection].width.dynamic.type,
+      price: appStore.filters.data[currentSection].width.dynamic.price,
       gender: appStore.filters.data[currentSection].width.dynamic.gender,
       size: appStore.filters.data[currentSection].width.dynamic.size,
       color: appStore.filters.data[currentSection].width.dynamic.color,
@@ -466,6 +487,7 @@ watch(
     () => appStore.filters.data[currentSection].selectedParams.article.value,
     () => appStore.filters.data[currentSection].selectedParams.title.value,
     () => appStore.filters.data[currentSection].selectedParams.type.value,
+    () => appStore.filters.data[currentSection].selectedParams.price.value,
     () => appStore.filters.data[currentSection].selectedParams.gender.value,
     () => appStore.filters.data[currentSection].selectedParams.size.value,
     () => appStore.filters.data[currentSection].selectedParams.color.value,

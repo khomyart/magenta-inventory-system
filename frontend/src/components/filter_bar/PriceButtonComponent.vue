@@ -19,51 +19,72 @@
         :name="filterBadgeLabel.order == 'asc' ? 'expand_less' : 'expand_more'"
     /></q-badge>
     <div class="filter-button-text" :style="`width: ${props.width}px;`">
-      {{ props.label }}
+      {{ `${props.label} ${selectedCurrencyLabel}` }}
     </div>
 
     <q-menu self="bottom middle" :offset="[-props.width / 2 - 16, -55]">
       <q-inner-loading :showing="sectionStore.data.isItemsLoading">
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
-      <div style="min-width: 300px; min-height: fit-content">
+      <div style="width: 250px; min-height: fit-content">
         <div class="row justify-end q-mb-sm">
           <q-btn flat v-close-popup dense icon="close"></q-btn>
         </div>
+        <div class="row q-px-md q-mb-sm justify-around">
+          <div class="col-6">
+            <q-radio
+              dense
+              v-model="searchType"
+              val="all"
+              label="Всі"
+              @click="
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].value = ''
+              "
+            />
+          </div>
+          <div class="col-6">
+            <q-radio
+              dense
+              v-model="searchType"
+              val="UAH"
+              label="Гривня (₴)"
+              @click="
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].value = '₴'
+              "
+            />
+          </div>
+        </div>
         <div class="row q-px-md q-mb-md justify-around">
-          <q-radio
-            dense
-            v-model="searchType"
-            val="description"
-            label="Назва"
-            @click="
-              appStore.filters.data[props.sectionName].selectedParams[
-                props.name
-              ].value = ''
-            "
-          />
-          <q-radio
-            dense
-            v-model="searchType"
-            val="value"
-            label="Значення"
-            @click="
-              appStore.filters.data[props.sectionName].selectedParams[
-                props.name
-              ].value = '#'
-            "
-          />
-          <q-radio
-            dense
-            v-model="searchType"
-            val="article"
-            label="Артикль"
-            @click="
-              appStore.filters.data[props.sectionName].selectedParams[
-                props.name
-              ].value = '!'
-            "
-          />
+          <div class="col-6">
+            <q-radio
+              dense
+              v-model="searchType"
+              val="USD"
+              label="Долар ($)"
+              @click="
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].value = '$'
+              "
+            />
+          </div>
+          <div class="col-6">
+            <q-radio
+              dense
+              v-model="searchType"
+              val="EUR"
+              label="Євро (€)"
+              @click="
+                appStore.filters.data[props.sectionName].selectedParams[
+                  props.name
+                ].value = '€'
+              "
+            />
+          </div>
         </div>
         <div class="row">
           <div class="filter-body col-12 q-px-md">
@@ -202,7 +223,14 @@ const filterBadgeLabel = computed(() => {
     appStore.filters.data[props.sectionName].selectedParams[props.name];
 
   return {
-    value: filter.value != "" ? "V" : "",
+    value:
+      ((filter.value[0] === "€" ||
+        filter.value[0] === "$" ||
+        filter.value[0] === "₴") &&
+        filter.value.length < 2) ||
+      filter.value === ""
+        ? ""
+        : "V",
     mode: filter.filterMode.shortName,
     order:
       appStore.filters.data[props.sectionName].selectedParams.order.field ==
@@ -242,45 +270,82 @@ const orderingLabels = computed(() => {
   };
 });
 
+const selectedCurrencyLabel = computed(() => {
+  let selectedCurrencyLabel = "";
+  let filterFirstSymbol =
+    appStore.filters.data[props.sectionName].selectedParams[props.name]
+      .value[0];
+
+  switch (filterFirstSymbol) {
+    case "₴":
+      selectedCurrencyLabel = "(₴)";
+      break;
+    case "$":
+      selectedCurrencyLabel = "($)";
+      break;
+    case "€":
+      selectedCurrencyLabel = "(€)";
+      break;
+    default:
+      selectedCurrencyLabel = "";
+      break;
+  }
+
+  return selectedCurrencyLabel;
+});
+
 watch(
   () =>
     appStore.filters.data[props.sectionName].selectedParams[props.name].value,
   (newValue) => {
-    if (newValue[0] === "!") {
-      searchType.value = "article";
+    if (newValue[0] === "₴") {
+      searchType.value = "UAH";
       return;
     }
 
-    if (newValue[0] === "#") {
-      searchType.value = "value";
+    if (newValue[0] === "$") {
+      searchType.value = "USD";
       return;
     }
 
-    searchType.value = "description";
+    if (newValue[0] === "€") {
+      searchType.value = "EUR";
+      return;
+    }
+
+    searchType.value = "all";
   }
 );
 
 onMounted(() => {
   if (
     appStore.filters.data[props.sectionName].selectedParams[props.name]
-      .value[0] === "!"
+      .value[0] === "₴"
   ) {
-    searchType.value = "article";
+    searchType.value = "UAH";
     return;
   }
 
   if (
     appStore.filters.data[props.sectionName].selectedParams[props.name]
-      .value[0] === "#"
+      .value[0] === "$"
   ) {
-    searchType.value = "value";
+    searchType.value = "USD";
     return;
   }
 
-  searchType.value = "description";
+  if (
+    appStore.filters.data[props.sectionName].selectedParams[props.name]
+      .value[0] === "€"
+  ) {
+    searchType.value = "EUR";
+    return;
+  }
+
+  searchType.value = "all";
 });
 
-let searchType = ref("description");
+let searchType = ref("all");
 let localOrderButtonLabels = {
   up: "Від #0 до #f",
   down: "Від #f до #0",

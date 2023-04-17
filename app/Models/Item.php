@@ -12,7 +12,7 @@ class Item extends Model
     protected $fillable = [
         'article', 'title', 'type_id',
         'gender_id', 'size_id', 'color_id',
-        'unit_id', 'price'
+        'unit_id', 'price', 'currency'
     ];
 
     protected $hidden = [

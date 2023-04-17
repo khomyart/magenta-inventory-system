@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
+    version: 2,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
@@ -58,7 +59,7 @@ export const useAppConfigStore = defineStore("appConfig", {
         types: {
           width: {
             default: {
-              article: 300,
+              article: 150,
               name: 150,
             },
             dynamic: {
@@ -94,7 +95,7 @@ export const useAppConfigStore = defineStore("appConfig", {
         sizes: {
           width: {
             default: {
-              value: 300,
+              value: 150,
               description: 150,
             },
             dynamic: {
@@ -130,7 +131,7 @@ export const useAppConfigStore = defineStore("appConfig", {
         genders: {
           width: {
             default: {
-              name: 300,
+              name: 150,
             },
             dynamic: {
               name: 0,
@@ -156,7 +157,7 @@ export const useAppConfigStore = defineStore("appConfig", {
         colors: {
           width: {
             default: {
-              value: 300,
+              value: 150,
               article: 150,
               description: 150,
               text_color_value: 150,
@@ -304,7 +305,7 @@ export const useAppConfigStore = defineStore("appConfig", {
         units: {
           width: {
             default: {
-              name: 300,
+              name: 150,
               description: 150,
             },
             dynamic: {
@@ -342,6 +343,7 @@ export const useAppConfigStore = defineStore("appConfig", {
             default: {
               article: 150,
               title: 150,
+              price: 150,
               type: 150,
               gender: 150,
               size: 150,
@@ -352,6 +354,7 @@ export const useAppConfigStore = defineStore("appConfig", {
             dynamic: {
               article: 0,
               title: 0,
+              price: 0,
               type: 0,
               gender: 0,
               size: 0,
@@ -381,6 +384,14 @@ export const useAppConfigStore = defineStore("appConfig", {
                 label: "Містить",
                 value: "include",
                 shortName: "LIKE",
+              },
+            },
+            price: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
               },
             },
             type: {
@@ -528,7 +539,9 @@ export const useAppConfigStore = defineStore("appConfig", {
     },
     updateLocalStorageConfig() {
       console.log("ui stored");
+
       localStorage.setItem("filters", JSON.stringify(this.filters.data));
+      localStorage.setItem("configVersion", JSON.stringify(this.version));
       localStorage.setItem(
         "itemsPerPage",
         JSON.stringify(this.amountOfItemsPerPages)
@@ -536,6 +549,11 @@ export const useAppConfigStore = defineStore("appConfig", {
     },
     setUIdependsOnLocalStorage() {
       console.log("ui renewed");
+      //update local store config cache if version does not equal
+      if (localStorage.getItem("configVersion") != this.version) {
+        this.updateLocalStorageConfig();
+      }
+
       if (
         localStorage.getItem("filters") != null &&
         localStorage.getItem("filters").length > 30

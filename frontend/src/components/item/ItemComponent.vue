@@ -84,6 +84,18 @@
     <td class="item-cell">
       <div
         style="cursor: pointer"
+        @click="$emit('copyValue', priceForCopying, 'Ціну')"
+      >
+        <div class="item-text">
+          {{ `${currencyIcon}${unconvertedPrice} ${convertedPrice}` }}
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell"><div></div></td>
+
+    <td class="item-cell">
+      <div
+        style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.type_name, 'Тип')"
       >
         <div class="item-text">
@@ -260,7 +272,7 @@
 </template>
 
 <script setup>
-import { onUpdated, ref } from "vue";
+import { computed, onUpdated, ref } from "vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
@@ -282,6 +294,72 @@ const props = defineProps([
 let isUpdated = ref(false);
 let showImage = ref(false);
 let slide = ref(1);
+
+const currencyIcon = computed(() => {
+  let icon = "";
+
+  switch (props.itemInfo.currency) {
+    case "UAH":
+      icon = "₴";
+      break;
+    case "USD":
+      icon = "$";
+      break;
+    case "EUR":
+      icon = "€";
+      break;
+    default:
+      break;
+  }
+
+  return icon;
+});
+
+const unconvertedPrice = computed(() => {
+  return parseFloat(props.itemInfo.unconverted_price).toFixed(2);
+});
+
+const convertedPrice = computed(() => {
+  return props.itemInfo.currency !== "UAH"
+    ? `(₴ ~${parseFloat(props.itemInfo.converted_price_to_uah).toFixed(2)})`
+    : "";
+});
+
+const priceForCopying = computed(() => {
+  let priceForCopying = "";
+
+  let mainPart = Math.floor(props.itemInfo.unconverted_price);
+  let mainPartLabel =
+    props.itemInfo.currency === "UAH"
+      ? "грн"
+      : props.itemInfo.currency === "USD"
+      ? "дол"
+      : props.itemInfo.currency === "EUR"
+      ? "у.о"
+      : "";
+
+  let secondaryPart = (
+    (props.itemInfo.unconverted_price - mainPart) *
+    100
+  ).toFixed(0);
+  let showSecondaryPart = secondaryPart == 0 ? false : true;
+  secondaryPart = secondaryPart < 10 ? `0${secondaryPart}` : secondaryPart;
+  let secondaryPartLabel =
+    props.itemInfo.currency === "UAH"
+      ? "коп"
+      : props.itemInfo.currency === "USD"
+      ? "цент"
+      : props.itemInfo.currency === "EUR"
+      ? "є.ц"
+      : "";
+
+  priceForCopying =
+    showSecondaryPart === true
+      ? `${mainPart} ${mainPartLabel}. ${secondaryPart} ${secondaryPartLabel}.`
+      : `${mainPart} ${mainPartLabel}.`;
+
+  return priceForCopying;
+});
 
 async function downloadImage(imageSrc) {
   let name = imageSrc.split("/")[imageSrc.split("/").length - 1];

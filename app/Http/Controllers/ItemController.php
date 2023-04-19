@@ -255,6 +255,7 @@ class ItemController extends Controller
         $itemData = $request->validate([
             "article" => "required|string|max:10",
             "title" => "required|string|max:255",
+            "price" => "required|numeric",
             "type_id" => "required|exists:App\Models\Type,id",
             "gender_id" => "nullable|exists:App\Models\Gender,id",
             "size_id" => "nullable|exists:App\Models\Size,id",

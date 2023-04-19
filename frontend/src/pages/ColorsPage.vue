@@ -108,6 +108,7 @@
           dense
           v-model="appStore.amountOfItemsPerPages[currentSection]"
           :options="appStore.availableAmaountOfItemsPerPage"
+          options-dense
         />
         <q-separator vertical class="q-mx-md"></q-separator>
         <q-pagination

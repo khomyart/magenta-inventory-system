@@ -83,10 +83,12 @@ class UnitController extends Controller
         $sectionModel = $this->getSectionModel();
 
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $items = $sectionModel::orderBy('name', 'asc')->get();
+            $query = $sectionModel::orderBy('name', 'asc');
         } else {
-            $items = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('name', 'asc')->get();
+            $query = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('name', 'asc');
         }
+
+        $items = $query->limit(5)->get();
 
         return response($items);
     }

@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-mt-md">
+    <div class="toolbar row q-mt-md q-pr-sm">
       <q-input
         v-model="
           appStore.filters.data[currentSection].selectedParams.title.value
@@ -30,6 +30,119 @@
           class="bg-black text-body2"
         >
           Оновити список
+        </q-tooltip>
+      </q-btn>
+      <q-space></q-space>
+      <q-btn flat round color="white" text-color="black" icon="warehouse">
+        <q-badge color="red" floating rounded> </q-badge>
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="center left"
+          self="center right"
+          :offset="[10, 10]"
+        >
+          Пошук за складами
+        </q-tooltip>
+        <q-menu self="bottom middle" :offset="[-20, -50]">
+          <q-list style="min-width: 150px">
+            <q-item clickable v-close-popup>
+              <q-item-section>New tab</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section>New incognito tab</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section>Recent tabs</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section>History</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section>Downloads</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section>Settings</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section>Help &amp; Feedback</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
+      <q-separator vertical class="q-mx-sm"></q-separator>
+      <q-btn flat round color="black" icon="arrow_downward">
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-18, 7]"
+        >
+          Зарахувати надходження
+        </q-tooltip>
+      </q-btn>
+      <q-btn flat round color="black" icon="arrow_upward">
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-20, 7]"
+        >
+          Зарахувати списання
+        </q-tooltip>
+      </q-btn>
+      <q-btn
+        flat
+        round
+        color="black"
+        @click="switchItemsView"
+        :icon="showGroupedItems ? 'unfold_more' : 'unfold_less'"
+      >
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[-20, 7]"
+        >
+          {{ groupedItemsButtonTooltip }}
+        </q-tooltip>
+      </q-btn>
+      <q-btn
+        flat
+        round
+        color="black"
+        icon="add"
+        @click="createItemButtonAction"
+      >
+        <q-tooltip
+          v-model="isCreateItemButtonActivated"
+          anchor="bottom left"
+          :offset="[-20, 7]"
+          class="bg-black text-body2"
+        >
+          Створити
+        </q-tooltip>
+        <q-menu self="bottom middle" :offset="[0, -50]">
+          <q-list style="min-width: 150px">
+            <q-item
+              clickable
+              v-close-popup
+              @click="sectionStore.dialogs.create.isShown = true"
+            >
+              <q-item-section>Одиночний предмет</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section>Групу предметів</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
+      <q-btn flat round color="black" icon="sync_alt">
+        <q-tooltip
+          class="bg-black text-body2"
+          anchor="bottom left"
+          :offset="[0, 7]"
+        >
+          Перемістити
         </q-tooltip>
       </q-btn>
     </div>
@@ -111,6 +224,7 @@
           dense
           v-model="appStore.amountOfItemsPerPages[currentSection]"
           :options="appStore.availableAmaountOfItemsPerPage"
+          options-dense
         />
         <q-separator vertical class="q-mx-md"></q-separator>
         <q-pagination
@@ -125,7 +239,8 @@
         Кількість: {{ sectionStore.data.amountOfItems }}
       </div>
     </div>
-
+    <!--CREATING DIALOG-->
+    <CreateItemComponent />
     <!--UPDATING DIALOG-->
     <q-dialog v-model="sectionStore.dialogs.update.isShown">
       <q-card>
@@ -216,7 +331,7 @@ import { useItemStore } from "src/stores/itemStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useQuasar } from "quasar";
 import ItemComponent from "src/components/item/ItemComponent.vue";
-// import CreateTypeComponent from "src/components/type/CreateTypeComponent.vue";
+import CreateItemComponent from "src/components/item/CreateItemComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";

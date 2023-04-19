@@ -92,10 +92,12 @@ class TypeController extends Controller
         $sectionModel = $this->getSectionModel();
 
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $items = $sectionModel::orderBy('number_in_row', 'asc')->get();
+            $query = $sectionModel::orderBy('number_in_row', 'asc');
         } else {
-            $items = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc')->get();
+            $query = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc');
         }
+
+        $items = $query->limit(5)->get();
 
         return response($items);
     }

@@ -8,6 +8,7 @@ const sectionName = "warehouses";
 export const useWarehouseStore = defineStore("warehouse", {
   state: () => ({
     items: [],
+    simpleItems: [],
     dialogs: {
       create: {
         isShown: false,
@@ -181,6 +182,22 @@ export const useWarehouseStore = defineStore("warehouse", {
         .catch((err) => {
           appConfigStore.catchRequestError(err);
         })
+        .finally(() => {
+          this.data.isItemsLoading = false;
+        });
+    },
+    simpleReceive(cityId, nameFilterValue) {
+      this.simpleItems = [];
+      api
+        .get(`/city/${cityId}/warehouses`, {
+          params: {
+            nameFilterValue: nameFilterValue,
+          },
+        })
+        .then((res) => {
+          this.simpleItems = res.data;
+        })
+        .catch()
         .finally(() => {
           this.data.isItemsLoading = false;
         });

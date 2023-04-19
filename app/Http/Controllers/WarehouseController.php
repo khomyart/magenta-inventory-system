@@ -129,13 +129,14 @@ class WarehouseController extends Controller
         ]);
 
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $warehouses = $city->warehouses()->orderBy('name', 'asc')->get();
+            $query = $city->warehouses()->orderBy('name', 'asc');
         } else {
-            $warehouses = $city->warehouses()
+            $query = $city->warehouses()
                 ->where('name', 'like', "%{$data["nameFilterValue"]}%")
-                ->orderBy('name', 'asc')
-                ->get();
+                ->orderBy('name', 'asc');
         }
+
+        $warehouses = $query->limit(5)->get();
 
         return response($warehouses);
     }

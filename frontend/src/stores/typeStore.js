@@ -6,6 +6,7 @@ const appConfigStore = useAppConfigStore();
 export const useTypeStore = defineStore("type", {
   state: () => ({
     items: [],
+    simpleItems: [],
     dialogs: {
       create: {
         isShown: false,
@@ -138,6 +139,21 @@ export const useTypeStore = defineStore("type", {
         .catch((err) => {
           appConfigStore.catchRequestError(err);
         })
+        .finally(() => {
+          this.data.isItemsLoading = false;
+        });
+    },
+    simpleReceive(nameFilterValue) {
+      api
+        .get(`/types/simple`, {
+          params: {
+            nameFilterValue: nameFilterValue,
+          },
+        })
+        .then((res) => {
+          this.simpleItems = res.data;
+        })
+        .catch()
         .finally(() => {
           this.data.isItemsLoading = false;
         });

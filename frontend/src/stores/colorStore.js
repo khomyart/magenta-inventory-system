@@ -8,6 +8,7 @@ const sectionName = "colors";
 export const useColorStore = defineStore("color", {
   state: () => ({
     items: [],
+    simpleItems: [],
     dialogs: {
       create: {
         isShown: false,
@@ -156,6 +157,21 @@ export const useColorStore = defineStore("color", {
         .catch((err) => {
           appConfigStore.catchRequestError(err);
         })
+        .finally(() => {
+          this.data.isItemsLoading = false;
+        });
+    },
+    simpleReceive(nameFilterValue) {
+      api
+        .get(`/colors/simple`, {
+          params: {
+            nameFilterValue: nameFilterValue,
+          },
+        })
+        .then((res) => {
+          this.simpleItems = res.data;
+        })
+        .catch()
         .finally(() => {
           this.data.isItemsLoading = false;
         });

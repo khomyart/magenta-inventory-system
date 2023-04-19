@@ -13,6 +13,10 @@ export const useItemStore = defineStore("item", {
         isShown: false,
         isLoading: false,
       },
+      createFew: {
+        isShown: false,
+        isLoading: false,
+      },
       update: {
         isShown: false,
         isLoading: false,
@@ -32,6 +36,7 @@ export const useItemStore = defineStore("item", {
   getters: {},
   actions: {
     create(payload) {
+      console.log(payload);
       // this.dialogs.create.isLoading = true;
       // api
       //   .post(`/${sectionName}`, {

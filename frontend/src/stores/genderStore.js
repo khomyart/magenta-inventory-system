@@ -8,6 +8,7 @@ const sectionName = "genders";
 export const useGenderStore = defineStore("gender", {
   state: () => ({
     items: [],
+    simpleItems: [],
     dialogs: {
       create: {
         isShown: false,
@@ -140,6 +141,21 @@ export const useGenderStore = defineStore("gender", {
         .catch((err) => {
           appConfigStore.catchRequestError(err);
         })
+        .finally(() => {
+          this.data.isItemsLoading = false;
+        });
+    },
+    simpleReceive(nameFilterValue) {
+      api
+        .get(`/genders/simple`, {
+          params: {
+            nameFilterValue: nameFilterValue,
+          },
+        })
+        .then((res) => {
+          this.simpleItems = res.data;
+        })
+        .catch()
         .finally(() => {
           this.data.isItemsLoading = false;
         });

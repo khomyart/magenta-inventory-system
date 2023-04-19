@@ -84,15 +84,17 @@ class ColorController extends Controller
         $sectionModel = $this->getSectionModel();
 
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $items = $sectionModel::orderBy("description", "asc")->get();
+            $query = $sectionModel::orderBy("description", "asc");
         } else {
             //if input param starts with "#"
             if ($data["nameFilterValue"][0] === "#") {
-                $items = $sectionModel::where("value", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc")->get();
+                $query = $sectionModel::where("value", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
             } else {
-                $items = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc")->get();
+                $query = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
             }
         }
+
+        $items = $query->limit(5)->get();
 
         return response($items);
     }

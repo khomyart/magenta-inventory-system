@@ -7,6 +7,20 @@ const sectionName = "items";
 
 export const useItemStore = defineStore("item", {
   state: () => ({
+    newItem: {
+      article: "",
+      title: "",
+      price: "",
+      lack: 0,
+      currency: "UAH",
+      type: null,
+      gender: null,
+      size: null,
+      color: null,
+      unit: null,
+      availableIn: [],
+      images: [],
+    },
     items: [],
     dialogs: {
       create: {
@@ -35,29 +49,96 @@ export const useItemStore = defineStore("item", {
   }),
   getters: {},
   actions: {
-    create(payload) {
-      console.log(payload);
-      // this.dialogs.create.isLoading = true;
-      // api
-      //   .post(`/${sectionName}`, {
-      //     country_id: payload.country.id,
-      //     city_id: payload.city.id,
-      //     address: payload.address,
-      //     name: payload.name,
-      //     description: payload.description,
-      //   })
-      //   .then((res) => {
-      //     console.log(sectionName);
-      //     console.log(res);
-      //     this.dialogs.create.isShown = false;
-      //     this.receive();
-      //   })
-      //   .catch((err) => {
-      //     appConfigStore.catchRequestError(err);
-      //   })
-      //   .finally(() => {
-      //     this.dialogs.create.isLoading = false;
-      //   });
+    create() {
+      console.log(this.newItem);
+
+      let preparedItem = {
+        article: this.newItem.article,
+        title: this.newItem.title,
+        price: this.newItem.price,
+        lack: this.newItem.lack,
+        type_id: this.newItem.type.id,
+        unit_id: this.newItem.unit.id,
+      };
+
+      if (this.newItem.gender != null)
+        preparedItem.gender_id = this.newItem.gender.id;
+      if (this.newItem.size != null)
+        preparedItem.size_id = this.newItem.size.id;
+      if (this.newItem.color != null)
+        preparedItem.color_id = this.newItem.color.id;
+
+      //warehouses preparation
+      this.newItem.availableIn.forEach((availableIn, index) => {
+        if (index == 0) preparedItem.warehouses = [];
+        preparedItem.warehouses.push({
+          id: availableIn.warehouse.id,
+          batches: availableIn.batches,
+        });
+      });
+
+      //images preparation
+      this.newItem.images.forEach((image, index) => {
+        if (index == 0) preparedItem.images = [];
+        preparedItem.images.push(image.file);
+      });
+
+      console.log("prepared item:", preparedItem);
+
+      let form = new FormData();
+      Object.keys(preparedItem).forEach((key) => {
+        switch (key) {
+          case "images":
+            if (preparedItem[key].length > 0) {
+              preparedItem[key].forEach((image, index) => {
+                form.append(`images[${index}]`, image, image.name);
+              });
+            }
+            break;
+
+          case "warehouses":
+            if (preparedItem[key].length > 0) {
+              preparedItem[key].forEach((warehouse, index) => {
+                form.append(`warehouses[${index}][id]`, warehouse.id);
+                warehouse.batches.forEach((batch, batchIndex) => {
+                  form.append(
+                    `warehouses[${index}][batches][${batchIndex}][amount]`,
+                    batch.amount
+                  );
+                  form.append(
+                    `warehouses[${index}][batches][${batchIndex}][price]`,
+                    batch.price
+                  );
+                  form.append(
+                    `warehouses[${index}][batches][${batchIndex}][currency]`,
+                    batch.currency
+                  );
+                });
+              });
+            }
+            break;
+
+          default:
+            form.append(key, preparedItem[key]);
+            break;
+        }
+      });
+
+      this.dialogs.create.isLoading = true;
+      api
+        .post(`/${sectionName}`, form)
+        .then((res) => {
+          console.log(sectionName);
+          console.log(res);
+          // this.dialogs.create.isShown = false;
+          // this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.create.isLoading = false;
+        });
     },
     update(item) {
       // let itemEditedCopy = { ...item };

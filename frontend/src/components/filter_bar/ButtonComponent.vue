@@ -33,6 +33,7 @@
         <div class="row">
           <div class="filter-body col-12 q-px-md">
             <q-input
+              autofocus
               v-if="props.justOrder != true"
               class="col-12 q-mb-md"
               outlined

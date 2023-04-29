@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="sectionStore.dialogs.create.isShown">
-    <q-card>
+    <q-card style="width: 95vw; max-width: 600px">
       <q-card-section>
         <div class="text-h6 flex items-center">
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
@@ -8,63 +8,77 @@
         </div>
       </q-card-section>
       <q-separator></q-separator>
-      <q-form @submit="sectionStore.create(newItem)">
+      <q-form @submit="sectionStore.create()">
         <q-card-section
-          style="max-height: 60vh; width: 95vw; max-width: 500px"
+          style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
         >
           <div class="row q-col-gutter-md q-mb-sm">
             <q-input
-              class="col-12"
+              class="col-7"
               outlined
-              v-model="newItem.title"
+              v-model="sectionStore.newItem.title"
               label="Назва"
               autofocus
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть назву',
-                (val) => val.length <= 10 || 'Не більше 255 символів',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-          </div>
-
-          <div class="row q-col-gutter-md q-mb-sm">
             <q-input
               class="col-5"
               outlined
-              v-model="newItem.article"
+              v-model="sectionStore.newItem.article"
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
                 (val) => val.length <= 10 || 'Не більше 10 символів',
               ]"
             />
+          </div>
+
+          <div class="row q-col-gutter-md q-mb-sm">
             <q-input
               class="col-4"
               outlined
-              v-model="newItem.price"
+              v-model="sectionStore.newItem.price"
               label="Ціна"
+              type="number"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Вкажіть ціну',
                 (val) => val.length <= 13 || 'Не більше 13 символів',
+                (val) => val >= 0 || 'Не менше 0',
               ]"
             />
             <q-select
               hide-dropdown-icon
               outlined
-              v-model="newItem.currency"
+              v-model="sectionStore.newItem.currency"
               label="Валюта"
               :options="['UAH', 'USD', 'EUR']"
-              class="col-3"
+              class="col-4"
+            />
+            <q-input
+              class="col-4"
+              outlined
+              v-model="sectionStore.newItem.lack"
+              label="Нестача"
+              type="number"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
+                (val) => val >= 1 || 'Не менше одиниці',
+              ]"
             />
           </div>
 
           <div class="row q-col-gutter-md q-mb-sm">
             <q-select
               :hide-dropdown-icon="
-                newItem.type != null && newItem.type.id != undefined
+                sectionStore.newItem.type != null &&
+                sectionStore.newItem.type.id != undefined
               "
               outlined
-              v-model="newItem.type"
+              v-model="sectionStore.newItem.type"
               use-input
               hide-selected
               fill-input
@@ -78,27 +92,32 @@
               class="col-6"
               :rules="[
                 () =>
-                  (newItem.type != null && newItem.type.id != undefined) ||
+                  (sectionStore.newItem.type != null &&
+                    sectionStore.newItem.type.id != undefined) ||
                   'Оберіть тип',
               ]"
             >
               <template
-                v-if="newItem.type && !typeStore.data.isItemsLoading"
+                v-if="
+                  sectionStore.newItem.type && !typeStore.data.isItemsLoading
+                "
                 v-slot:append
               >
                 <q-icon
                   name="cancel"
-                  @click.stop.prevent="newItem.type = null"
+                  @click.stop.prevent="sectionStore.newItem.type = null"
                   class="cursor-pointer"
                 />
               </template>
             </q-select>
+
             <q-select
               :hide-dropdown-icon="
-                newItem.unit != null && newItem.unit.id != undefined
+                sectionStore.newItem.unit != null &&
+                sectionStore.newItem.unit.id != undefined
               "
               outlined
-              v-model="newItem.unit"
+              v-model="sectionStore.newItem.unit"
               use-input
               hide-selected
               fill-input
@@ -112,7 +131,8 @@
               class="col-6"
               :rules="[
                 () =>
-                  (newItem.unit != null && newItem.unit.id != undefined) ||
+                  (sectionStore.newItem.unit != null &&
+                    sectionStore.newItem.unit.id != undefined) ||
                   'Оберіть одиницю виміру',
               ]"
             >
@@ -123,12 +143,14 @@
               </template>
 
               <template
-                v-if="newItem.unit && !unitStore.data.isItemsLoading"
+                v-if="
+                  sectionStore.newItem.unit && !unitStore.data.isItemsLoading
+                "
                 v-slot:append
               >
                 <q-icon
                   name="cancel"
-                  @click.stop.prevent="newItem.unit = null"
+                  @click.stop.prevent="sectionStore.newItem.unit = null"
                   class="cursor-pointer"
                 />
               </template>
@@ -137,9 +159,9 @@
 
           <div class="row q-col-gutter-md q-mb-lg">
             <q-select
-              :hide-dropdown-icon="newItem.color != null"
+              :hide-dropdown-icon="sectionStore.newItem.color != null"
               outlined
-              v-model="newItem.color"
+              v-model="sectionStore.newItem.color"
               use-input
               hide-selected
               fill-input
@@ -171,20 +193,23 @@
               </template>
 
               <template
-                v-if="newItem.color && !colorStore.data.isItemsLoading"
+                v-if="
+                  sectionStore.newItem.color && !colorStore.data.isItemsLoading
+                "
                 v-slot:append
               >
                 <q-icon
                   name="cancel"
-                  @click.stop.prevent="newItem.color = null"
+                  @click.stop.prevent="sectionStore.newItem.color = null"
                   class="cursor-pointer"
                 />
               </template>
             </q-select>
+
             <q-select
-              :hide-dropdown-icon="newItem.size != null"
+              :hide-dropdown-icon="sectionStore.newItem.size != null"
               outlined
-              v-model="newItem.size"
+              v-model="sectionStore.newItem.size"
               use-input
               hide-selected
               fill-input
@@ -198,20 +223,23 @@
               class="col-4"
             >
               <template
-                v-if="newItem.size && !sizeStore.data.isItemsLoading"
+                v-if="
+                  sectionStore.newItem.size && !sizeStore.data.isItemsLoading
+                "
                 v-slot:append
               >
                 <q-icon
                   name="cancel"
-                  @click.stop.prevent="newItem.size = null"
+                  @click.stop.prevent="sectionStore.newItem.size = null"
                   class="cursor-pointer"
                 />
               </template>
             </q-select>
+
             <q-select
-              :hide-dropdown-icon="newItem.gender != null"
+              :hide-dropdown-icon="sectionStore.newItem.gender != null"
               outlined
-              v-model="newItem.gender"
+              v-model="sectionStore.newItem.gender"
               use-input
               hide-selected
               fill-input
@@ -225,12 +253,15 @@
               class="col-4"
             >
               <template
-                v-if="newItem.gender && !genderStore.data.isItemsLoading"
+                v-if="
+                  sectionStore.newItem.gender &&
+                  !genderStore.data.isItemsLoading
+                "
                 v-slot:append
               >
                 <q-icon
                   name="cancel"
-                  @click.stop.prevent="newItem.gender = null"
+                  @click.stop.prevent="sectionStore.newItem.gender = null"
                   class="cursor-pointer"
                 />
               </template>
@@ -239,9 +270,78 @@
           <q-separator class="q-mb-sm" />
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 flex justify-center items-center">Наявність:</div>
+            <div class="col-4 flex justify-center items-center">
+              Зображення
+              <input
+                id="imagesInput"
+                style="display: none"
+                type="file"
+                multiple
+                @change="onImageInput"
+              />
+            </div>
             <div class="col-4">
-              <q-btn class="q-mr-sm" round flat icon="add">
+              <q-btn
+                class="q-mr-sm"
+                round
+                flat
+                icon="add"
+                @click="triggerFileInput"
+              >
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="top middle"
+                  :offset="[0, 5]"
+                >
+                  Додати зображення
+                </q-tooltip>
+              </q-btn>
+              <q-btn
+                class="q-mr-sm"
+                round
+                flat
+                icon="delete"
+                @click="removeAllImages"
+              >
+                <q-tooltip
+                  class="bg-black text-body2"
+                  anchor="bottom middle"
+                  self="top middle"
+                  :offset="[0, 5]"
+                >
+                  Видалити всі зображення
+                </q-tooltip>
+              </q-btn>
+            </div>
+          </div>
+          <div class="row q-mb-sm">
+            <div
+              v-if="sectionStore.newItem.images.length != 0"
+              class="col-12 row image-container q-col-gutter-md"
+            >
+              <ImageComponent
+                v-for="(image, index) in sectionStore.newItem.images"
+                :key="index"
+                :amountOfImages="sectionStore.newItem.images.length"
+                :imageUrl="image.url"
+                :index="index"
+                @remove="removeImage"
+                @move="moveImage"
+              />
+            </div>
+          </div>
+          <div class="row q-mb-sm text-h6">
+            <div class="col-4"></div>
+            <div class="col-4 flex justify-center items-center">Наявність</div>
+            <div class="col-4">
+              <q-btn
+                class="q-mr-sm"
+                round
+                flat
+                icon="add"
+                @click="addAvailableIn"
+              >
                 <q-tooltip
                   class="bg-black text-body2"
                   anchor="bottom middle"
@@ -251,7 +351,13 @@
                   Додати склад
                 </q-tooltip>
               </q-btn>
-              <q-btn class="q-mr-sm" round flat icon="delete">
+              <q-btn
+                class="q-mr-sm"
+                round
+                flat
+                icon="delete"
+                @click="removeAllWarehouses"
+              >
                 <q-tooltip
                   class="bg-black text-body2"
                   anchor="bottom middle"
@@ -264,8 +370,9 @@
             </div>
           </div>
           <WarehouseFormComponent
-            v-model:item="newItem.warehouses[0]"
-            :warehouse-store="warehouseStore"
+            v-for="(item, index) in sectionStore.newItem.availableIn"
+            :key="index"
+            :index="index"
           ></WarehouseFormComponent>
         </q-card-section>
 
@@ -286,7 +393,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { reactive, ref, watch } from "vue";
+import { watch } from "vue";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -297,6 +404,7 @@ import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
 import WarehouseFormComponent from "src/components/item/createOne/WarehouseFormComponent.vue";
+import ImageComponent from "./createOne/ImageComponent.vue";
 
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
@@ -308,36 +416,87 @@ const colorStore = useColorStore();
 const warehouseStore = useWarehouseStore();
 const unitStore = useUnitStore();
 
-let newItem = reactive({
-  article: "",
-  title: "",
-  price: "",
-  currency: "UAH",
-  type: null,
-  gender: null,
-  size: null,
-  color: null,
-  unit: null,
-  warehouses: [
+const warehouseTemplate = {
+  country: null,
+  city: null,
+  warehouse: null,
+  batches: [
     {
-      country: null,
-      city: null,
-      warehouse: null,
+      amount: "",
+      price: 0,
+      currency: "UAH",
     },
   ],
-});
+};
 
 function showCreateDialog() {
-  newItem.article = "";
-  newItem.title = "";
-  newItem.price = "";
-  newItem.currency = "UAH";
-  newItem.type = null;
-  newItem.gender = null;
-  newItem.size = null;
-  newItem.color = null;
-  newItem.unit = null;
-  warehouses = [];
+  sectionStore.newItem.article = "";
+  sectionStore.newItem.title = "";
+  sectionStore.newItem.price = "";
+  sectionStore.newItem.lack = 10;
+  sectionStore.newItem.currency = "UAH";
+  sectionStore.newItem.type = null;
+  sectionStore.newItem.gender = null;
+  sectionStore.newItem.size = null;
+  sectionStore.newItem.color = null;
+  sectionStore.newItem.unit = null;
+  sectionStore.newItem.availableIn = [];
+  sectionStore.newItem.images = [];
+}
+
+function addAvailableIn() {
+  let warehouse = JSON.parse(JSON.stringify(warehouseTemplate));
+  sectionStore.newItem.availableIn.push(warehouse);
+}
+
+function removeAllWarehouses() {
+  sectionStore.newItem.availableIn = [];
+}
+
+function moveImage(imageIndex, direction) {
+  let currentImage = sectionStore.newItem.images[imageIndex];
+  let targetIndex =
+    direction == "right" && sectionStore.newItem.images.length != imageIndex + 1
+      ? imageIndex + 1
+      : direction == "left" && imageIndex != 0
+      ? imageIndex - 1
+      : imageIndex;
+  let targetImage = sectionStore.newItem.images[targetIndex];
+
+  sectionStore.newItem.images[targetIndex] = currentImage;
+  sectionStore.newItem.images[imageIndex] = targetImage;
+}
+function removeImage(index) {
+  sectionStore.newItem.images.splice(index, 1);
+}
+function removeAllImages() {
+  sectionStore.newItem.images = [];
+}
+
+function triggerFileInput() {
+  let imageInput = document.getElementById("imagesInput");
+  imageInput.click();
+}
+
+function onImageInput(ev) {
+  console.log("called");
+
+  const files = ev.target.files;
+  console.log(files);
+
+  Object.keys(files).forEach((i) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      console.log(reader);
+      sectionStore.newItem.images.push({
+        url: reader.result,
+        file: files[i],
+      });
+    };
+
+    reader.readAsDataURL(files[i]);
+  });
 }
 
 function typeFilter(val, update, abort) {
@@ -380,35 +539,29 @@ function genderFilter(val, update, abort) {
   });
 }
 
-function countryFilter(val, update, abort) {
-  update(() => {
-    countryStore.data.isItemsLoading = true;
-    countryStore.items = [];
-    countryStore.receive(val);
-  });
-}
-
-function cityFilter(val, update, abort) {
-  update(() => {
-    cityStore.data.isItemsLoading = true;
-    cityStore.items = [];
-    cityStore.receive(newItem.warehouses[0].country.id, val);
-  });
-}
-
-function warehouseFilter(val, update, abort) {
-  update(() => {
-    warehouseStore.data.isItemsLoading = true;
-    warehouseStore.items = [];
-    warehouseStore.simpleReceive(newItem.warehouses[0].city.id, val);
-  });
-}
+watch(
+  () => sectionStore.dialogs.create.isShown,
+  (newValue) => {
+    if (newValue === true) {
+      showCreateDialog();
+    }
+  }
+);
 </script>
 <style scoped>
 .color {
   width: 30px;
   height: 30px;
   border-radius: 5px;
-  border: 1 px solid black;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+.image-container {
+  margin-top: 0px;
+  margin-left: 0px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
 }
 </style>

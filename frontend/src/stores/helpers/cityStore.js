@@ -13,7 +13,7 @@ export const useCityStore = defineStore("city", {
   }),
   getters: {},
   actions: {
-    receive(countryId, nameFilterValue) {
+    receive(countryId, nameFilterValue, loadingStates = null) {
       api
         .get(`/countries/${countryId}/cities`, {
           params: {
@@ -25,6 +25,9 @@ export const useCityStore = defineStore("city", {
         })
         .catch()
         .finally(() => {
+          if (loadingStates != null) {
+            loadingStates.city = false;
+          }
           this.data.isItemsLoading = false;
         });
     },

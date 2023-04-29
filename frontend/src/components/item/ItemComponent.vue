@@ -106,42 +106,49 @@
     <td class="separator-cell"><div></div></td>
 
     <td class="item-cell">
-      <div
-        style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.gender, 'Гендер')"
-      >
-        <div class="item-text">
-          {{ props.itemInfo.gender }}
+      <div>
+        <div
+          v-if="props.itemInfo.gender != null"
+          style="cursor: pointer"
+          @click="$emit('copyValue', props.itemInfo.gender, 'Гендер')"
+        >
+          <div class="item-text">
+            {{ props.itemInfo.gender }}
+          </div>
         </div>
       </div>
     </td>
     <td class="separator-cell"><div></div></td>
 
     <td class="item-cell">
-      <div
-        :id="`size-of-item-${props.itemInfo.id}`"
-        style="cursor: pointer"
-        @click="
-          $emit(
-            'copyValue',
-            `${props.itemInfo.size_name} - ${props.itemInfo.size_description}`,
-            'Розмір'
-          )
-        "
-      >
-        <div class="item-text">
-          {{ props.itemInfo.size_name }}
-        </div>
+      <div>
+        <div
+          v-if="props.itemInfo.size_name != null"
+          :id="`size-of-item-${props.itemInfo.id}`"
+          style="cursor: pointer"
+          @click="
+            $emit(
+              'copyValue',
+              `${props.itemInfo.size_name} - ${props.itemInfo.size_description}`,
+              'Розмір'
+            )
+          "
+        >
+          <div class="item-text">
+            {{ props.itemInfo.size_name }}
+          </div>
 
-        <div class="item-size">
-          <q-tooltip
-            :offset="[0, 5]"
-            :target="`#size-of-item-${props.itemInfo.id}`"
-            class="bg-black text-body2"
-            anchor="center left"
-            self="center right"
-            >{{ props.itemInfo.size_description }}</q-tooltip
-          >
+          <div class="item-size">
+            <q-tooltip
+              v-if="props.itemInfo.size_name != null"
+              :offset="[0, 5]"
+              :target="`#size-of-item-${props.itemInfo.id}`"
+              class="bg-black text-body2"
+              anchor="center left"
+              self="center right"
+              >{{ props.itemInfo.size_description }}</q-tooltip
+            >
+          </div>
         </div>
       </div>
     </td>
@@ -150,6 +157,7 @@
     <td class="item-cell">
       <div class="item-color-container q-px-sm">
         <div
+          v-if="props.itemInfo.color_article != null"
           :id="`color-of-item-${props.itemInfo.id}`"
           class="item-color q-px-sm"
           :style="`background-color: ${props.itemInfo.color_value};`"
@@ -162,6 +170,7 @@
           >
         </div>
         <q-tooltip
+          v-if="props.itemInfo.color_article != null"
           :offset="[10, 5]"
           :target="`#color-of-item-${props.itemInfo.id}`"
           class="bg-black text-body2"
@@ -174,12 +183,15 @@
     <td class="separator-cell"><div></div></td>
 
     <td class="item-cell">
-      <div
-        style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.amount, 'Кількість')"
-      >
-        <div class="item-text">
-          {{ props.itemInfo.amount }}
+      <div>
+        <div
+          v-if="props.itemInfo.gender != null"
+          style="cursor: pointer"
+          @click="$emit('copyValue', props.itemInfo.amount, 'Кількість')"
+        >
+          <div class="item-text">
+            {{ props.itemInfo.amount }}
+          </div>
         </div>
       </div>
     </td>
@@ -209,7 +221,7 @@
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
-      <q-card-section class="q-pa-md flex justify-center">
+      <q-card-section class="flex justify-center">
         <template v-if="props.itemInfo.images.length > 1">
           <q-carousel
             animated
@@ -218,13 +230,12 @@
             navigation
             infinite
             control-color="primary"
-            style="width: 500px"
+            style="width: 500px; height: 400px"
             class="flex justify-center"
           >
             <q-carousel-slide
               style="
-                width: 300px;
-                margin-top: -15px;
+                width: 350px;
                 background-size: contain;
                 background-repeat: no-repeat;
               "

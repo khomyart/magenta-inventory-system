@@ -186,7 +186,7 @@ export const useWarehouseStore = defineStore("warehouse", {
           this.data.isItemsLoading = false;
         });
     },
-    simpleReceive(cityId, nameFilterValue) {
+    simpleReceive(cityId, nameFilterValue, loadingStates) {
       this.simpleItems = [];
       api
         .get(`/city/${cityId}/warehouses`, {
@@ -199,7 +199,7 @@ export const useWarehouseStore = defineStore("warehouse", {
         })
         .catch()
         .finally(() => {
-          this.data.isItemsLoading = false;
+          loadingStates.warehouse = false;
         });
     },
   },

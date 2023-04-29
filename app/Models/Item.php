@@ -10,9 +10,9 @@ class Item extends Model
     use HasFactory;
 
     protected $fillable = [
-        'article', 'title', 'type_id',
-        'gender_id', 'size_id', 'color_id',
-        'unit_id', 'price', 'currency'
+        "article", "title", "type_id",
+        "gender_id", "size_id", "color_id",
+        "unit_id", "price", "lack", "currency"
     ];
 
     protected $hidden = [
@@ -20,10 +20,10 @@ class Item extends Model
     ];
 
     public function type() {
-        return $this->hasOne(Type::class, 'id', 'type_id');
+        return $this->hasOne(Type::class, "id", "type_id");
     }
 
     public function images() {
-        return $this->hasMany(Image::class, 'item_id', 'id');
+        return $this->hasMany(Image::class, "item_id", "id");
     }
 }

@@ -383,7 +383,7 @@ const fieldsDetails = [
     },
   },
   {
-    label: "Тип",
+    label: "Вид",
     searchBarLabel: "Значення типу",
     type: "universal",
     orderButtonLabels: {

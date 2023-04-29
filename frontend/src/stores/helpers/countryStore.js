@@ -13,7 +13,7 @@ export const useCountryStore = defineStore("country", {
   }),
   getters: {},
   actions: {
-    receive(nameFilterValue) {
+    receive(nameFilterValue, loadingStates = null) {
       api
         .get("/countries", {
           params: {
@@ -25,6 +25,9 @@ export const useCountryStore = defineStore("country", {
         })
         .catch()
         .finally(() => {
+          if (loadingStates != null) {
+            loadingStates.country = false;
+          }
           this.data.isItemsLoading = false;
         });
     },

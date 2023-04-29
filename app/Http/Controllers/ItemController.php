@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Image;
-use App\Models\Batches;
+use App\Models\Batch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -102,11 +102,11 @@ class ItemController extends Controller
             "units.description AS unit_description",
         )
         ->join('types', 'items.type_id', '=', 'types.id')
-        ->join('genders', 'items.gender_id', '=', 'genders.id')
-        ->join('sizes', 'items.size_id', '=', 'sizes.id')
-        ->join('colors', 'items.color_id', '=', 'colors.id')
         ->join('units', 'items.unit_id', '=', 'units.id')
-        ->join('batches', 'items.id', '=', 'batches.item_id');
+        ->leftJoin('genders', 'items.gender_id', '=', 'genders.id')
+        ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
+        ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
+        ->leftJoin('batches', 'items.id', '=', 'batches.item_id');
 
         //forming 'WHERE' query for each field
         foreach ($this->readFieldsInDB as $key => $field) {
@@ -250,17 +250,19 @@ class ItemController extends Controller
     }
 
     public function create(Request $request) {
+        // return response()->json($request->input());
         $sectionModel = $this->getSectionModel();
 
         $itemData = $request->validate([
             "article" => "required|string|max:10",
             "title" => "required|string|max:255",
             "price" => "required|numeric",
-            "type_id" => "required|exists:App\Models\Type,id",
-            "gender_id" => "nullable|exists:App\Models\Gender,id",
-            "size_id" => "nullable|exists:App\Models\Size,id",
-            "color_id" => "nullable|exists:App\Models\Color,id",
-            "unit_id" => "nullable|exists:App\Models\Unit,id",
+            "lack" => "required|numeric|integer|gte:1",
+            "type_id" => ["required", "exists:types,id"],
+            "unit_id" => ["required", "exists:units,id"],
+            "gender_id" => ["nullable", "exists:genders,id"],
+            "size_id" => ["nullable", "exists:sizes,id"],
+            "color_id" => ["nullable", "exists:colors,id"],
         ]);
 
         $warehousesData = $request->validate([
@@ -294,9 +296,10 @@ class ItemController extends Controller
             }
 
             //pricessing warehouses info
+
             foreach ($warehousesData as $key => $warehouse) {
                 foreach ($warehouse["batches"] as $key => $batch) {
-                    Batches::create([
+                    Batch::create([
                         "item_id" => $item->id,
                         "warehouse_id" => $warehouse["id"],
                         "price_per_item" => $batch["price"],

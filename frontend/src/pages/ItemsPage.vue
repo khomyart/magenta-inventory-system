@@ -106,15 +106,8 @@
           {{ groupedItemsButtonTooltip }}
         </q-tooltip>
       </q-btn>
-      <q-btn
-        flat
-        round
-        color="black"
-        icon="add"
-        @click="createItemButtonAction"
-      >
+      <q-btn flat round color="black" icon="add">
         <q-tooltip
-          v-model="isCreateItemButtonActivated"
           anchor="bottom left"
           :offset="[-20, 7]"
           class="bg-black text-body2"
@@ -199,7 +192,7 @@
         <template v-for="(item, index) in sectionStore.items" :key="index">
           <ItemComponent
             @show-remove-dialog="showRemoveDialog"
-            @show-edit-dialog="showUpdateDialog"
+            @get-info-about-current-item="sectionStore.receiveItem"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
             :allowenses="{
@@ -242,58 +235,7 @@
     <!--CREATING DIALOG-->
     <CreateItemComponent />
     <!--UPDATING DIALOG-->
-    <q-dialog v-model="sectionStore.dialogs.update.isShown">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6 flex items-center">
-            <q-icon name="interests" color="black" size="md" class="q-mr-sm" />
-            Вид
-          </div>
-        </q-card-section>
-        <q-separator></q-separator>
-        <q-form @submit="sectionStore.update(updatedItem)">
-          <q-card-section
-            style="max-height: 50vh; width: 300px"
-            class="scroll q-pt-md"
-          >
-            <q-input
-              class="q-mb-sm"
-              outlined
-              v-model="updatedItem.article"
-              autofocus
-              label="Артикль"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть артикль',
-                (val) => val.length <= 8 || 'Не більше 8 символів',
-              ]"
-            />
-            <q-input
-              outlined
-              v-model="updatedItem.name"
-              label="Вид"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть назву виду',
-                (val) => val.length <= 128 || 'Не більше 128 символів',
-              ]"
-            />
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-actions align="right">
-            <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
-            <q-btn
-              flat
-              color="primary"
-              type="submit"
-              :loading="sectionStore.dialogs.update.isLoading"
-              ><b>Оновити</b></q-btn
-            >
-          </q-card-actions>
-        </q-form>
-      </q-card>
-    </q-dialog>
-
+    <UpdateItemComponent />
     <!-- DELETING DIALOG -->
     <q-dialog v-model="sectionStore.dialogs.delete.isShown">
       <q-card>
@@ -325,13 +267,14 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed } from "vue";
+import { reactive, onMounted, watch, computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useItemStore } from "src/stores/itemStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useQuasar } from "quasar";
 import ItemComponent from "src/components/item/ItemComponent.vue";
-import CreateItemComponent from "src/components/item/CreateItemComponent.vue";
+import CreateItemComponent from "src/components/item/single/CreateItemComponent.vue";
+import UpdateItemComponent from "src/components/item/single/UpdateItemComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";
@@ -461,6 +404,15 @@ let tempFieldWidths = reactive({
   name: 0,
 });
 
+let showGroupedItems = ref(false);
+const groupedItemsButtonTooltip = computed(() => {
+  return showGroupedItems.value ? "Розділити" : "Групувати";
+});
+
+function switchItemsView() {
+  showGroupedItems.value = !showGroupedItems.value;
+}
+
 function clearUpdatedItemId() {
   let interval = setTimeout(() => {
     sectionStore.data.updatedItemId = 0;
@@ -476,13 +428,6 @@ function copyValue(value, paramName) {
     message: `${paramName} зкопійовано: "${value}"`,
     group: false,
   });
-}
-
-function showUpdateDialog(item) {
-  updatedItem.id = item.id;
-  updatedItem.article = item.article;
-  updatedItem.name = item.name;
-  sectionStore.dialogs.update.isShown = true;
 }
 
 function showRemoveDialog(id, name) {

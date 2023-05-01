@@ -23,6 +23,22 @@ class Item extends Model
         return $this->hasOne(Type::class, "id", "type_id");
     }
 
+    public function gender() {
+        return $this->hasOne(Gender::class, "id", "gender_id");
+    }
+
+    public function size() {
+        return $this->hasOne(Size::class, "id", "size_id");
+    }
+
+    public function color() {
+        return $this->hasOne(Color::class, "id", "color_id");
+    }
+
+    public function unit() {
+        return $this->hasOne(Unit::class, "id", "unit_id");
+    }
+
     public function images() {
         return $this->hasMany(Image::class, "item_id", "id");
     }

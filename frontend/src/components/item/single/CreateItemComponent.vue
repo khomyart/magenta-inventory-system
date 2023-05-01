@@ -47,7 +47,7 @@
               :rules="[
                 (val) => (val !== null && val !== '') || 'Вкажіть ціну',
                 (val) => val.length <= 13 || 'Не більше 13 символів',
-                (val) => val >= 0 || 'Не менше 0',
+                (val) => val >= 1 || 'Не менше 1',
               ]"
             />
             <q-select
@@ -403,8 +403,8 @@ import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
-import WarehouseFormComponent from "src/components/item/createOne/WarehouseFormComponent.vue";
-import ImageComponent from "./createOne/ImageComponent.vue";
+import WarehouseFormComponent from "src/components/item/single/WarehouseFormComponent.vue";
+import ImageComponent from "./ImageComponent.vue";
 
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
@@ -555,7 +555,6 @@ watch(
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.18);
 }
-
 .image-container {
   margin-top: 0px;
   margin-left: 0px;

@@ -8,6 +8,7 @@ use App\Models\Batch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
@@ -241,7 +242,7 @@ class ItemController extends Controller
         $items = $section->paginate($data["itemsPerPage"]);
         $items = json_decode(json_encode($items), true);
 
-        //binding addational data (images) to paginated and transformed query result
+        //binding additional data (images) to paginated and transformed query result
         foreach ($items["data"] as $key => &$item) {
             $item["images"] = Image::where("item_id", $item["id"])->orderBy("number_in_row", "asc")->get();
         }
@@ -256,7 +257,8 @@ class ItemController extends Controller
         $itemData = $request->validate([
             "article" => "required|string|max:10",
             "title" => "required|string|max:255",
-            "price" => "required|numeric",
+            "price" => "required|numeric|gte:1",
+            "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
             "lack" => "required|numeric|integer|gte:1",
             "type_id" => ["required", "exists:types,id"],
             "unit_id" => ["required", "exists:units,id"],
@@ -313,8 +315,141 @@ class ItemController extends Controller
         return response($itemData);
     }
 
+    public function getItemPreparedToUpdate(Request $request, $id) {
+        $item = Item::find($id);
+
+        if ($item === null) return response("предмет не знайдено", 404);
+
+        $item->type;
+        $item->gender;
+        $item->size;
+        $item->color;
+        $item->unit;
+        $item->images;
+
+        $item = json_decode(json_encode($item), true);
+
+        foreach ($item["images"] as $key => $image) {
+            $imageFile = Storage::disk("images")->get($image["src"]);
+            $mimeType = Storage::disk("images")->mimeType($image["src"]);
+
+            $base64StringPrefix = "data:{$mimeType};base64,";
+            $base64File = base64_encode($imageFile);
+
+            $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
+            $item["images"][$key]["mimeType"] = $mimeType;
+        }
+
+        return response()->json($item);
+    }
+
     public function update(Request $request, $id) {
-        return;
+        $sectionModel = $this->getSectionModel();
+        $item = $sectionModel::find($id);
+
+        if ($item === null) return response("Предмет не знайдено", 404);
+
+        $itemData = $request->validate([
+            "article" => "required|string|max:10",
+            "title" => "required|string|max:255",
+            "price" => "required|numeric|gte:1",
+            "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
+            "lack" => "required|numeric|integer|gte:1",
+            "type_id" => ["required", "exists:types,id"],
+            "unit_id" => ["required", "exists:units,id"],
+            "gender_id" => ["nullable", "exists:genders,id"],
+            "size_id" => ["nullable", "exists:sizes,id"],
+            "color_id" => ["nullable", "exists:colors,id"],
+        ]);
+        $imagesData = $request->validate([
+            "images" => "nullable",
+            "images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
+        ]);
+        $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
+
+        $item->article = $itemData["article"];
+        $item->title = $itemData["title"];
+        $item->price = $itemData["price"];
+        $item->currency = $itemData["currency"];
+        $item->lack = $itemData["lack"];
+        $item->type_id = $itemData["type_id"];
+        $item->unit_id = $itemData["unit_id"];
+
+        $item->color_id = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
+        $item->size_id = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
+        $item->gender_id = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+
+        $item->save();
+
+        //removing old images
+        foreach($item->images as $key => $image){
+            Storage::disk('images')->delete($image->src);
+            $image->delete();
+        }
+
+        //saving images in db and on disk
+        foreach ($imagesData as $key => $file) {
+            $image = Image::create([
+                "item_id" => $item->id,
+                "src" => $file->store('/', 'images'),
+                "number_in_row" => $key + 1
+            ]);
+        }
+
+        $today = Carbon::now()->format("Ymd");
+        $section = DB::table($this->section);
+        $section->select(
+            "items.id AS id",
+            "items.article AS article",
+            "items.title AS title",
+            "items.price AS unconverted_price",
+            "items.currency AS currency",
+        )
+        ->selectRaw('
+            IF(items.currency = "USD", items.price * ?,
+                IF(items.currency = "EUR", items.price * ?,
+                    IF(items.currency = "UAH", items.price, NULL)
+                )
+            )
+            AS converted_price_to_uah
+            ',
+            [
+                $this->getNbuCurrencyExchangeCourse($today, "USD"),
+                $this->getNbuCurrencyExchangeCourse($today, "EUR")
+            ]
+        )
+        ->addSelect(
+            "types.name AS type_name",
+            "types.number_in_row AS type", //extra field for ordering
+            "types.article AS type_article",
+            "genders.name AS gender",
+            "sizes.value AS size_name",
+            "sizes.number_in_row AS size", //extra field for ordering
+            "sizes.description AS size_description",
+            "colors.article AS color_article",
+            "colors.description AS color_name",
+            "colors.description AS color", //extra field for ordering
+            "colors.value AS color_value",
+            "colors.text_color_value AS text_color_value",
+            DB::raw('SUM(batches.amount_of_items) AS amount'),
+            "units.name AS unit_name",
+            "units.name AS units", //extra field for ordering
+            "units.description AS unit_description",
+        )
+        ->join('types', 'items.type_id', '=', 'types.id')
+        ->join('units', 'items.unit_id', '=', 'units.id')
+        ->leftJoin('genders', 'items.gender_id', '=', 'genders.id')
+        ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
+        ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
+        ->leftJoin('batches', 'items.id', '=', 'batches.item_id')
+        ->where("items.id", $item->id);
+        $updatedItem = $section->get()[0];
+        $updatedItem = json_decode(json_encode($updatedItem), true);
+
+        //binding images to updated item
+        $updatedItem["images"] = Image::where("item_id", $updatedItem["id"])->orderBy("number_in_row", "asc")->get();
+
+        return response($updatedItem);
     }
 
     public function delete(Request $request, $id) {

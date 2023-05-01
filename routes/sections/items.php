@@ -7,7 +7,10 @@ Route::post('/items', [ItemController::class,'create'])
 Route::get('/items', [ItemController::class,'read'])
 ->middleware('api.authorization:read,items');
 
-Route::patch('/items/{id}', [ItemController::class,'update'])
+Route::post('/items/{id}', [ItemController::class,'update'])
+->middleware('api.authorization:update,items')->whereNumber('id');
+
+Route::get('/items/{id}', [ItemController::class,'getItemPreparedToUpdate'])
 ->middleware('api.authorization:update,items')->whereNumber('id');
 
 Route::delete('/items/{id}', [ItemController::class,'delete'])

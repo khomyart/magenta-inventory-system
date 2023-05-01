@@ -21,6 +21,7 @@ export const useItemStore = defineStore("item", {
       availableIn: [],
       images: [],
     },
+    selectedItemForUpdating: {},
     items: [],
     dialogs: {
       create: {
@@ -45,6 +46,7 @@ export const useItemStore = defineStore("item", {
       amountOfItems: 0,
       lastPage: 0,
       updatedItemId: 0,
+      isItemDataLoading: false,
     },
   }),
   getters: {},
@@ -56,6 +58,7 @@ export const useItemStore = defineStore("item", {
         article: this.newItem.article,
         title: this.newItem.title,
         price: this.newItem.price,
+        currency: this.newItem.currency,
         lack: this.newItem.lack,
         type_id: this.newItem.type.id,
         unit_id: this.newItem.unit.id,
@@ -130,8 +133,8 @@ export const useItemStore = defineStore("item", {
         .then((res) => {
           console.log(sectionName);
           console.log(res);
-          // this.dialogs.create.isShown = false;
-          // this.receive();
+          this.dialogs.create.isShown = false;
+          this.receive();
         })
         .catch((err) => {
           appConfigStore.catchRequestError(err);
@@ -140,37 +143,72 @@ export const useItemStore = defineStore("item", {
           this.dialogs.create.isLoading = false;
         });
     },
-    update(item) {
-      // let itemEditedCopy = { ...item };
-      // itemEditedCopy.country_id = item.country.id;
-      // itemEditedCopy.city_id = item.city.id;
-      // delete itemEditedCopy.country;
-      // delete itemEditedCopy.city;
-      // item = itemEditedCopy;
-      // this.dialogs.update.isLoading = true;
-      // api
-      //   .patch(`/${sectionName}/${item.id}`, item)
-      //   .then((res) => {
-      //     this.data.updatedItemId = res.data.id;
-      //     let updatedItemIndex;
-      //     this.items.every((item, index) => {
-      //       if (item.id == res.data.id) {
-      //         updatedItemIndex = index;
-      //         return false;
-      //       }
-      //       return true;
-      //     });
-      //     this.items[updatedItemIndex] = res.data;
-      //     this.items[updatedItemIndex].country_name = res.data.country.name;
-      //     this.items[updatedItemIndex].city_name = res.data.city.name;
-      //   })
-      //   .catch((err) => {
-      //     appConfigStore.catchRequestError(err);
-      //   })
-      //   .finally(() => {
-      //     this.dialogs.update.isLoading = false;
-      //     this.dialogs.update.isShown = false;
-      //   });
+    update() {
+      let preparedItem = {
+        article: this.selectedItemForUpdating.article,
+        title: this.selectedItemForUpdating.title,
+        price: this.selectedItemForUpdating.price,
+        currency: this.selectedItemForUpdating.currency,
+        lack: this.selectedItemForUpdating.lack,
+        type_id: this.selectedItemForUpdating.type.id,
+        unit_id: this.selectedItemForUpdating.unit.id,
+      };
+
+      if (this.selectedItemForUpdating.gender != null)
+        preparedItem.gender_id = this.selectedItemForUpdating.gender.id;
+      if (this.selectedItemForUpdating.size != null)
+        preparedItem.size_id = this.selectedItemForUpdating.size.id;
+      if (this.selectedItemForUpdating.color != null)
+        preparedItem.color_id = this.selectedItemForUpdating.color.id;
+
+      //images preparation
+      this.selectedItemForUpdating.images.forEach((image, index) => {
+        if (index == 0) preparedItem.images = [];
+        preparedItem.images.push(image.file);
+      });
+
+      let form = new FormData();
+      Object.keys(preparedItem).forEach((key) => {
+        switch (key) {
+          case "images":
+            if (preparedItem[key].length > 0) {
+              preparedItem[key].forEach((image, index) => {
+                form.append(`images[${index}]`, image, image.name);
+              });
+            }
+            break;
+
+          default:
+            form.append(key, preparedItem[key]);
+            break;
+        }
+      });
+
+      this.dialogs.update.isLoading = true;
+
+      api
+        .post(`/${sectionName}/${this.selectedItemForUpdating.id}`, form)
+        .then((res) => {
+          this.dialogs.update.isShown = false;
+
+          this.data.updatedItemId = res.data.id;
+          let updatedItemIndex;
+          this.items.every((item, index) => {
+            if (item.id == res.data.id) {
+              updatedItemIndex = index;
+              return false;
+            }
+            return true;
+          });
+
+          this.items[updatedItemIndex] = res.data;
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.update.isLoading = false;
+        });
     },
     delete(id) {
       // this.dialogs.delete.isLoading = true;
@@ -291,6 +329,32 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.data.isItemsLoading = false;
+        });
+    },
+    receiveItem(id) {
+      this.data.isItemDataLoading = true;
+      api
+        .get(`/${sectionName}/${id}`)
+        .then((res) => {
+          console.log(res);
+          this.selectedItemForUpdating = { ...res.data };
+          this.selectedItemForUpdating.images = [];
+
+          res.data.images.forEach((image) => {
+            this.selectedItemForUpdating.images.push({
+              url: image.base64,
+              mimeType: image.mimeType,
+              name: image.src,
+            });
+          });
+
+          this.dialogs.update.isShown = true;
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.data.isItemDataLoading = false;
         });
     },
   },

@@ -27,7 +27,7 @@
                 v-if="props.allowenses.update == true"
                 clickable
                 v-close-popup
-                @click="$emit('showEditDialog', props.itemInfo)"
+                @click="$emit('getInfoAboutCurrentItem', props.itemInfo.id)"
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>
@@ -289,7 +289,7 @@ import { useQuasar } from "quasar";
 const $q = useQuasar();
 
 const emit = defineEmits([
-  "showEditDialog",
+  "getInfoAboutCurrentItem",
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",

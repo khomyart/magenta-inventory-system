@@ -102,8 +102,14 @@ function clearAllFilters() {
   let filter = appStore.filters.data[props.filterIn];
   for (const [key] of Object.entries(filter.selectedParams)) {
     filter.selectedParams[key].value = "";
-    filter.selectedParams[key].filterMode =
-      appStore.filters.availableParams.items[0];
+
+    if (key === "price" || key === "amount") {
+      filter.selectedParams[key].filterMode =
+        appStore.filters.availableParams.items[2];
+    } else {
+      filter.selectedParams[key].filterMode =
+        appStore.filters.availableParams.items[0];
+    }
   }
 
   filter.selectedParams.order.field = "";

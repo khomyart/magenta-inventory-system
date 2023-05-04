@@ -20,10 +20,10 @@ class WarehouseController extends Controller
 
     public $createFieldsFromFrontend = ["country_id", "city_id", "address", "name", "description"];
     //rules, which are used to validate incoming data, according to field names sequence
-    public $createValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:250"];
+    public $createValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:1000"];
 
     public $updateFieldsFromFrontend = ["country_id", "city_id", "address", "name", "description"];
-    public $updateValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:250"];
+    public $updateValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:1000"];
 
 
     /**
@@ -113,27 +113,56 @@ class WarehouseController extends Controller
     }
 
     /**
-     * Display a list of warehouses depends on city id and its name
+     * Display a list of warehouses depends on city id and warehouse name
      * (use for "select" item (<select></select>))
+     *
+     * @param Request
+     * @param integer $id City ID passed through URL, if -1 = ignore city
      */
     public function simpleRead(Request $request, $id) {
-        $city = City::find($id);
-        $warehouses = [];
-
-        if ($city == null) {
-            return response('Міста не знайдено', 404);
-        }
-
         $data = $request->validate([
             "nameFilterValue" => "string|nullable",
         ]);
 
-        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $query = $city->warehouses()->orderBy('name', 'asc');
-        } else {
-            $query = $city->warehouses()
-                ->where('name', 'like', "%{$data["nameFilterValue"]}%")
-                ->orderBy('name', 'asc');
+        //if we are using city_id
+        if ($id != -1) {
+            $city = City::find($id);
+            $warehouses = [];
+
+            if ($city == null) return response('Міста не знайдено', 404);
+
+            if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+                $query = $city->warehouses()->orderBy('name', 'asc');
+            } else {
+                $query = $city->warehouses()
+                    ->where('name', 'like', "%{$data["nameFilterValue"]}%")
+                    ->orderBy('name', 'asc');
+            }
+        }
+
+        //if we are not using city_id
+        if ($id == -1) {
+            $query = DB::table("warehouses")
+            ->select(
+                "warehouses.id AS id",
+                "countries.name AS country_name",
+                "cities.name AS city_name",
+                "warehouses.name AS name",
+                "warehouses.address AS address",
+                "warehouses.description AS description",
+            )
+            ->join("countries", "countries.id", "=", "warehouses.country_id")
+            ->join("cities", "cities.id", "=", "warehouses.city_id")
+            ->where("countries.name", "like", "%{$data["nameFilterValue"]}%")
+            ->orWhere("cities.name", "like", "%{$data["nameFilterValue"]}%")
+            ->orWhere("warehouses.name", "like", "%{$data["nameFilterValue"]}%")
+            ->orWhere("warehouses.address", "like", "%{$data["nameFilterValue"]}%")
+            ->orWhere("warehouses.description", "like", "%{$data["nameFilterValue"]}%")
+            ->orderBy("countries.name", "asc")
+            ->orderBy("cities.name", "asc")
+            ->orderBy("warehouses.name", "asc")
+            ->orderBy("warehouses.address", "asc")
+            ->orderBy("warehouses.description", "asc");
         }
 
         $warehouses = $query->limit(5)->get();
@@ -180,16 +209,23 @@ class WarehouseController extends Controller
         return response("Не знайдено", 404);
     }
 
+    /**
+     * Delete section (row) from DB by ID
+     *
+     * @param Request $request
+     * @param integer $id Passed through URL
+     *
+     * @return Response
+     */
     public function delete(Request $request, $id) {
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section) {
-            $section->delete();
-            return response("OK", 200);
-        }
+        if ($section == null) return response("Not found", 404);
+        if (count($section->items()) > 0) return response("warehouse_is_used", 422);
 
-        return response("Не знайдено", 404);
+        $section->delete();
+        return response("OK", 200);
     }
 
     private function getWhereOperator($operatorName) {

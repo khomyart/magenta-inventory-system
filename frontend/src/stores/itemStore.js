@@ -40,6 +40,9 @@ export const useItemStore = defineStore("item", {
         isShown: false,
         isLoading: false,
       },
+      warehouse: {
+        isShown: false,
+      },
     },
     data: {
       isItemsLoading: false,
@@ -47,6 +50,7 @@ export const useItemStore = defineStore("item", {
       lastPage: 0,
       updatedItemId: 0,
       isItemDataLoading: false,
+      updatedItemIndexInArray: -1,
     },
   }),
   getters: {},
@@ -211,112 +215,110 @@ export const useItemStore = defineStore("item", {
         });
     },
     delete(id) {
-      // this.dialogs.delete.isLoading = true;
-      // api
-      //   .delete(`/${sectionName}/${id}`)
-      //   .then(() => {
-      //     let perPage = appConfigStore.amountOfItemsPerPages[sectionName];
-      //     let currentPage = appConfigStore.currentPages[sectionName];
-      //     if (
-      //       this.data.amountOfItems != 1 &&
-      //       this.data.lastPage == currentPage &&
-      //       perPage * currentPage - this.data.amountOfItems == 1
-      //     ) {
-      //       appConfigStore.currentPages[sectionName] -= 1;
-      //     } else {
-      //       this.receive();
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     appConfigStore.catchRequestError(err);
-      //   })
-      //   .finally(() => {
-      //     this.dialogs.delete.isLoading = false;
-      //     this.dialogs.delete.isShown = false;
-      //   });
+      this.dialogs.delete.isLoading = true;
+      api
+        .delete(`/${sectionName}/${id}`)
+        .then(() => {
+          let perPage = appConfigStore.amountOfItemsPerPages[sectionName];
+          let currentPage = appConfigStore.currentPages[sectionName];
+          if (
+            this.data.amountOfItems != 1 &&
+            this.data.lastPage == currentPage &&
+            perPage * currentPage - this.data.amountOfItems == 1
+          ) {
+            appConfigStore.currentPages[sectionName] -= 1;
+          } else {
+            this.receive();
+          }
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.delete.isLoading = false;
+          this.dialogs.delete.isShown = false;
+        });
     },
     receive() {
       appConfigStore.updateLocalStorageConfig();
       this.items = [];
       this.data.isItemsLoading = true;
       console.log("received items");
+      let preparedParams = {
+        itemsPerPage: appConfigStore.amountOfItemsPerPages[sectionName],
+        page: appConfigStore.currentPages[sectionName],
+        //article
+        articleFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.article.value,
+        articleFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.article
+            .filterMode.value,
+        //title
+        titleFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.title.value,
+        titleFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.title
+            .filterMode.value,
+        //type
+        typeFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.type.value,
+        typeFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.type
+            .filterMode.value,
+        //type
+        priceFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.price.value,
+        priceFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.price
+            .filterMode.value,
+        //gender
+        genderFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.gender.value,
+        genderFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.gender
+            .filterMode.value,
+        //size
+        sizeFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.size.value,
+        sizeFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.size
+            .filterMode.value,
+        //color
+        colorFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.color.value,
+        colorFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.color
+            .filterMode.value,
+        //amount
+        amountFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.amount.value,
+        amountFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.amount
+            .filterMode.value,
+        //units
+        unitsFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.units.value,
+        unitsFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.units
+            .filterMode.value,
+        //order field info
+        orderField:
+          appConfigStore.filters.data[sectionName].selectedParams.order.field,
+        orderValue:
+          appConfigStore.filters.data[sectionName].selectedParams.order.value,
+      };
+
+      if (
+        appConfigStore.filters.data[sectionName].selectedParams.warehouse !=
+        null
+      ) {
+        preparedParams.warehouseId =
+          appConfigStore.filters.data[sectionName].selectedParams.warehouse.id;
+      }
+
       api
         .get(`/${sectionName}`, {
-          params: {
-            itemsPerPage: appConfigStore.amountOfItemsPerPages[sectionName],
-            // page: 1,
-            page: appConfigStore.currentPages[sectionName],
-            //article
-            articleFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.article
-                .value,
-            articleFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.article
-                .filterMode.value,
-            //title
-            titleFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.title
-                .value,
-            titleFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.title
-                .filterMode.value,
-            //type
-            typeFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.type
-                .value,
-            typeFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.type
-                .filterMode.value,
-            //type
-            priceFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.price
-                .value,
-            priceFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.price
-                .filterMode.value,
-            //gender
-            genderFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.gender
-                .value,
-            genderFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.gender
-                .filterMode.value,
-            //size
-            sizeFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.size
-                .value,
-            sizeFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.size
-                .filterMode.value,
-            //color
-            colorFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.color
-                .value,
-            colorFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.color
-                .filterMode.value,
-            //amount
-            amountFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.amount
-                .value,
-            amountFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.amount
-                .filterMode.value,
-            //units
-            unitsFilterValue:
-              appConfigStore.filters.data[sectionName].selectedParams.units
-                .value,
-            unitsFilterMode:
-              appConfigStore.filters.data[sectionName].selectedParams.units
-                .filterMode.value,
-            //order field info
-            orderField:
-              appConfigStore.filters.data[sectionName].selectedParams.order
-                .field,
-            orderValue:
-              appConfigStore.filters.data[sectionName].selectedParams.order
-                .value,
-          },
+          params: { ...preparedParams },
         })
         .then((res) => {
           console.log(res);
@@ -331,8 +333,9 @@ export const useItemStore = defineStore("item", {
           this.data.isItemsLoading = false;
         });
     },
-    receiveItem(id) {
+    receiveItem(id, arrayIndex) {
       this.data.isItemDataLoading = true;
+      this.data.updatedItemIndexInArray = arrayIndex;
       api
         .get(`/${sectionName}/${id}`)
         .then((res) => {
@@ -355,6 +358,7 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.data.isItemDataLoading = false;
+          this.data.updatedItemIndexInArray = -1;
         });
     },
   },

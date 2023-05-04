@@ -8,7 +8,7 @@ Route::get('/warehouses', [WarehouseController::class,'read'])
 ->middleware('api.authorization:read,warehouses');
 
 Route::get('/city/{id}/warehouses', [WarehouseController::class,'simpleRead'])
-->middleware('api.authorization:read,warehouses')->whereNumber('id');
+->middleware('api.authorization:read,warehouses')->where('id', '^-?[0-9]+');
 
 Route::patch('/warehouses/{id}', [WarehouseController::class,'update'])
 ->middleware('api.authorization:update,warehouses')->whereNumber('id');

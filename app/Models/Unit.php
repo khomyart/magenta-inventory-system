@@ -11,4 +11,8 @@ class Unit extends Model
 
     protected $fillable = ['name', 'description'];
     protected $hidden = ['created_at', 'updated_at'];
+
+    public function items() {
+        return $this->belongsTo(Item::class, "id", "unit_id");
+    }
 }

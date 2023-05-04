@@ -11,4 +11,8 @@ class Gender extends Model
 
     protected $fillable = ["name", "number_in_row"];
     protected $hidden = ["created_at", "updated_at"];
+
+    public function items() {
+        return $this->belongsTo(Item::class, "id", "gender_id");
+    }
 }

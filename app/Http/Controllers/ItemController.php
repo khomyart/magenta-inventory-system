@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Image;
 use App\Models\Batch;
+use App\Models\ItemWarehouseAmount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -42,6 +43,7 @@ class ItemController extends Controller
             "itemsPerPage" => "required|numeric",
             "page" => "required|numeric",
             "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
+            "warehouseId" => "nullable|numeric|gte:0",
         ];
 
         foreach ($this->readFieldsFromFrontend as $key => $field) {
@@ -97,7 +99,7 @@ class ItemController extends Controller
             "colors.description AS color", //extra field for ordering
             "colors.value AS color_value",
             "colors.text_color_value AS text_color_value",
-            DB::raw('SUM(batches.amount_of_items) AS amount'),
+            DB::raw('SUM(item_warehouse_amounts.amount) AS amount'),
             "units.name AS unit_name",
             "units.name AS units", //extra field for ordering
             "units.description AS unit_description",
@@ -107,7 +109,7 @@ class ItemController extends Controller
         ->leftJoin('genders', 'items.gender_id', '=', 'genders.id')
         ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
         ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
-        ->leftJoin('batches', 'items.id', '=', 'batches.item_id');
+        ->leftJoin('item_warehouse_amounts', 'items.id', '=', 'item_warehouse_amounts.item_id');
 
         //forming 'WHERE' query for each field
         foreach ($this->readFieldsInDB as $key => $field) {
@@ -204,6 +206,14 @@ class ItemController extends Controller
             }
         }
 
+        /**
+         * special WHERE condition in case of activating
+         * a "searching by warehouse" mode
+         */
+        if (!empty($data["warehouseId"])) {
+            $section->where("item_warehouse_amounts.warehouse_id", $data["warehouseId"]);
+        }
+
         $section->groupBy('items.id');
 
         //forming 'HAVING' query for "amount" field
@@ -215,7 +225,7 @@ class ItemController extends Controller
             && $amountSearchOperator !== "like"
             && $amountSearchOperator !== "notLike"
         ) {
-            $section->havingRaw("SUM(batches.amount_of_items) {$amountSearchOperator} ?", [$amountFilterValue]);
+            $section->havingRaw("SUM(item_warehouse_amounts.amount_of_items) {$amountSearchOperator} ?", [$amountFilterValue]);
         }
 
         //forming 'HAVING' query for "price" field
@@ -251,7 +261,6 @@ class ItemController extends Controller
     }
 
     public function create(Request $request) {
-        // return response()->json($request->input());
         $sectionModel = $this->getSectionModel();
 
         $itemData = $request->validate([
@@ -271,8 +280,8 @@ class ItemController extends Controller
             "warehouses" => "nullable",
             "warehouses.*.id" => "required|numeric",
             "warehouses.*.batches" => "required",
-            "warehouses.*.batches.*.amount" => "required|numeric",
-            "warehouses.*.batches.*.price" => "required|numeric",
+            "warehouses.*.batches.*.amount" => "required|numeric|gte:1",
+            "warehouses.*.batches.*.price" => "required|numeric|gte:1",
             "warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
         ]);
 
@@ -283,6 +292,18 @@ class ItemController extends Controller
 
         $warehousesData = !empty($warehousesData) ? $warehousesData["warehouses"] : [];
         $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
+
+        $matchingItems = Item::where("article", $itemData["article"])
+        ->where("title", $itemData["title"])
+        ->where("type_id", $itemData["type_id"]);
+        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
+        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
+        $matchingItems->where("gender_id", $itemData["gender_id"]);
+        $matchingItems->where("size_id", $itemData["size_id"]);
+        $matchingItems->where("color_id", $itemData["color_id"]);
+        $matchingItems = $matchingItems->get();
+        if (count($matchingItems) > 0) return response("item_already_exists", 422);
 
         //create an item
         $item = Item::create($itemData);
@@ -297,9 +318,10 @@ class ItemController extends Controller
                 ]);
             }
 
-            //pricessing warehouses info
-
+            //processing warehouses info
             foreach ($warehousesData as $key => $warehouse) {
+                $amountOfItemPerWarehouse = 0;
+
                 foreach ($warehouse["batches"] as $key => $batch) {
                     Batch::create([
                         "item_id" => $item->id,
@@ -307,6 +329,21 @@ class ItemController extends Controller
                         "price_per_item" => $batch["price"],
                         "currency" => $batch["currency"],
                         "amount_of_items" => $batch["amount"],
+                    ]);
+                    $amountOfItemPerWarehouse += $batch["amount"];
+                }
+
+                $matchingItemWarehouseCombination = ItemWarehouseAmount::where("item_id", $item->id)
+                ->where("warehouse_id", $warehouse["id"])->first();
+
+                if ($matchingItemWarehouseCombination != null) {
+                    $matchingItemWarehouseCombination->amount += $amountOfItemPerWarehouse;
+                    $matchingItemWarehouseCombination->save();
+                } else {
+                    ItemWarehouseAmount::create([
+                        "item_id" => $item->id,
+                        "warehouse_id" => $warehouse["id"],
+                        "amount" => $amountOfItemPerWarehouse,
                     ]);
                 }
             }
@@ -367,6 +404,19 @@ class ItemController extends Controller
         ]);
         $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
 
+        $matchingItems = Item::where("id", "<>", $id)
+        ->where("article", $itemData["article"])
+        ->where("title", $itemData["title"])
+        ->where("type_id", $itemData["type_id"]);
+        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
+        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
+        $matchingItems->where("gender_id", $itemData["gender_id"]);
+        $matchingItems->where("size_id", $itemData["size_id"]);
+        $matchingItems->where("color_id", $itemData["color_id"]);
+        $matchingItems = $matchingItems->get();
+        if (count($matchingItems) > 0) return response("item_already_exists", 422);
+
         $item->article = $itemData["article"];
         $item->title = $itemData["title"];
         $item->price = $itemData["price"];
@@ -396,6 +446,54 @@ class ItemController extends Controller
             ]);
         }
 
+        return response($this->getUpdatedItem($item->id));
+    }
+
+    public function delete(Request $request, $id) {
+        $sectionModel = $this->getSectionModel();
+        $item = $sectionModel::find($id);
+
+        if ($item === null) return response("Предмет не знайдено", 404);
+
+        $amountOfItem = $this->getAmountOfItem($item->id);
+
+        if ($amountOfItem != null || $amountOfItem > 0) {
+            return response("item_exists_in_warehouses", 422);
+        }
+
+        foreach($item->images as $key => $image) {
+            Storage::disk('images')->delete($image->src);
+            $image->delete();
+        }
+        $item->delete();
+
+        return response("OK", 200);
+    }
+
+    private function getWhereOperator($operatorName) {
+        $equality = [
+            "include" => "like",
+            "exclude" => "notLike",
+            "more" => ">",
+            "less" => "<",
+            "equal"=> "=",
+            "notequal" => "<>"
+        ];
+
+        return $equality[$operatorName];
+    }
+    /**
+     * @return array with currencies (EUR, USD)
+     *
+     * date - yyyymm
+     * currencyCode - USD|EUR|etc...
+     */
+    private function getNbuCurrencyExchangeCourse($date, $currencyCode) {
+        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={$currencyCode}&date={$date}&json");
+        return json_decode($response, true)[0]["rate"];
+    }
+
+    private function getUpdatedItem($id) {
         $today = Carbon::now()->format("Ymd");
         $section = DB::table($this->section);
         $section->select(
@@ -442,41 +540,42 @@ class ItemController extends Controller
         ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
         ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
         ->leftJoin('batches', 'items.id', '=', 'batches.item_id')
-        ->where("items.id", $item->id);
+        ->where("items.id", $id);
         $updatedItem = $section->get()[0];
         $updatedItem = json_decode(json_encode($updatedItem), true);
 
         //binding images to updated item
         $updatedItem["images"] = Image::where("item_id", $updatedItem["id"])->orderBy("number_in_row", "asc")->get();
-
-        return response($updatedItem);
+        return $updatedItem;
     }
 
-    public function delete(Request $request, $id) {
-        return;
-    }
-
-    private function getWhereOperator($operatorName) {
-        $equality = [
-            "include" => "like",
-            "exclude" => "notLike",
-            "more" => ">",
-            "less" => "<",
-            "equal"=> "=",
-            "notequal" => "<>"
-        ];
-
-        return $equality[$operatorName];
-    }
     /**
-     * @return array with currencies (EUR, USD)
+     * Calculates how much item do we have in general,
+     * or in particular warehouse
      *
-     * date - yyyymm
-     * currencyCode - USD|EUR|etc...
+     * @param integer   $itemId        ID of item from "items" table
+     * @param integer   $warehouseId   ID of warehouse from "warehouses" table
+     *
+     * @return null     No records found in "item_warehouse_amount" table
+     * @return integer  Amount of items according to records in "item_warehouse_amount" table
      */
-    private function getNbuCurrencyExchangeCourse($date, $currencyCode) {
-        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={$currencyCode}&date={$date}&json");
-        return json_decode($response, true)[0]["rate"];
+    private function getAmountOfItem($itemId, $warehouseId = null) {
+        $amountOfItem = DB::table($this->section)
+        ->selectRaw("SUM(item_warehouse_amounts.amount) as amount")
+        ->leftJoin("item_warehouse_amounts", "item_warehouse_amounts.item_id", "=", "items.id")
+        ->where("items.id", $itemId);
+
+        if ($warehouseId != null) {
+            $amountOfItem->where("item_warehouse_amounts.warehouse_id", $warehouseId);
+        } else {
+            $amountOfItem->groupBy("item_warehouse_amounts.item_id");
+        }
+
+        $amountOfItem =
+            $amountOfItem->get()[0]->amount != null
+            ? intval($amountOfItem->get()[0]->amount) : null;
+
+        return $amountOfItem;
     }
 
 }

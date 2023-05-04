@@ -9,7 +9,15 @@
   >
     <td class="item-cell">
       <div>
-        <q-btn icon="list" round flat>
+        <q-btn
+          icon="list"
+          round
+          flat
+          :loading="
+            props.sectionStore.data.isItemDataLoading &&
+            props.sectionStore.data.updatedItemIndexInArray == props.index
+          "
+        >
           <q-menu :offset="[5, 5]">
             <q-list style="min-width: 100px">
               <q-item
@@ -27,7 +35,13 @@
                 v-if="props.allowenses.update == true"
                 clickable
                 v-close-popup
-                @click="$emit('getInfoAboutCurrentItem', props.itemInfo.id)"
+                @click="
+                  $emit(
+                    'getInfoAboutCurrentItem',
+                    props.itemInfo.id,
+                    props.index
+                  )
+                "
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>
@@ -42,7 +56,7 @@
                   $emit(
                     'showRemoveDialog',
                     props.itemInfo.id,
-                    props.itemInfo.name
+                    props.itemInfo.title
                   )
                 "
               >
@@ -185,7 +199,7 @@
     <td class="item-cell">
       <div>
         <div
-          v-if="props.itemInfo.gender != null"
+          v-if="props.itemInfo.amount != null && props.itemInfo.amount != 0"
           style="cursor: pointer"
           @click="$emit('copyValue', props.itemInfo.amount, 'Кількість')"
         >
@@ -300,6 +314,8 @@ const props = defineProps([
   "updated",
   "allowenses",
   "appStore",
+  "sectionStore",
+  "index",
 ]);
 
 let isUpdated = ref(false);

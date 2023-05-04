@@ -135,16 +135,23 @@ class ColorController extends Controller
         return response("Не знайдено", 404);
     }
 
+    /**
+     * Delete section (row) from DB by ID
+     *
+     * @param Request $request
+     * @param integer $id Passed through URL
+     *
+     * @return Response
+     */
     public function delete(Request $request, $id) {
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section) {
-            $section->delete();
-            return response("OK", 200);
-        }
+        if ($section == null) return response("Not found", 404);
+        if ($section->items != null) return response("color_is_used", 422);
 
-        return response("Не знайдено", 404);
+        $section->delete();
+        return response("OK", 200);
     }
 
     private function getWhereOperator($operatorName) {

@@ -261,8 +261,8 @@ function warehouseFilter(val, update, abort) {
     loadingStates.warehouse = true;
     warehouseStore.simpleItems = [];
     warehouseStore.simpleReceive(
-      sectionStore.newItem.availableIn[props.index].city.id,
       val,
+      sectionStore.newItem.availableIn[props.index].city.id,
       loadingStates
     );
   });

@@ -155,7 +155,9 @@ export const useGenderStore = defineStore("gender", {
         .then((res) => {
           this.simpleItems = res.data;
         })
-        .catch()
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
         .finally(() => {
           this.data.isItemsLoading = false;
         });

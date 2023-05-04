@@ -23,7 +23,9 @@ export const useCityStore = defineStore("city", {
         .then((res) => {
           this.items = res.data;
         })
-        .catch()
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
         .finally(() => {
           if (loadingStates != null) {
             loadingStates.city = false;

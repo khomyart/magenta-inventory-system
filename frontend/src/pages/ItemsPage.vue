@@ -33,45 +33,7 @@
         </q-tooltip>
       </q-btn>
       <q-space></q-space>
-      <q-btn flat round color="white" text-color="black" icon="warehouse">
-        <q-badge color="red" floating rounded> </q-badge>
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="center left"
-          self="center right"
-          :offset="[10, 10]"
-        >
-          Пошук за складами
-        </q-tooltip>
-        <q-menu self="bottom middle" :offset="[-20, -50]">
-          <q-list style="min-width: 150px">
-            <q-item clickable v-close-popup>
-              <q-item-section>New tab</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>New incognito tab</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Recent tabs</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>History</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup>
-              <q-item-section>Downloads</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Settings</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup>
-              <q-item-section>Help &amp; Feedback</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
-      </q-btn>
+      <FilterByWarehouseComponent />
       <q-separator vertical class="q-mx-sm"></q-separator>
       <q-btn flat round color="black" icon="arrow_downward">
         <q-tooltip
@@ -203,6 +165,8 @@
             :gap="1"
             :updated="item.id == sectionStore.data.updatedItemId"
             :appStore="appStore"
+            :sectionStore="sectionStore"
+            :index="index"
           />
         </template>
       </table>
@@ -229,7 +193,26 @@
         />
       </div>
       <div class="footer-right-part q-mr-md">
-        Кількість: {{ sectionStore.data.amountOfItems }}
+        <button
+          @click="sectionStore.dialogs.warehouse.isShown = true"
+          v-if="
+            appStore.filters.data[currentSection].selectedParams.warehouse !=
+            null
+          "
+          class="warehouse-description-button"
+        >
+          {{ itemsSearchingSource }}
+        </button>
+        <span
+          class="q-px-md q-mr-md"
+          v-if="
+            appStore.filters.data[currentSection].selectedParams.warehouse ==
+            null
+          "
+          >{{ itemsSearchingSource }}</span
+        >
+        Кількість:
+        {{ sectionStore.data.amountOfItems }}
       </div>
     </div>
     <!--CREATING DIALOG-->
@@ -247,7 +230,7 @@
         </q-card-section>
         <q-separator></q-separator>
         <q-card-section style="width: 350px">
-          Ви справді бажаєте знищити вид: "{{ deletedItem.name }}"?
+          Ви справді бажаєте знищити предмет: "{{ deletedItem.title }}"?
         </q-card-section>
         <q-separator></q-separator>
         <q-card-actions align="right">
@@ -260,6 +243,64 @@
             :loading="sectionStore.dialogs.delete.isLoading"
             ><b>Так</b></q-btn
           >
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <!-- WAREHOUSE INFO DIALOG -->
+    <q-dialog
+      v-model="sectionStore.dialogs.warehouse.isShown"
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card style="width: 350px">
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon
+              size="md"
+              class="q-mr-sm"
+              name="warehouse"
+              color="black"
+            ></q-icon>
+            Склад
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+
+        <q-card-section class="q-pt-md">
+          <p>
+            Країна:
+            {{
+              appStore.filters.data.items.selectedParams.warehouse.country_name
+            }}
+          </p>
+          <p>
+            Місто:
+            {{ appStore.filters.data.items.selectedParams.warehouse.city_name }}
+          </p>
+          <p>
+            Вулиця:
+            <a
+              :href="`https://www.google.com.ua/maps/place/${appStore.filters.data.items.selectedParams.warehouse.address} ${appStore.filters.data.items.selectedParams.warehouse.city_name}`"
+              target="_blank"
+            >
+              {{ appStore.filters.data.items.selectedParams.warehouse.address }}
+            </a>
+          </p>
+          <p>
+            Назва:
+            {{ appStore.filters.data.items.selectedParams.warehouse.name }}
+          </p>
+          <p>
+            Опис:
+            {{
+              appStore.filters.data.items.selectedParams.warehouse.description
+            }}
+          </p>
+        </q-card-section>
+
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn flat color="black" v-close-popup>Гаразд</q-btn>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -279,6 +320,7 @@ import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";
 import PriceButtonComponent from "src/components/filter_bar/PriceButtonComponent.vue";
+import FilterByWarehouseComponent from "src/components/item/FilterByWarehouseComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();
@@ -387,15 +429,9 @@ const allowenses = {
   delete: appStore.allowenses.isValidFor("delete", currentSection),
 };
 
-let updatedItem = reactive({
-  id: "",
-  article: "",
-  name: "",
-});
-
 let deletedItem = reactive({
   id: "",
-  name: "",
+  title: "",
 });
 
 let tempFieldWidths = reactive({
@@ -430,9 +466,9 @@ function copyValue(value, paramName) {
   });
 }
 
-function showRemoveDialog(id, name) {
+function showRemoveDialog(id, title) {
   deletedItem.id = id;
-  deletedItem.name = name;
+  deletedItem.title = title;
   sectionStore.dialogs.delete.isShown = true;
 }
 
@@ -476,6 +512,19 @@ function setFilterOrder(field, fieldOrder) {
     order.combined = `${field}${fieldOrder}`;
   }
 }
+
+const itemsSearchingSource = computed(() => {
+  let itemsSearchingSource = "";
+  let warehouse =
+    appStore.filters.data[currentSection].selectedParams.warehouse;
+
+  itemsSearchingSource =
+    warehouse == null
+      ? "Всі склади"
+      : `${warehouse.name}, (${warehouse.address})`;
+
+  return itemsSearchingSource;
+});
 
 const computedFilterWidth = computed(() => {
   return {
@@ -553,6 +602,7 @@ watch(
     () => appStore.filters.data[currentSection].selectedParams.color.value,
     () => appStore.filters.data[currentSection].selectedParams.amount.value,
     () => appStore.filters.data[currentSection].selectedParams.units.value,
+    () => appStore.filters.data[currentSection].selectedParams.warehouse,
   ],
   () => {
     sectionStore.receive();
@@ -724,4 +774,17 @@ onMounted(() => {
 });
 </script>
 
-<style></style>
+<style scoped>
+.warehouse-description-button {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 2px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: all 0.1s ease-in;
+}
+.warehouse-description-button:hover {
+  background-color: rgba(255, 0, 217, 0.088);
+}
+</style>

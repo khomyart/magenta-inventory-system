@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 2,
+    version: 3,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
@@ -25,6 +25,12 @@ export const useAppConfigStore = defineStore("appConfig", {
           //seconds to logout while unauthenticated dialog is active
           secondsToLogout: 9,
           changingSecondsToLogout: 0,
+        },
+      },
+      response: {
+        dialog: {
+          isShown: false,
+          text: "",
         },
       },
     },
@@ -370,6 +376,7 @@ export const useAppConfigStore = defineStore("appConfig", {
               //watcherVariable
               combined: "",
             },
+            warehouse: null,
             article: {
               value: "",
               filterMode: {
@@ -535,6 +542,64 @@ export const useAppConfigStore = defineStore("appConfig", {
       ) {
         this.errors.reauth.data.attempt += 1;
         return;
+      }
+
+      //interactive errors (calls dialog window)
+      if (err.response.status === 422) {
+        if (err.response.data === "item_already_exists") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text = "Такий предмет вже існує";
+          return;
+        }
+
+        if (err.response.data === "item_exists_in_warehouses") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: предмет присутній на складах";
+          return;
+        }
+
+        if (err.response.data === "type_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: тип використовується у існуючих предметах";
+          return;
+        }
+
+        if (err.response.data === "size_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: розмір використовується у існуючих предметах";
+          return;
+        }
+
+        if (err.response.data === "gender_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: гендер використовується у існуючих предметах";
+          return;
+        }
+
+        if (err.response.data === "color_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: колір використовується у існуючих предметах";
+          return;
+        }
+
+        if (err.response.data === "warehouse_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: склад повинен бути пустий";
+          return;
+        }
+
+        if (err.response.data === "unit_is_used") {
+          this.errors.response.dialog.isShown = true;
+          this.errors.response.dialog.text =
+            "Неможливо видалити: одиниця використовується у існуючих предметах";
+          return;
+        }
       }
     },
     updateLocalStorageConfig() {

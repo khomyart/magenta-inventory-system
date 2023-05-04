@@ -264,6 +264,31 @@
       </q-form>
     </q-card>
   </q-dialog>
+
+  <q-dialog
+    v-model="store.app.errors.response.dialog.isShown"
+    transition-show="scale"
+    transition-hide="scale"
+  >
+    <q-card style="width: 350px">
+      <q-card-section>
+        <div class="text-h6 flex items-center">
+          <q-icon size="md" class="q-mr-sm" name="error" color="red"></q-icon>
+          Помилка
+        </div>
+      </q-card-section>
+      <q-separator></q-separator>
+
+      <q-card-section class="q-pt-md">
+        {{ store.app.errors.response.dialog.text }}
+      </q-card-section>
+
+      <q-separator></q-separator>
+      <q-card-actions align="right">
+        <q-btn flat color="black" v-close-popup>Гаразд</q-btn>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>

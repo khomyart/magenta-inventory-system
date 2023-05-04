@@ -19,4 +19,8 @@ class Warehouse extends Model
     public function city() {
         return $this->belongsTo(City::class, 'city_id', 'id');
     }
+
+    public function items() {
+        return ItemWarehouseAmount::where("warehouse_id", $this->id)->get();
+    }
 }

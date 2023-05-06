@@ -69,12 +69,21 @@
           <td :width="60"></td>
           <td :width="computedFilterWidth.fields.separator"></td>
           <template v-for="(item, index) in fieldsSequance" :key="index">
-            <td :width="computedFilterWidth.fields[fieldsSequance[index]]"></td>
+            <td
+              v-if="index != fieldsSequance.length - 1"
+              :width="computedFilterWidth.fields[fieldsSequance[index]]"
+            ></td>
             <td
               v-if="index != fieldsSequance.length - 1"
               :width="computedFilterWidth.fields.separator"
             ></td>
-            <td v-else :width="computedFilterWidth.fields.lastSeparator"></td>
+            <td
+              v-if="index == fieldsSequance.length - 1"
+              :width="
+                computedFilterWidth.fields[fieldsSequance[index]] +
+                computedFilterWidth.fields.lastSeparator
+              "
+            ></td>
           </template>
         </tr>
         <template v-for="(item, index) in sectionStore.items" :key="index">
@@ -89,9 +98,14 @@
               delete: allowenses.delete,
             }"
             :itemInfo="item"
-            :gap="5"
+            :gap="appStore.other.visualTheme.gapsBetweenItems[currentSection]"
             :updated="item.id == sectionStore.data.updatedItemId"
             :sectionStore="sectionStore"
+            :isFirst="index == 0"
+            :isLast="index == sectionStore.items.length - 1"
+            :itemsBorderRadius="
+              appStore.other.visualTheme.itemsBorderRadius[currentSection]
+            "
             :isMoveAllowed="
               appStore.filters.data.types.selectedParams.order.value === '' &&
               appStore.filters.data.types.selectedParams.article.value === '' &&
@@ -239,8 +253,8 @@ const fieldsDetails = [
     },
   },
   {
-    label: "Вид",
-    searchBarLabel: "Значення виду",
+    label: "Назва",
+    searchBarLabel: "Назва виду",
     type: "universal",
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
@@ -356,7 +370,7 @@ const computedFilterWidth = computed(() => {
       article: appStore.filters.data[currentSection].width.dynamic.article,
       name: appStore.filters.data[currentSection].width.dynamic.name,
       separator: appStore.filters.availableParams.separatorWidth,
-      lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 1,
+      lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 2,
     },
   };
 });

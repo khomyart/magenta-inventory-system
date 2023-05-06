@@ -6,7 +6,7 @@ use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use App\Helpers\AuthAPI;
+use App\Helpers\ErrorHandler;
 
 class ColorController extends Controller
 {
@@ -109,6 +109,23 @@ class ColorController extends Controller
 
         $data = $request->validate($rules);
 
+        /**
+         * Validate input data for uniqueness
+         */
+        if ($this->isItemExists($data))
+            return ErrorHandler::responseWith("Неможливо створити: такий колір вже існує");
+
+        $dataForSecondaryValidation = [
+            ["value", "головний колір", $data["value"]],
+            ["article", "артикль", $data["article"]],
+            ["description", "опис", $data["description"]],
+        ];
+
+        foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation) as $key => $field) {
+            if ($field["isUnique"] == false)
+                return ErrorHandler::responseWith("Неможливо створити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+        }
+
         return $sectionModel::create($data);
     }
 
@@ -124,6 +141,20 @@ class ColorController extends Controller
         $section = $sectionModel::find($id);
 
         if ($section) {
+            if ($this->isItemExists($data, $id))
+                return ErrorHandler::responseWith("Неможливо оновити: такий колір вже існує");
+
+            $dataForSecondaryValidation = [
+                ["value", "головний колір", $data["value"]],
+                ["article", "артикль", $data["article"]],
+                ["description", "опис", $data["description"]],
+            ];
+
+            foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation, $id) as $key => $field) {
+                if ($field["isUnique"] == false)
+                    return ErrorHandler::responseWith("Неможливо оновити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+            }
+
             foreach ($this->fields as $key => $field) {
                 $section->{$field} = $data[$field];
             }
@@ -132,7 +163,7 @@ class ColorController extends Controller
             return response($section);
         }
 
-        return response("Не знайдено", 404);
+        return ErrorHandler::responseWith("Колір не знайдено", 404);
     }
 
     /**
@@ -147,8 +178,10 @@ class ColorController extends Controller
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section == null) return response("Not found", 404);
-        if ($section->items != null) return response("color_is_used", 422);
+        if ($section == null)
+            return ErrorHandler::responseWith("Колір не знайдено", 404);
+        if ($section->items != null)
+            return ErrorHandler::responseWith("Неможливо видалити: колір використовується в існуючих предметах", 422);
 
         $section->delete();
         return response("OK", 200);
@@ -165,5 +198,76 @@ class ColorController extends Controller
         ];
 
         return $equality[$operatorName];
+    }
+
+    /**
+     * Checks if item with same characteristic does
+     * exist in "types" table. If passing ID - ignore its value while
+     * filtering (where id <> $ID) to avoid update item collision
+     * (looks for similarity in items wich are different from item
+     * with passed ID)
+     *
+     * @param integer  $id        Item ID (for update case), null - default value
+     * @param array    $itemData  Contains validated values from request
+     *
+     * @return boolean Is item with passed params exists in "types" table
+     */
+    private function isItemExists($itemData, $id = null) {
+        $sectionModel = $this->getSectionModel();
+        $matchingItems = $sectionModel::
+          where("value", $itemData["value"])
+        ->where("article", $itemData["article"])
+        ->where("description", $itemData["description"]);
+
+        if ($id != null) $matchingItems->where("id", "<>", $id);
+
+        $matchingItems = $matchingItems->get();
+
+        return count($matchingItems) > 0 ? true : false;
+    }
+
+    /**
+     * Helps to get more control on fields uniqueness validation
+     *
+     * @param array    $data  Structure - [ [fieldName, fieldNameTranslation, fieldValue], [...] ]
+     * @param integer  $id    Item ID (in case of updating)
+     *
+     * @return array   Structure - [ [isUnique: boolean
+     *                                name: [
+     *                                        original: string
+     *                                        translation: string
+     *                                      ]
+     *                                value: mixed], [...] ]
+     */
+    private function isItemFieldsValuesAreUnique($data, $id = null) {
+        $result = [];
+        $sectionModel = $this->getSectionModel();
+
+        foreach ($data as $key => $field) {
+            $query =
+                $sectionModel::where($field[0], $field[2]);
+            /**
+             * Exclude item itself from validation, if $id
+             * is passed through
+             */
+            if ($id != null) $query->where("id", "<>", $id);
+            $queryResult = $query->get();
+            /**
+             * Deciding is field value unique
+             */
+            $isUnique = true;
+            if (count($queryResult) > 0) $isUnique = false;
+
+            $result[] = [
+                "isUnique" => $isUnique,
+                "name" => [
+                    "original" => $field[0],
+                    "translation" => $field[1],
+                ],
+                "value" => $field[2]
+            ];
+        }
+
+        return $result;
     }
 }

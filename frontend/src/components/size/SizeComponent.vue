@@ -8,7 +8,23 @@
     :id="`item${props.itemInfo.id}`"
   >
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst && !props.isLast
+                ? `${props.itemsBorderRadius}px 0 0 0`
+                : !props.isFirst && props.isLast
+                ? `0 0 0 ${props.itemsBorderRadius}px`
+                : props.isFirst && props.isLast
+                ? `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`
+                : ``
+              : `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`,
+        }"
+      >
         <q-btn
           v-if="
             props.allowenses.update == true || props.allowenses.delete == true
@@ -84,9 +100,18 @@
         </q-btn>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.value, 'Значення')"
       >
@@ -95,9 +120,30 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst && !props.isLast
+                ? `0 ${props.itemsBorderRadius}px 0 0`
+                : !props.isFirst && props.isLast
+                ? `0 0 ${props.itemsBorderRadius}px 0`
+                : props.isFirst && props.isLast
+                ? `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`
+                : ``
+              : `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.description, 'Опис')"
       >
@@ -106,7 +152,6 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
   </tr>
 </template>
 
@@ -128,6 +173,9 @@ const props = defineProps([
   "allowenses",
   "sectionStore",
   "isMoveAllowed",
+  "isFirst",
+  "isLast",
+  "itemsBorderRadius",
 ]);
 let isUpdated = ref(false);
 

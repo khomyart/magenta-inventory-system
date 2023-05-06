@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Image;
 use App\Models\Batch;
+use App\Models\Type;
+use App\Models\Gender;
 use App\Models\ItemWarehouseAmount;
+use App\Helpers\ErrorHandler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -293,19 +296,62 @@ class ItemController extends Controller
         $warehousesData = !empty($warehousesData) ? $warehousesData["warehouses"] : [];
         $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
 
-        $matchingItems = Item::where("article", $itemData["article"])
-        ->where("title", $itemData["title"])
-        ->where("type_id", $itemData["type_id"]);
-        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
-        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
-        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
-        $matchingItems->where("gender_id", $itemData["gender_id"]);
-        $matchingItems->where("size_id", $itemData["size_id"]);
-        $matchingItems->where("color_id", $itemData["color_id"]);
-        $matchingItems = $matchingItems->get();
-        if (count($matchingItems) > 0) return response("item_already_exists", 422);
+        /**
+         * Is item creation allowed:
+         */
+        $validationItem = Item::where("article", $itemData["article"])->get();
 
-        //create an item
+        if (count($validationItem) > 0) {
+            $validationItem = $validationItem[0];
+            if ($validationItem["title"] != $itemData["title"]) {
+                return ErrorHandler::responseWith(
+                    "Неможливо створити: невірне значення характеристики \"назва\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$validationItem['title']}\")"
+                );
+            }
+
+            if ($validationItem["type_id"] != $itemData["type_id"]) {
+                $typeName = Type::find($validationItem["type_id"])->name;
+                return ErrorHandler::responseWith(
+                    "Неможливо створити: невірне значення характеристики \"вид\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$typeName}\")"
+                );
+            }
+
+            $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+
+            if ($validationItem["gender_id"] != $itemData["gender_id"]) {
+                $genderName = $validationItem["gender_id"] != null ?
+                         Gender::find($validationItem["gender_id"])->name : "відсутнє значення";
+                return ErrorHandler::responseWith(
+                    "Неможливо створити: невірне значення характеристики \"гендер\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$genderName}\")"
+                );
+            }
+        }
+
+        $validationItem = Item::where("title", $itemData["title"])->get();
+
+        if (count($validationItem) > 0) {
+            $validationItem = $validationItem[0];
+            if ($validationItem["article"] != $itemData["article"]) {
+                return ErrorHandler::responseWith(
+                    "Неможливо створити: невірне значення характеристики \"артикль\"
+                    для предмету з даною назвою.
+                    (Пропозиція: {$validationItem['article']})"
+                );
+            }
+        }
+
+        if ($this->isItemExists($itemData))
+            return ErrorHandler::responseWith("Такий предмет вже існує");
+
+        /**
+         * Create an item
+         */
         $item = Item::create($itemData);
 
         if ($item != null) {
@@ -355,7 +401,7 @@ class ItemController extends Controller
     public function getItemPreparedToUpdate(Request $request, $id) {
         $item = Item::find($id);
 
-        if ($item === null) return response("предмет не знайдено", 404);
+        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
 
         $item->type;
         $item->gender;
@@ -384,7 +430,7 @@ class ItemController extends Controller
         $sectionModel = $this->getSectionModel();
         $item = $sectionModel::find($id);
 
-        if ($item === null) return response("Предмет не знайдено", 404);
+        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено");
 
         $itemData = $request->validate([
             "article" => "required|string|max:10",
@@ -404,18 +450,60 @@ class ItemController extends Controller
         ]);
         $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
 
-        $matchingItems = Item::where("id", "<>", $id)
-        ->where("article", $itemData["article"])
-        ->where("title", $itemData["title"])
-        ->where("type_id", $itemData["type_id"]);
-        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
-        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
-        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
-        $matchingItems->where("gender_id", $itemData["gender_id"]);
-        $matchingItems->where("size_id", $itemData["size_id"]);
-        $matchingItems->where("color_id", $itemData["color_id"]);
-        $matchingItems = $matchingItems->get();
-        if (count($matchingItems) > 0) return response("item_already_exists", 422);
+        /**
+         * Is item update allowed:
+         */
+        $validationItem = Item::where("article", $itemData["article"])
+        ->where("id", "<>", $id)->get();
+
+        if (count($validationItem) > 0) {
+            $validationItem = $validationItem[0];
+            if ($validationItem["title"] != $itemData["title"]) {
+                return ErrorHandler::responseWith(
+                    "Неможливо оновити: невірне значення характеристики \"назва\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$validationItem['title']}\")"
+                );
+            }
+
+            if ($validationItem["type_id"] != $itemData["type_id"]) {
+                $typeName = Type::find($validationItem["type_id"])->name;
+                return ErrorHandler::responseWith(
+                    "Неможливо оновити: невірне значення характеристики \"вид\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$typeName}\")"
+                );
+            }
+
+            $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+
+            if ($validationItem["gender_id"] != $itemData["gender_id"]) {
+                $genderName = $validationItem["gender_id"] != null ?
+                         Gender::find($validationItem["gender_id"])->name : "відсутнє значення";
+                return ErrorHandler::responseWith(
+                    "Неможливо оновити: невірне значення характеристики \"гендер\"
+                    для предмету з даним артиклем.
+                    (Пропозиція: \"{$genderName}\")"
+                );
+            }
+        }
+
+        $validationItem = Item::where("title", $itemData["title"])
+        ->where("id", "<>", $id)->get();
+
+        if (count($validationItem) > 0) {
+            $validationItem = $validationItem[0];
+            if ($validationItem["article"] != $itemData["article"]) {
+                return ErrorHandler::responseWith(
+                    "Неможливо оновити: невірне значення характеристики \"артикль\"
+                    для предмету з даною назвою.
+                    (Пропозиція: {$validationItem['article']})"
+                );
+            }
+        }
+
+        if ($this->isItemExists($itemData, $id))
+            return ErrorHandler::responseWith("Такий предмет вже існує");
 
         $item->article = $itemData["article"];
         $item->title = $itemData["title"];
@@ -453,18 +541,19 @@ class ItemController extends Controller
         $sectionModel = $this->getSectionModel();
         $item = $sectionModel::find($id);
 
-        if ($item === null) return response("Предмет не знайдено", 404);
+        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено");
 
         $amountOfItem = $this->getAmountOfItem($item->id);
 
         if ($amountOfItem != null || $amountOfItem > 0) {
-            return response("item_exists_in_warehouses", 422);
+            return ErrorHandler::responseWith("Неможливо видалити: предмет присутній на складах");
         }
 
         foreach($item->images as $key => $image) {
             Storage::disk('images')->delete($image->src);
             $image->delete();
         }
+
         $item->delete();
 
         return response("OK", 200);
@@ -576,6 +665,46 @@ class ItemController extends Controller
             ? intval($amountOfItem->get()[0]->amount) : null;
 
         return $amountOfItem;
+    }
+
+    /**
+     * Checks if item with same characteristic does
+     * exist in "items" table. If passing ID - ignore its value while
+     * filtering (where id <> $ID) to avoid update item collision
+     * (looks for similarity in items wich are different from item
+     * with passed ID)
+     *
+     * @param integer  $id        Item ID (for update case), null - default value
+     * @param array    $itemData  Contains validated values from request
+     *
+     * @return boolean Is item with passed params exists in "items" table
+     */
+    private function isItemExists($itemData, $id = null) {
+        $sectionModel = $this->getSectionModel();
+        $matchingItems = $sectionModel::
+          where("article", $itemData["article"])
+        ->where("title", $itemData["title"])
+        ->where("type_id", $itemData["type_id"])
+        ->where("currency", $itemData["currency"]);
+
+        /**
+         * Nullable items additional validation
+         */
+        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
+        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
+        $matchingItems->where("gender_id", $itemData["gender_id"]);
+        $matchingItems->where("size_id", $itemData["size_id"]);
+        $matchingItems->where("color_id", $itemData["color_id"]);
+
+        /**
+         * if ID != null -> item "update" mode
+         */
+        if ($id != null) $matchingItems->where("id", "<>", $id);
+
+        $matchingItems = $matchingItems->get();
+
+        return count($matchingItems) > 0 ? true : false;
     }
 
 }

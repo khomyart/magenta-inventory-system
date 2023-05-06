@@ -8,7 +8,21 @@
     :id="`item${props.itemInfo.id}`"
   >
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst
+                ? `${props.itemsBorderRadius}px 0 0 0`
+                : props.isLast
+                ? `0 0 0 ${props.itemsBorderRadius}px`
+                : ``
+              : `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`,
+        }"
+      >
         <q-btn
           icon="list"
           round
@@ -70,9 +84,18 @@
         </q-btn>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.article, 'Артикль')"
       >
@@ -81,10 +104,19 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.title, 'Назву')"
       >
@@ -93,10 +125,19 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', priceForCopying, 'Ціну')"
       >
@@ -105,10 +146,19 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.type_name, 'Тип')"
       >
@@ -117,10 +167,20 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      >
         <div
           v-if="props.itemInfo.gender != null"
           style="cursor: pointer"
@@ -132,10 +192,20 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      >
         <div
           v-if="props.itemInfo.size_name != null"
           :id="`size-of-item-${props.itemInfo.id}`"
@@ -166,10 +236,21 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
-      <div class="item-color-container q-px-sm">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        class="item-color-container q-px-sm"
+      >
         <div
           v-if="props.itemInfo.color_article != null"
           :id="`color-of-item-${props.itemInfo.id}`"
@@ -194,10 +275,20 @@
         >
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      >
         <div
           v-if="props.itemInfo.amount != null && props.itemInfo.amount != 0"
           style="cursor: pointer"
@@ -209,10 +300,29 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
 
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst
+                ? `0 ${props.itemsBorderRadius}px 0 0`
+                : props.isLast
+                ? `0 0 ${props.itemsBorderRadius}px 0`
+                : ``
+              : `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.unit_name, 'Одиницю')"
       >
@@ -221,7 +331,6 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
   </tr>
 
   <q-dialog v-model="showImage" seamless>
@@ -316,6 +425,9 @@ const props = defineProps([
   "appStore",
   "sectionStore",
   "index",
+  "isFirst",
+  "isLast",
+  "itemsBorderRadius",
 ]);
 
 let isUpdated = ref(false);

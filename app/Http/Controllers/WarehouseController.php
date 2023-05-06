@@ -7,8 +7,7 @@ use App\Models\Country;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
-use App\Helpers\AuthAPI;
+use App\Helpers\ErrorHandler;
 
 class WarehouseController extends Controller
 {
@@ -118,6 +117,8 @@ class WarehouseController extends Controller
      *
      * @param Request
      * @param integer $id City ID passed through URL, if -1 = ignore city
+     *
+     * @return \Illuminate\Http\Response
      */
     public function simpleRead(Request $request, $id) {
         $data = $request->validate([
@@ -129,7 +130,8 @@ class WarehouseController extends Controller
             $city = City::find($id);
             $warehouses = [];
 
-            if ($city == null) return response('Міста не знайдено', 404);
+            if ($city == null)
+                return ErrorHandler::responseWith("Міста не знайдено", 404);
 
             if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
                 $query = $city->warehouses()->orderBy('name', 'asc');
@@ -180,6 +182,9 @@ class WarehouseController extends Controller
 
         $data = $request->validate($rules);
 
+        if ($this->isItemExists($data))
+            return ErrorHandler::responseWith("Неможливо створити: такий склад вже існує");
+
         return $sectionModel::create($data);
     }
 
@@ -195,18 +200,21 @@ class WarehouseController extends Controller
         $section = $sectionModel::find($id);
 
         if ($section) {
+            if ($this->isItemExists($data, $id))
+                return ErrorHandler::responseWith("Неможливо оновити: такий склад вже існує");
+
             foreach ($this->updateFieldsFromFrontend as $key => $field) {
                 $section->{$field} = $data[$field];
             }
+
             $section->save();
             $section->country;
             $section->city;
 
-
             return response($section);
         }
 
-        return response("Не знайдено", 404);
+        return ErrorHandler::responseWith("Склад не знайдено", 404);
     }
 
     /**
@@ -221,11 +229,41 @@ class WarehouseController extends Controller
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section == null) return response("Not found", 404);
-        if (count($section->items()) > 0) return response("warehouse_is_used", 422);
+        if ($section == null)
+            return ErrorHandler::responseWith("Склад не знайдено");
+        if (count($section->items()) > 0)
+            return ErrorHandler::responseWith("Неможливо видалити: склад повинен бути пустим");
 
         $section->delete();
+
         return response("OK", 200);
+    }
+
+    /**
+     * Checks if item with same characteristic does
+     * exist in "warehouses" table. If passing ID - ignore its value while
+     * filtering (where id <> $ID) to avoid update item collision
+     * (looks for similarity in items wich are different from item
+     * with passed ID)
+     *
+     * @param integer  $id    Item ID (for update case), null - default value
+     * @param array    $itemData  Contains validated values from request
+     *
+     * @return boolean Is item with passed params exists in "warehouses" table
+     */
+    private function isItemExists($itemData, $id = null) {
+        $sectionModel = $this->getSectionModel();
+        $matchingItems = $sectionModel::
+          where("country_id", $itemData["country_id"])
+        ->where("city_id", $itemData["city_id"])
+        ->where("address", $itemData["address"])
+        ->where("name", $itemData["name"]);
+
+        if ($id != null) $matchingItems->where("id", "<>", $id);
+
+        $matchingItems = $matchingItems->get();
+
+        return count($matchingItems) > 0 ? true : false;
     }
 
     private function getWhereOperator($operatorName) {

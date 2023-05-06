@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Helpers\AuthAPI;
+use App\Helpers\ErrorHandler;
 
 class EnsureRequestIsAuthorized
 {
@@ -20,19 +21,19 @@ class EnsureRequestIsAuthorized
         $auth = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
 
         if (!$auth) {
-            return response("Користувач не автентифікований", 403);
+            return ErrorHandler::responseWith("Користувач не автентифікований", 403);
         }
 
         if (!$auth->isAuthorizedFor($action, $section)) {
-            return response("Недостатньо повноважень", 401);
+            return ErrorHandler::responseWith("Недостатньо повноважень", 401);
         }
 
         if ($auth->isTokenExpired()) {
-            return response("tokenexpired", 422);
+            return ErrorHandler::responseWith("tokenexpired");
         }
 
         if ($auth->isUserAway()) {
-            return response("userisafk", 422);
+            return ErrorHandler::responseWith("userisafk");
         }
 
         $reqreatedToken = $auth->refreshAccessToken();

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 3,
+    version: 4,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
@@ -27,8 +27,12 @@ export const useAppConfigStore = defineStore("appConfig", {
           changingSecondsToLogout: 0,
         },
       },
-      response: {
-        dialog: {
+      responses: {
+        422: {
+          isShown: false,
+          text: "",
+        },
+        403: {
           isShown: false,
           text: "",
         },
@@ -508,6 +512,30 @@ export const useAppConfigStore = defineStore("appConfig", {
       units: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
+    other: {
+      visualTheme: {
+        //px
+        itemsBorderRadius: {
+          types: 7,
+          sizes: 7,
+          genders: 7,
+          colors: 7,
+          warehouses: 7,
+          units: 7,
+          items: 7,
+        },
+        //px
+        gapsBetweenItems: {
+          types: 0,
+          sizes: 0,
+          genders: 0,
+          colors: 0,
+          warehouses: 0,
+          units: 0,
+          items: 0,
+        },
+      },
+    },
   }),
   getters: {
     attemptsLeft: (state) =>
@@ -521,7 +549,8 @@ export const useAppConfigStore = defineStore("appConfig", {
     catchRequestError(err) {
       // 1) token expired or unauthenticated
       if (
-        (err.response.data === "tokenexpired" && err.response.status === 422) ||
+        (err.response.data.message === "tokenexpired" &&
+          err.response.status === 422) ||
         (this.errors.reauth.dialogs.renewPassword.isShown == false &&
           err.response.status == 403)
       ) {
@@ -530,7 +559,10 @@ export const useAppConfigStore = defineStore("appConfig", {
       }
 
       // 2) user is afk
-      if (err.response.data === "userisafk" && err.response.status === 422) {
+      if (
+        err.response.data.message === "userisafk" &&
+        err.response.status === 422
+      ) {
         this.errors.reauth.dialogs.renewPassword.isShown = true;
         return;
       }
@@ -544,63 +576,22 @@ export const useAppConfigStore = defineStore("appConfig", {
         return;
       }
 
-      //interactive errors (calls dialog window)
+      /**
+       * interactive errors (calls dialog window)
+       */
       if (err.response.status === 422) {
-        if (err.response.data === "item_already_exists") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text = "Такий предмет вже існує";
-          return;
-        }
-
-        if (err.response.data === "item_exists_in_warehouses") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: предмет присутній на складах";
-          return;
-        }
-
-        if (err.response.data === "type_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: тип використовується у існуючих предметах";
-          return;
-        }
-
-        if (err.response.data === "size_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: розмір використовується у існуючих предметах";
-          return;
-        }
-
-        if (err.response.data === "gender_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: гендер використовується у існуючих предметах";
-          return;
-        }
-
-        if (err.response.data === "color_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: колір використовується у існуючих предметах";
-          return;
-        }
-
-        if (err.response.data === "warehouse_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: склад повинен бути пустий";
-          return;
-        }
-
-        if (err.response.data === "unit_is_used") {
-          this.errors.response.dialog.isShown = true;
-          this.errors.response.dialog.text =
-            "Неможливо видалити: одиниця використовується у існуючих предметах";
-          return;
-        }
+        this.showErrorMessage(err.response.data.message, 422);
+        return;
       }
+
+      if (err.response.status === 403) {
+        this.showErrorMessage(err.response.data.message, 403);
+        return;
+      }
+    },
+    showErrorMessage(errorMessage, code) {
+      this.errors.responses[code].isShown = true;
+      this.errors.responses[code].text = errorMessage;
     },
     updateLocalStorageConfig() {
       console.log("ui stored");

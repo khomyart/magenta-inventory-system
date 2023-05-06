@@ -28,9 +28,9 @@
             outlined
             v-model="newItem.value"
             autofocus
-            label="Значення"
+            label="Назва"
             :rules="[
-              (val) => (val !== null && val !== '') || 'Введіть значення',
+              (val) => (val !== null && val !== '') || 'Введіть назву',
               (val) => val.length <= 8 || 'Не більше 8 символів',
             ]"
           />

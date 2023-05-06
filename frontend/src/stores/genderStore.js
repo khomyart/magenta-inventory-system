@@ -71,9 +71,9 @@ export const useGenderStore = defineStore("gender", {
 
           this.items[updatedItemIndex] = res.data;
         })
-        // .catch((err) => {
-        //   appConfigStore.catchRequestError(err);
-        // })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
         .finally(() => {
           this.dialogs.update.isLoading = false;
           this.dialogs.update.isShown = false;

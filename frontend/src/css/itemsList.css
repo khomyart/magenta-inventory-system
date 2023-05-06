@@ -52,23 +52,26 @@ tr td {
   padding: 0;
   margin: 0;
 }
+
 tr td:first-child > div {
   border-left: var(--cell-border-style);
   border-top: var(--cell-border-style);
-  border-bottom: var(--cell-border-style);
-  border-radius: 3px 0 0 3px;
+
+  /* border-radius: 5px 0 0 5px; */
 }
 
-tr td:nth-child(n + 1):nth-child(-n + 25) > div {
+tr td > div {
   border-top: var(--cell-border-style);
-  border-bottom: var(--cell-border-style);
 }
 
 tr td:last-child > div {
   border-right: var(--cell-border-style);
   border-top: var(--cell-border-style);
+  /* border-radius: 0 5px 5px 0; */
+}
+
+.bottom-border {
   border-bottom: var(--cell-border-style);
-  border-radius: 0 3px 3px 0;
 }
 
 .context-menu-item {

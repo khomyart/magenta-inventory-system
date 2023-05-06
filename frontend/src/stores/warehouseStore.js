@@ -22,6 +22,10 @@ export const useWarehouseStore = defineStore("warehouse", {
         isShown: false,
         isLoading: false,
       },
+      description: {
+        isShown: false,
+        text: "",
+      },
     },
     data: {
       isItemsLoading: false,

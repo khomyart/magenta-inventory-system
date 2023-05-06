@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Gender;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ErrorHandler;
 
 use App\Helpers\AuthAPI;
 
@@ -115,6 +116,8 @@ class GenderController extends Controller
         $data = $request->validate($rules);
         $data["number_in_row"] = $this->getLastNumberInRow() + 1;
 
+        if ($this->isItemExists($data)) return ErrorHandler::responseWith("Неможливо створити: такий гендер вже існує");
+
         return $sectionModel::create($data);
     }
 
@@ -130,6 +133,8 @@ class GenderController extends Controller
         $section = $sectionModel::find($id);
 
         if ($section) {
+            if ($this->isItemExists($data, $id)) return ErrorHandler::responseWith("Неможливо оновити: такий гендер вже існує");
+
             foreach ($this->fields as $key => $field) {
                 $section->{$field} = $data[$field];
             }
@@ -138,7 +143,7 @@ class GenderController extends Controller
             return response($section);
         }
 
-        return response("Не знайдено", 404);
+        return ErrorHandler::responseWith("Гендер не знайдено", 404);
     }
 
     /**
@@ -153,8 +158,10 @@ class GenderController extends Controller
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section == null) return response("Not found", 404);
-        if ($section->items != null) return response("gender_is_used", 422);
+        if ($section == null)
+            return ErrorHandler::responseWith("Гендер не знайдено", 404);
+        if ($section->items != null)
+            return ErrorHandler::responseWith("Неможливо видалити: гендер використовується в існуючих предметах");
 
         $section->delete();
         return response("OK", 200);
@@ -188,7 +195,9 @@ class GenderController extends Controller
 
         $sectionModel = $this->getSectionModel();
         $currentElement = $sectionModel::find($id);
-        if ($currentElement === null) { return response("Розмір не знайдено", 404); }
+
+        if ($currentElement === null)
+            return ErrorHandler::responseWith("Гендер не знайдено", 404);
 
         $previousElementInRow = $sectionModel
             ::where("number_in_row", ">", $currentElement["number_in_row"])
@@ -234,6 +243,30 @@ class GenderController extends Controller
             ]);
         }
 
-        return response("Неможливо виконати рух", 422);
+        return ErrorHandler::responseWith("Неможливо виконати рух");
+    }
+
+    /**
+     * Checks if item with same characteristic does
+     * exist in "types" table. If passing ID - ignore its value while
+     * filtering (where id <> $ID) to avoid update item collision
+     * (looks for similarity in items wich are different from item
+     * with passed ID)
+     *
+     * @param integer  $id        Item ID (for update case), null - default value
+     * @param array    $itemData  Contains validated values from request
+     *
+     * @return boolean Is item with passed params exists in "types" table
+     */
+    private function isItemExists($itemData, $id = null) {
+        $sectionModel = $this->getSectionModel();
+        $matchingItems = $sectionModel::
+          where("name", $itemData["name"]);
+
+        if ($id != null) $matchingItems->where("id", "<>", $id);
+
+        $matchingItems = $matchingItems->get();
+
+        return count($matchingItems) > 0 ? true : false;
     }
 }

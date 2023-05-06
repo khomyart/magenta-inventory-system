@@ -15,24 +15,24 @@
         >
           <div class="row q-col-gutter-md q-mb-sm">
             <q-input
-              class="col-7"
-              outlined
-              v-model="sectionStore.selectedItemForUpdating.title"
-              label="Назва"
-              autofocus
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть назву',
-                (val) => val.length <= 255 || 'Не більше 255 символів',
-              ]"
-            />
-            <q-input
               class="col-5"
+              autofocus
               outlined
               v-model="sectionStore.selectedItemForUpdating.article"
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
                 (val) => val.length <= 10 || 'Не більше 10 символів',
+              ]"
+            />
+            <q-input
+              class="col-7"
+              outlined
+              v-model="sectionStore.selectedItemForUpdating.title"
+              label="Назва"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть назву',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
           </div>
@@ -83,7 +83,7 @@
               hide-selected
               fill-input
               autocomplete="false"
-              label="Тип"
+              label="Вид"
               input-debounce="400"
               :options="typeStore.simpleItems"
               option-label="name"
@@ -95,7 +95,7 @@
                   (sectionStore.selectedItemForUpdating.type != null &&
                     sectionStore.selectedItemForUpdating.type.id !=
                       undefined) ||
-                  'Оберіть тип',
+                  'Оберіть вид',
               ]"
             >
               <template

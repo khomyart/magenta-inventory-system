@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Helpers\AuthAPI;
-use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Helpers\AuthAPI;
+use App\Helpers\ErrorHandler;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
 use App\Models\AccessToken;
@@ -40,7 +41,7 @@ class UserController extends Controller
 
             return response()->json(["user" => $userData, "auth" => $token->toArray(), "allowenses" => $auth->getAllowenses()]);
         } else {
-            return response("Невірні данні аутентифікації", 403);
+            return ErrorHandler::responseWith("Невірні дані автентифікації");
         }
     }
 

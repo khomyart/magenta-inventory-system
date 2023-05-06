@@ -8,7 +8,23 @@
     :id="`item${props.itemInfo.id}`"
   >
     <td class="item-cell">
-      <div>
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst && !props.isLast
+                ? `${props.itemsBorderRadius}px 0 0 0`
+                : !props.isFirst && props.isLast
+                ? `0 0 0 ${props.itemsBorderRadius}px`
+                : props.isFirst && props.isLast
+                ? `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`
+                : ``
+              : `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`,
+        }"
+      >
         <q-btn
           v-if="
             props.allowenses.update == true || props.allowenses.delete == true
@@ -52,9 +68,18 @@
         </q-btn>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.country_name, 'Країну')"
       >
@@ -63,9 +88,18 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.city_name, 'Місто')"
       >
@@ -74,9 +108,18 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.address, 'Адресу')"
       >
@@ -85,9 +128,18 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         style="cursor: pointer"
         @click="$emit('copyValue', props.itemInfo.name, 'Назву')"
       >
@@ -96,18 +148,38 @@
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
     <td class="item-cell">
       <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        :style="{
+          borderRadius:
+            props.gap == 0
+              ? props.isFirst && !props.isLast
+                ? `0 ${props.itemsBorderRadius}px 0 0`
+                : !props.isFirst && props.isLast
+                ? `0 0 ${props.itemsBorderRadius}px 0`
+                : props.isFirst && props.isLast
+                ? `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`
+                : ``
+              : `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`,
+        }"
         style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.description, 'Опис')"
+        @click="$emit('showDescriptionDialog', props.itemInfo.description)"
       >
         <div class="item-text">
           {{ props.itemInfo.description }}
         </div>
       </div>
     </td>
-    <td class="separator-cell"><div></div></td>
   </tr>
 </template>
 
@@ -119,9 +191,18 @@ const emit = defineEmits([
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",
+  "showDescriptionDialog",
 ]);
 
-const props = defineProps(["itemInfo", "gap", "updated", "allowenses"]);
+const props = defineProps([
+  "itemInfo",
+  "gap",
+  "updated",
+  "allowenses",
+  "isFirst",
+  "isLast",
+  "itemsBorderRadius",
+]);
 let isUpdated = ref(false);
 
 onUpdated(() => {

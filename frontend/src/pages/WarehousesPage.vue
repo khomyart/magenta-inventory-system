@@ -69,12 +69,21 @@
           <td :width="60"></td>
           <td :width="computedFilterWidth.fields.separator"></td>
           <template v-for="(item, index) in fieldsSequance" :key="index">
-            <td :width="computedFilterWidth.fields[fieldsSequance[index]]"></td>
+            <td
+              v-if="index != fieldsSequance.length - 1"
+              :width="computedFilterWidth.fields[fieldsSequance[index]]"
+            ></td>
             <td
               v-if="index != fieldsSequance.length - 1"
               :width="computedFilterWidth.fields.separator"
             ></td>
-            <td v-else :width="computedFilterWidth.fields.lastSeparator"></td>
+            <td
+              v-if="index == fieldsSequance.length - 1"
+              :width="
+                computedFilterWidth.fields[fieldsSequance[index]] +
+                computedFilterWidth.fields.lastSeparator
+              "
+            ></td>
           </template>
         </tr>
         <template v-for="(item, index) in sectionStore.items" :key="index">
@@ -83,13 +92,19 @@
             @show-edit-dialog="showUpdateDialog"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
+            @show-description-dialog="showDescriptionDialog"
             :allowenses="{
               update: allowenses.update,
               delete: allowenses.delete,
             }"
             :itemInfo="item"
-            :gap="5"
+            :gap="appStore.other.visualTheme.gapsBetweenItems[currentSection]"
             :updated="item.id == sectionStore.data.updatedItemId"
+            :isFirst="index == 0"
+            :isLast="index == sectionStore.items.length - 1"
+            :itemsBorderRadius="
+              appStore.other.visualTheme.itemsBorderRadius[currentSection]
+            "
           />
         </template>
       </table>
@@ -266,6 +281,39 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- DESCRIPTION DIALOG -->
+    <q-dialog
+      v-model="sectionStore.dialogs.description.isShown"
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card style="width: 350px">
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon
+              size="md"
+              class="q-mr-sm"
+              name="warehouse"
+              color="black"
+            ></q-icon>
+            Опис
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+
+        <q-card-section class="q-pt-md">
+          <p>
+            {{ sectionStore.dialogs.description.text }}
+          </p>
+        </q-card-section>
+
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn flat color="black" v-close-popup>Гаразд</q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -366,7 +414,7 @@ let updatedItem = reactive({
  * updatedItem.country watcher exists for total clearing and proper
  * working of updating dialog
  * Without those items, we will have a problem, when we can`t set init value of
- * "country select item" and "city select item"
+ * "country <select> item" and "city <select> item"
  */
 let tempUpdatedItem = reactive({
   id: "",
@@ -406,6 +454,10 @@ function copyValue(value, paramName) {
     message: `${paramName} зкопійовано: "${value}"`,
     group: false,
   });
+}
+function showDescriptionDialog(description) {
+  sectionStore.dialogs.description.isShown = true;
+  sectionStore.dialogs.description.text = description;
 }
 
 function showUpdateDialog(item) {
@@ -536,7 +588,7 @@ const computedFilterWidth = computed(() => {
       description:
         appStore.filters.data[currentSection].width.dynamic.description,
       separator: appStore.filters.availableParams.separatorWidth,
-      lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 1,
+      lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 2,
     },
   };
 });

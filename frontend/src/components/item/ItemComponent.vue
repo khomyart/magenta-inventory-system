@@ -59,6 +59,26 @@
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>
+                  <span
+                    >Створити на основі<br />
+                    вибраного</span
+                  >
+                </div>
+              </q-item>
+              <q-item
+                v-if="props.allowenses.update == true"
+                clickable
+                v-close-popup
+                @click="
+                  $emit(
+                    'getInfoAboutCurrentItem',
+                    props.itemInfo.id,
+                    props.index
+                  )
+                "
+              >
+                <div class="context-menu-item">
+                  <q-icon size="sm" name="edit" left></q-icon>
                   <span>Редагувати</span>
                 </div>
               </q-item>
@@ -82,6 +102,28 @@
             </q-list>
           </q-menu>
         </q-btn>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
+    <td class="item-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        style="cursor: pointer"
+        @click="
+          $emit('copyValue', props.itemInfo.group_id, 'Ідентифікатор групи')
+        "
+      >
+        <div class="item-text">
+          {{ props.itemInfo.group_id }}
+        </div>
       </div>
     </td>
     <td class="separator-cell">
@@ -122,6 +164,27 @@
       >
         <div class="item-text">
           {{ props.itemInfo.title }}
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
+
+    <td class="item-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+        style="cursor: pointer"
+        @click="$emit('copyValue', props.itemInfo.model, 'Модель')"
+      >
+        <div class="item-text">
+          {{ props.itemInfo.model }}
         </div>
       </div>
     </td>

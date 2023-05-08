@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 4,
+    version: 5,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
@@ -351,8 +351,10 @@ export const useAppConfigStore = defineStore("appConfig", {
         items: {
           width: {
             default: {
+              group_id: 150,
               article: 150,
               title: 150,
+              model: 150,
               price: 150,
               type: 150,
               gender: 150,
@@ -362,8 +364,10 @@ export const useAppConfigStore = defineStore("appConfig", {
               units: 150,
             },
             dynamic: {
+              group_id: 0,
               article: 0,
               title: 0,
+              model: 0,
               price: 0,
               type: 0,
               gender: 0,
@@ -381,6 +385,14 @@ export const useAppConfigStore = defineStore("appConfig", {
               combined: "",
             },
             warehouse: null,
+            group_id: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
             article: {
               value: "",
               filterMode: {
@@ -390,6 +402,14 @@ export const useAppConfigStore = defineStore("appConfig", {
               },
             },
             title: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            model: {
               value: "",
               filterMode: {
                 label: "Містить",

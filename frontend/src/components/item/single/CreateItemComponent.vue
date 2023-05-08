@@ -13,9 +13,9 @@
           style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
         >
-          <div class="row q-col-gutter-md q-mb-sm">
+          <div class="row q-col-gutter-md q-mb-md q-pt-sm">
             <q-input
-              class="col-5"
+              class="col-5 q-pt-sm"
               outlined
               autofocus
               v-model="sectionStore.newItem.article"
@@ -26,7 +26,7 @@
               ]"
             />
             <q-input
-              class="col-7"
+              class="col-7 q-pt-sm"
               outlined
               v-model="sectionStore.newItem.title"
               label="Назва"
@@ -35,43 +35,26 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-          </div>
-
-          <div class="row q-col-gutter-md q-mb-sm">
             <q-input
-              class="col-4"
+              class="col-5 q-pt-sm"
               outlined
-              v-model="sectionStore.newItem.price"
-              label="Ціна"
-              type="number"
+              v-model="sectionStore.newItem.model"
+              label="Модель"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-                (val) => val.length <= 13 || 'Не більше 13 символів',
-                (val) => val >= 1 || 'Не менше 1',
+                (val) => (val !== null && val !== '') || 'Введіть модель',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-            <q-select
-              hide-dropdown-icon
-              outlined
-              v-model="sectionStore.newItem.currency"
-              label="Валюта"
-              :options="['UAH', 'USD', 'EUR']"
-              class="col-4"
-            />
             <q-input
-              class="col-4"
+              class="col-7 q-pt-sm"
               outlined
-              v-model="sectionStore.newItem.lack"
-              label="Нестача"
-              type="number"
+              v-model="sectionStore.newItem.group_id"
+              label="ID групи"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
-                (val) => val >= 1 || 'Не менше одиниці',
+                (val) => (val !== null && val !== '') || 'Введіть ID групи',
+                (val) => val.length <= 255 || 'Не більше 32 символів',
               ]"
             />
-          </div>
-
-          <div class="row q-col-gutter-md q-mb-sm">
             <q-select
               :hide-dropdown-icon="
                 sectionStore.newItem.type != null &&
@@ -89,7 +72,7 @@
               option-label="name"
               @filter="typeFilter"
               :loading="typeStore.data.isItemsLoading"
-              class="col-6"
+              class="col-6 q-pt-sm"
               :rules="[
                 () =>
                   (sectionStore.newItem.type != null &&
@@ -128,7 +111,7 @@
               option-label="name"
               @filter="unitFilter"
               :loading="unitStore.data.isItemsLoading"
-              class="col-6"
+              class="col-6 q-pt-sm"
               :rules="[
                 () =>
                   (sectionStore.newItem.unit != null &&
@@ -155,9 +138,7 @@
                 />
               </template>
             </q-select>
-          </div>
 
-          <div class="row q-col-gutter-md q-mb-lg">
             <q-select
               :hide-dropdown-icon="sectionStore.newItem.color != null"
               outlined
@@ -172,7 +153,7 @@
               :options="colorStore.simpleItems"
               @filter="colorFilter"
               :loading="colorStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -220,7 +201,7 @@
               option-label="value"
               @filter="sizeFilter"
               :loading="sizeStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm"
             >
               <template
                 v-if="
@@ -250,7 +231,7 @@
               option-label="name"
               @filter="genderFilter"
               :loading="genderStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template
                 v-if="
@@ -266,6 +247,38 @@
                 />
               </template>
             </q-select>
+
+            <q-input
+              class="col-4 q-pt-sm q-pb-md"
+              outlined
+              v-model="sectionStore.newItem.price"
+              label="Ціна"
+              type="number"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
+                (val) => val.length <= 13 || 'Не більше 13 символів',
+                (val) => val >= 1 || 'Не менше 1',
+              ]"
+            />
+            <q-select
+              hide-dropdown-icon
+              outlined
+              v-model="sectionStore.newItem.currency"
+              label="Валюта"
+              :options="['UAH', 'USD', 'EUR']"
+              class="col-4 q-pt-sm"
+            />
+            <q-input
+              class="col-4 q-pt-sm q-pb-md"
+              outlined
+              v-model="sectionStore.newItem.lack"
+              label="Нестача"
+              type="number"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
+                (val) => val >= 1 || 'Не менше одиниці',
+              ]"
+            />
           </div>
           <q-separator class="q-mb-sm" />
           <div class="row q-mb-sm text-h6">
@@ -430,8 +443,10 @@ const warehouseTemplate = {
 };
 
 function showCreateDialog() {
+  sectionStore.newItem.group_id = "";
   sectionStore.newItem.article = "";
   sectionStore.newItem.title = "";
+  sectionStore.newItem.model = "";
   sectionStore.newItem.price = "";
   sectionStore.newItem.lack = 10;
   sectionStore.newItem.currency = "UAH";

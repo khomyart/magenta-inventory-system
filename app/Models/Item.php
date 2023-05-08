@@ -10,7 +10,7 @@ class Item extends Model
     use HasFactory;
 
     protected $fillable = [
-        "article", "title", "type_id",
+        "group_id", "article", "title", "model", "type_id",
         "gender_id", "size_id", "color_id",
         "unit_id", "price", "lack", "currency"
     ];

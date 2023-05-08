@@ -343,8 +343,10 @@ const router = useRouter();
 const $q = useQuasar();
 
 const fieldsSequance = [
+  "group_id",
   "article",
   "title",
+  "model",
   "price",
   "type",
   "gender",
@@ -354,6 +356,15 @@ const fieldsSequance = [
   "units",
 ];
 const fieldsDetails = [
+  {
+    label: "ID групи",
+    searchBarLabel: "Значення ID групи",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
   {
     label: "Артикль",
     searchBarLabel: "Значення артиклю",
@@ -366,6 +377,15 @@ const fieldsDetails = [
   {
     label: "Назва",
     searchBarLabel: "Назва",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  },
+  {
+    label: "Модель",
+    searchBarLabel: "Модель",
     type: "universal",
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
@@ -543,11 +563,17 @@ const itemsSearchingSource = computed(() => {
 const computedFilterWidth = computed(() => {
   return {
     buttons: {
+      group_id:
+        appStore.filters.data[currentSection].width.dynamic.group_id -
+        appStore.filters.availableParams.filterButtonXPadding,
       article:
         appStore.filters.data[currentSection].width.dynamic.article -
         appStore.filters.availableParams.filterButtonXPadding,
       title:
         appStore.filters.data[currentSection].width.dynamic.title -
+        appStore.filters.availableParams.filterButtonXPadding,
+      model:
+        appStore.filters.data[currentSection].width.dynamic.model -
         appStore.filters.availableParams.filterButtonXPadding,
       type:
         appStore.filters.data[currentSection].width.dynamic.type -
@@ -572,8 +598,10 @@ const computedFilterWidth = computed(() => {
         appStore.filters.availableParams.filterButtonXPadding,
     },
     fields: {
+      group_id: appStore.filters.data[currentSection].width.dynamic.group_id,
       article: appStore.filters.data[currentSection].width.dynamic.article,
       title: appStore.filters.data[currentSection].width.dynamic.title,
+      model: appStore.filters.data[currentSection].width.dynamic.model,
       type: appStore.filters.data[currentSection].width.dynamic.type,
       price: appStore.filters.data[currentSection].width.dynamic.price,
       gender: appStore.filters.data[currentSection].width.dynamic.gender,
@@ -607,8 +635,10 @@ watch(
 watch(
   [
     () => appStore.filters.data[currentSection].selectedParams.order.combined,
+    () => appStore.filters.data[currentSection].selectedParams.group_id.value,
     () => appStore.filters.data[currentSection].selectedParams.article.value,
     () => appStore.filters.data[currentSection].selectedParams.title.value,
+    () => appStore.filters.data[currentSection].selectedParams.model.value,
     () => appStore.filters.data[currentSection].selectedParams.type.value,
     () => appStore.filters.data[currentSection].selectedParams.price.value,
     () => appStore.filters.data[currentSection].selectedParams.gender.value,

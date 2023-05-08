@@ -13,9 +13,9 @@
           style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
         >
-          <div class="row q-col-gutter-md q-mb-sm">
+          <div class="row q-col-gutter-md q-mb-sm q-pt-sm">
             <q-input
-              class="col-5"
+              class="col-5 q-pt-sm"
               autofocus
               outlined
               v-model="sectionStore.selectedItemForUpdating.article"
@@ -26,7 +26,7 @@
               ]"
             />
             <q-input
-              class="col-7"
+              class="col-7 q-pt-sm"
               outlined
               v-model="sectionStore.selectedItemForUpdating.title"
               label="Назва"
@@ -35,137 +35,40 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-          </div>
-
-          <div class="row q-col-gutter-md q-mb-sm">
             <q-input
-              class="col-4"
+              class="col-5 q-pt-sm"
               outlined
-              v-model="sectionStore.selectedItemForUpdating.price"
-              label="Ціна"
-              type="number"
+              v-model="sectionStore.selectedItemForUpdating.model"
+              label="Модель"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-                (val) => val.length <= 13 || 'Не більше 13 символів',
-                (val) => val >= 1 || 'Не менше 1',
+                (val) => (val !== null && val !== '') || 'Введіть модель',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-            <q-select
-              hide-dropdown-icon
-              outlined
-              v-model="sectionStore.selectedItemForUpdating.currency"
-              label="Валюта"
-              :options="['UAH', 'USD', 'EUR']"
-              class="col-4"
-            />
             <q-input
-              class="col-4"
               outlined
-              v-model="sectionStore.selectedItemForUpdating.lack"
-              label="Нестача"
-              type="number"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
-                (val) => val >= 1 || 'Не менше 1',
-              ]"
+              v-model="sectionStore.selectedItemForUpdating.group_id"
+              label="ID групи"
+              readonly
+              class="col-7 q-pt-sm"
             />
-          </div>
 
-          <div class="row q-col-gutter-md q-mb-sm">
-            <q-select
-              :hide-dropdown-icon="
-                sectionStore.selectedItemForUpdating.type != null &&
-                sectionStore.selectedItemForUpdating.type.id != undefined
-              "
+            <q-input
               outlined
-              v-model="sectionStore.selectedItemForUpdating.type"
-              use-input
-              hide-selected
-              fill-input
-              autocomplete="false"
+              v-model="sectionStore.selectedItemForUpdating.type.name"
               label="Вид"
-              input-debounce="400"
-              :options="typeStore.simpleItems"
-              option-label="name"
-              @filter="typeFilter"
-              :loading="typeStore.data.isItemsLoading"
-              class="col-6"
-              :rules="[
-                () =>
-                  (sectionStore.selectedItemForUpdating.type != null &&
-                    sectionStore.selectedItemForUpdating.type.id !=
-                      undefined) ||
-                  'Оберіть вид',
-              ]"
-            >
-              <template
-                v-if="
-                  sectionStore.selectedItemForUpdating.type &&
-                  !typeStore.data.isItemsLoading
-                "
-                v-slot:append
-              >
-                <q-icon
-                  name="cancel"
-                  @click.stop.prevent="
-                    sectionStore.selectedItemForUpdating.type = null
-                  "
-                  class="cursor-pointer"
-                />
-              </template>
-            </q-select>
+              readonly
+              class="col-6 q-pt-sm q-pb-md"
+            />
 
-            <q-select
-              :hide-dropdown-icon="
-                sectionStore.selectedItemForUpdating.unit != null &&
-                sectionStore.selectedItemForUpdating.unit.id != undefined
-              "
+            <q-input
               outlined
-              v-model="sectionStore.selectedItemForUpdating.unit"
-              use-input
-              hide-selected
-              fill-input
-              autocomplete="false"
+              v-model="sectionStore.selectedItemForUpdating.unit.name"
               label="Одиниця виміру"
-              input-debounce="400"
-              :options="unitStore.simpleItems"
-              option-label="name"
-              @filter="unitFilter"
-              :loading="unitStore.data.isItemsLoading"
-              class="col-6"
-              :rules="[
-                () =>
-                  (sectionStore.selectedItemForUpdating.unit != null &&
-                    sectionStore.selectedItemForUpdating.unit.id !=
-                      undefined) ||
-                  'Оберіть одиницю виміру',
-              ]"
-            >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps" class="flex items-center">
-                  {{ scope.opt.name }} ({{ scope.opt.description }})
-                </q-item>
-              </template>
+              readonly
+              class="col-6 q-pt-sm q-pb-md"
+            />
 
-              <template
-                v-if="
-                  sectionStore.selectedItemForUpdating.unit &&
-                  !unitStore.data.isItemsLoading
-                "
-                v-slot:append
-              >
-                <q-icon
-                  name="cancel"
-                  @click.stop.prevent="
-                    sectionStore.selectedItemForUpdating.unit = null
-                  "
-                  class="cursor-pointer"
-                />
-              </template>
-            </q-select>
-          </div>
-
-          <div class="row q-col-gutter-md q-mb-lg">
             <q-select
               :hide-dropdown-icon="
                 sectionStore.selectedItemForUpdating.color != null
@@ -182,7 +85,7 @@
               :options="colorStore.simpleItems"
               @filter="colorFilter"
               :loading="colorStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -235,7 +138,7 @@
               option-label="value"
               @filter="sizeFilter"
               :loading="sizeStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template
                 v-if="
@@ -270,7 +173,7 @@
               option-label="name"
               @filter="genderFilter"
               :loading="genderStore.data.isItemsLoading"
-              class="col-4"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template
                 v-if="
@@ -288,6 +191,38 @@
                 />
               </template>
             </q-select>
+
+            <q-input
+              class="col-4 q-pt-sm"
+              outlined
+              v-model="sectionStore.selectedItemForUpdating.price"
+              label="Ціна"
+              type="number"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
+                (val) => val.length <= 13 || 'Не більше 13 символів',
+                (val) => val >= 1 || 'Не менше 1',
+              ]"
+            />
+            <q-select
+              hide-dropdown-icon
+              outlined
+              v-model="sectionStore.selectedItemForUpdating.currency"
+              label="Валюта"
+              :options="['UAH', 'USD', 'EUR']"
+              class="col-4 q-pt-sm"
+            />
+            <q-input
+              class="col-4 q-pt-sm"
+              outlined
+              v-model="sectionStore.selectedItemForUpdating.lack"
+              label="Нестача"
+              type="number"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
+                (val) => val >= 1 || 'Не менше 1',
+              ]"
+            />
           </div>
           <q-separator class="q-mb-sm" />
           <div class="row q-mb-sm text-h6">

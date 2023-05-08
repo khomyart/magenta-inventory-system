@@ -8,8 +8,10 @@ const sectionName = "items";
 export const useItemStore = defineStore("item", {
   state: () => ({
     newItem: {
+      group_id: "",
       article: "",
       title: "",
+      model: "",
       price: "",
       lack: 0,
       currency: "UAH",
@@ -59,8 +61,10 @@ export const useItemStore = defineStore("item", {
       console.log(this.newItem);
 
       let preparedItem = {
+        group_id: this.newItem.group_id,
         article: this.newItem.article,
         title: this.newItem.title,
+        model: this.newItem.model,
         price: this.newItem.price,
         currency: this.newItem.currency,
         lack: this.newItem.lack,
@@ -151,11 +155,10 @@ export const useItemStore = defineStore("item", {
       let preparedItem = {
         article: this.selectedItemForUpdating.article,
         title: this.selectedItemForUpdating.title,
+        model: this.selectedItemForUpdating.model,
         price: this.selectedItemForUpdating.price,
         currency: this.selectedItemForUpdating.currency,
         lack: this.selectedItemForUpdating.lack,
-        type_id: this.selectedItemForUpdating.type.id,
-        unit_id: this.selectedItemForUpdating.unit.id,
       };
 
       if (this.selectedItemForUpdating.gender != null)
@@ -247,6 +250,13 @@ export const useItemStore = defineStore("item", {
       let preparedParams = {
         itemsPerPage: appConfigStore.amountOfItemsPerPages[sectionName],
         page: appConfigStore.currentPages[sectionName],
+        //group_id
+        group_idFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.group_id
+            .value,
+        group_idFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.group_id
+            .filterMode.value,
         //article
         articleFilterValue:
           appConfigStore.filters.data[sectionName].selectedParams.article.value,
@@ -258,6 +268,12 @@ export const useItemStore = defineStore("item", {
           appConfigStore.filters.data[sectionName].selectedParams.title.value,
         titleFilterMode:
           appConfigStore.filters.data[sectionName].selectedParams.title
+            .filterMode.value,
+        //model
+        modelFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.model.value,
+        modelFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.model
             .filterMode.value,
         //type
         typeFilterValue:

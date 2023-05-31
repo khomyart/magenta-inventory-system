@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Query\Builder;
 
 class ItemController extends Controller
 {
@@ -22,6 +23,7 @@ class ItemController extends Controller
     public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "model", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "batches.amount_of_items", "units.name"];
     //field names are used for validating incoming data
     public $readFieldsFromFrontend = ["group_id", "article", "title", "model", "price", "type", "gender", "size", "color", "amount", "units"];
+    public $defaultQueryResultLimit = 5;
 
     /**
      * Templated access to section model
@@ -94,7 +96,6 @@ class ItemController extends Controller
         ->addSelect(
             "types.name AS type_name",
             "types.number_in_row AS type", //extra field for ordering
-            "types.article AS type_article",
             "genders.name AS gender",
             "sizes.value AS size_name",
             "sizes.number_in_row AS size", //extra field for ordering
@@ -359,32 +360,135 @@ class ItemController extends Controller
         return response($itemData);
     }
 
-    public function getItemPreparedToUpdate(Request $request, $id) {
-        $item = Item::find($id);
+    /**
+     * Receive an item, or array of items (depends on request parameters)
+     * as a response
+     *
+     * @param Request $request Contains two variables: "mode", "value":
+     * mode -   way of building item search query (search by id, group_id or article)
+     * value -  value, which is used for query forming
+     *
+     * @return array of items, or a single item as array
+     */
+    public function getItemsWithPreparedData(Request $request) {
+        $filterData = $request->validate([
+            "mode" => ["required", "string", "regex:/^id$|^group_id$|^article$/i"],
+            "value" => "nullable|string|max:36",
+        ]);
 
-        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
+        if ($filterData["value"] === null) return 0;
 
-        $item->type;
-        $item->gender;
-        $item->size;
-        $item->color;
-        $item->unit;
-        $item->images;
+        if ($filterData["mode"] == "id") {
+            $item = Item::find($filterData["value"]);
 
-        $item = json_decode(json_encode($item), true);
+            if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
 
-        foreach ($item["images"] as $key => $image) {
-            $imageFile = Storage::disk("images")->get($image["src"]);
-            $mimeType = Storage::disk("images")->mimeType($image["src"]);
+            $item->type;
+            $item->gender;
+            $item->size;
+            $item->color;
+            $item->unit;
+            $item->images;
 
-            $base64StringPrefix = "data:{$mimeType};base64,";
-            $base64File = base64_encode($imageFile);
+            $item = json_decode(json_encode($item), true);
 
-            $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
-            $item["images"][$key]["mimeType"] = $mimeType;
+            foreach ($item["images"] as $key => $image) {
+                $imageFile = Storage::disk("images")->get($image["src"]);
+                $mimeType = Storage::disk("images")->mimeType($image["src"]);
+
+                $base64StringPrefix = "data:{$mimeType};base64,";
+                $base64File = base64_encode($imageFile);
+
+                $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
+                $item["images"][$key]["mimeType"] = $mimeType;
+            }
+
+            return response()->json($item);
         }
 
-        return response()->json($item);
+        if ($filterData["mode"] == "group_id") {
+            $items = Item::where("group_id", "=", $filterData['value'])
+                ->orderBy("updated_at", "desc")
+                ->get();
+            if (count($items) === 0) return 0;
+
+            foreach ($items as $key => &$item) {
+                $item->type;
+                $item->gender;
+                $item->size;
+                $item->color;
+                $item->unit;
+                $item->images;
+            }
+
+            $items = json_decode(json_encode($items), true);
+
+            foreach ($items as $key => &$item) {
+                foreach ($item["images"] as $key => $image) {
+                    $imageFile = Storage::disk("images")->get($image["src"]);
+                    $mimeType = Storage::disk("images")->mimeType($image["src"]);
+
+                    $base64StringPrefix = "data:{$mimeType};base64,";
+                    $base64File = base64_encode($imageFile);
+
+                    $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
+                    $item["images"][$key]["mimeType"] = $mimeType;
+                }
+            }
+
+            return response()->json($items);
+        }
+
+        //article color_article size
+        if ($filterData["mode"] == "article") {
+            $params = explode(" ",  trim($filterData["value"]));
+
+            $section = DB::table($this->section);
+            $section->select(
+                "items.article AS article",
+                "sizes.value AS size",
+                "colors.article AS color_article",
+                "items.title AS title",
+                DB::raw("(SELECT src FROM images i WHERE items.id = i.item_id LIMIT 1) AS image"),
+            )
+            ->leftJoin("colors", "items.color_id", "=", "colors.id")
+            ->leftJoin("sizes", "items.size_id", "=", "sizes.id")
+            ->orderBy("items.article", "asc")
+            ->orderBy("colors.article", "asc")
+            ->orderBy("sizes.number_in_row", "asc");
+
+            if (count($params) == 1) {
+                $section->where("items.article", "LIKE", "%{$params[0]}%");
+            }
+
+            if (isset($params[1]) && count($params) == 2) {
+                $section->orWhere(function(Builder $query) use ($params) {
+                    $query->where("items.article", "LIKE", "%{$params[0]}%")
+                        ->where("colors.article", "LIKE", "%{$params[1]}%");
+                });
+                $section->orWhere(function(Builder $query) use ($params) {
+                    $query->where("items.article", "LIKE", "%{$params[0]}%")
+                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                });
+            }
+
+            if (isset($params[2]) && count($params) == 3) {
+                $section->where("colors.article", "LIKE", "%{$params[1]}%")
+                ->where("sizes.value", "LIKE", "%{$params[2]}%");
+            }
+
+            $amountOfItems = $section->count();
+            $section->limit($this->defaultQueryResultLimit);
+            $items = $section->get();
+
+            return response()->json([
+                "data" => $items,
+                "amountOfItems" => $amountOfItems,
+                "limitation" => $this->defaultQueryResultLimit
+            ]);
+        }
+
+        ErrorHandler::responseWith("Неможливо виконати пошук: режим не знайдений");
     }
 
     public function update(Request $request, $id) {
@@ -530,7 +634,6 @@ class ItemController extends Controller
         ->addSelect(
             "types.name AS type_name",
             "types.number_in_row AS type", //extra field for ordering
-            "types.article AS type_article",
             "genders.name AS gender",
             "sizes.value AS size_name",
             "sizes.number_in_row AS size", //extra field for ordering
@@ -606,9 +709,7 @@ class ItemController extends Controller
         $matchingItems = $sectionModel::
           where("article", $itemData["article"])
         ->where("group_id", $itemData["group_id"])
-        ->where("title", $itemData["title"])
-        ->where("type_id", $itemData["type_id"])
-        ->where("currency", $itemData["currency"]);
+        ->where("type_id", $itemData["type_id"]);
 
         /**
          * Nullable items additional validation

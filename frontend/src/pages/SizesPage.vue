@@ -107,9 +107,10 @@
               appStore.other.visualTheme.itemsBorderRadius[currentSection]
             "
             :isMoveAllowed="
-              appStore.filters.data.types.selectedParams.order.value === '' &&
-              appStore.filters.data.types.selectedParams.article.value === '' &&
-              appStore.filters.data.types.selectedParams.name.value === ''
+              appStore.filters.data.sizes.selectedParams.order.value === '' &&
+              appStore.filters.data.sizes.selectedParams.value.value === '' &&
+              appStore.filters.data.sizes.selectedParams.description.value ===
+                ''
             "
           />
         </template>

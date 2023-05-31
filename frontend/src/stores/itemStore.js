@@ -24,6 +24,7 @@ export const useItemStore = defineStore("item", {
       images: [],
     },
     selectedItemForUpdating: {},
+    bufferedItems: [],
     items: [],
     dialogs: {
       create: {
@@ -42,7 +43,13 @@ export const useItemStore = defineStore("item", {
         isShown: false,
         isLoading: false,
       },
-      warehouse: {
+      warehouseDetail: {
+        isShown: false,
+      },
+      replaceDataInCreateItemWindow: {
+        isShown: false,
+      },
+      incomeCreator: {
         isShown: false,
       },
     },
@@ -52,7 +59,8 @@ export const useItemStore = defineStore("item", {
       lastPage: 0,
       updatedItemId: 0,
       isItemDataLoading: false,
-      updatedItemIndexInArray: -1,
+      updatingItemIndexInArray: -1,
+      creatingItemIndexInArray: -1,
     },
   }),
   getters: {},
@@ -349,13 +357,53 @@ export const useItemStore = defineStore("item", {
           this.data.isItemsLoading = false;
         });
     },
-    receiveItem(id, arrayIndex) {
+    receiveItemsByGroupID(groupID) {
       this.data.isItemDataLoading = true;
-      this.data.updatedItemIndexInArray = arrayIndex;
       api
-        .get(`/${sectionName}/${id}`)
+        .get(`/${sectionName}/prepared`, {
+          params: {
+            mode: "group_id",
+            value: groupID,
+          },
+        })
         .then((res) => {
-          console.log(res);
+          if (res.data == 0) {
+            this.bufferedItems = [];
+            return;
+          }
+
+          this.bufferedItems = JSON.parse(JSON.stringify(res.data));
+
+          this.bufferedItems.forEach((bufferedItem, index) => {
+            this.bufferedItems[index].images = [];
+
+            res.data[index].images.forEach((image) => {
+              this.bufferedItems[index].images.push({
+                url: image.base64,
+                mimeType: image.mimeType,
+                name: image.src,
+              });
+            });
+          });
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.data.isItemDataLoading = false;
+        });
+    },
+    receiveItemToFillUpdateWindow(id, arrayIndex) {
+      this.data.isItemDataLoading = true;
+      this.data.updatingItemIndexInArray = arrayIndex;
+      api
+        .get(`/${sectionName}/prepared`, {
+          params: {
+            mode: "id",
+            value: id,
+          },
+        })
+        .then((res) => {
           this.selectedItemForUpdating = { ...res.data };
           this.selectedItemForUpdating.images = [];
 
@@ -374,7 +422,39 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.data.isItemDataLoading = false;
-          this.data.updatedItemIndexInArray = -1;
+          this.data.updatingItemIndexInArray = -1;
+        });
+    },
+    receiveItemToFillCreateWindow(id, arrayIndex) {
+      this.data.isItemDataLoading = true;
+      this.data.creatingItemIndexInArray = arrayIndex;
+      api
+        .get(`/${sectionName}/prepared`, {
+          params: {
+            mode: "id",
+            value: id,
+          },
+        })
+        .then((res) => {
+          this.dialogs.create.isShown = true;
+          this.newItem = { ...res.data };
+          this.newItem.images = [];
+          this.newItem.availableIn = [];
+
+          res.data.images.forEach((image) => {
+            this.newItem.images.push({
+              url: image.base64,
+              mimeType: image.mimeType,
+              name: image.src,
+            });
+          });
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.data.isItemDataLoading = false;
+          this.data.creatingItemIndexInArray = -1;
         });
     },
   },

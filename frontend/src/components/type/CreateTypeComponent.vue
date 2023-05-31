@@ -24,17 +24,6 @@
           class="scroll q-pt-lg"
         >
           <q-input
-            class="q-mb-sm"
-            outlined
-            v-model="newItem.article"
-            autofocus
-            label="Артикль"
-            :rules="[
-              (val) => (val !== null && val !== '') || 'Введіть артикль',
-              (val) => val.length <= 8 || 'Не більше 8 символів',
-            ]"
-          />
-          <q-input
             outlined
             v-model="newItem.name"
             label="Назва"
@@ -68,13 +57,11 @@ import { useTypeStore } from "src/stores/typeStore";
 const sectionStore = useTypeStore();
 
 function showCreateDialog() {
-  newItem.article = "";
   newItem.name = "";
   sectionStore.dialogs.create.isShown = true;
 }
 
 let newItem = reactive({
-  article: "",
   name: "",
 });
 </script>

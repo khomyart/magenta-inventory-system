@@ -10,8 +10,8 @@ use App\Helpers\ErrorHandler;
 class TypeController extends Controller
 {
     public $section = "types";
-    public $fields = ["article", "name"];
-    public $fieldsValidationRules = ["required|string|max:8", "required|string|max:128"];
+    public $fields = ["name"];
+    public $fieldsValidationRules = ["required|string|max:128"];
 
     //templated access to section model
     public function getSectionModel() {
@@ -120,7 +120,6 @@ class TypeController extends Controller
         if ($this->isItemExists($data)) return ErrorHandler::responseWith("Неможливо створити: такий вид вже існує");
 
         $dataForSecondaryValidation = [
-            ["article", "артикль", $data["article"]],
             ["name", "назва", $data["name"]],
         ];
 
@@ -148,7 +147,6 @@ class TypeController extends Controller
                 return ErrorHandler::responseWith("Неможливо оновити: такий вид вже існує");
 
             $dataForSecondaryValidation = [
-                ["article", "артикль", $data["article"]],
                 ["name", "назва", $data["name"]],
             ];
 
@@ -283,9 +281,7 @@ class TypeController extends Controller
      */
     private function isItemExists($itemData, $id = null) {
         $sectionModel = $this->getSectionModel();
-        $matchingItems = $sectionModel::
-          where("article", $itemData["article"])
-        ->where("name", $itemData["name"]);
+        $matchingItems = $sectionModel::where("name", $itemData["name"]);
 
         if ($id != null) $matchingItems->where("id", "<>", $id);
 

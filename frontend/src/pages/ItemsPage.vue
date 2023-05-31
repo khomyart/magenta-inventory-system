@@ -35,15 +35,7 @@
       <q-space></q-space>
       <FilterByWarehouseComponent />
       <q-separator vertical class="q-mx-sm"></q-separator>
-      <q-btn flat round color="black" icon="arrow_downward">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[-18, 7]"
-        >
-          Зарахувати надходження
-        </q-tooltip>
-      </q-btn>
+      <IncomeCreatorComponent />
       <q-btn flat round color="black" icon="arrow_upward">
         <q-tooltip
           class="bg-black text-body2"
@@ -163,7 +155,8 @@
         <template v-for="(item, index) in sectionStore.items" :key="index">
           <ItemComponent
             @show-remove-dialog="showRemoveDialog"
-            @get-info-about-current-item="sectionStore.receiveItem"
+            @fill-create-window-with-item-data="fillCreateWindowWithItemData"
+            @fill-update-window-with-item-data="fillUpdateWindowWithItemData"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
             :allowenses="{
@@ -208,7 +201,7 @@
       </div>
       <div class="footer-right-part q-mr-md">
         <button
-          @click="sectionStore.dialogs.warehouse.isShown = true"
+          @click="sectionStore.dialogs.warehouseDetail.isShown = true"
           v-if="
             appStore.filters.data[currentSection].selectedParams.warehouse !=
             null
@@ -262,7 +255,7 @@
     </q-dialog>
     <!-- WAREHOUSE INFO DIALOG -->
     <q-dialog
-      v-model="sectionStore.dialogs.warehouse.isShown"
+      v-model="sectionStore.dialogs.warehouseDetail.isShown"
       transition-show="scale"
       transition-hide="scale"
     >
@@ -335,6 +328,7 @@ import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
 import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent.vue";
 import PriceButtonComponent from "src/components/filter_bar/PriceButtonComponent.vue";
 import FilterByWarehouseComponent from "src/components/item/FilterByWarehouseComponent.vue";
+import IncomeCreatorComponent from "src/components/item/income/IncomeCreatorComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();
@@ -488,6 +482,13 @@ function clearUpdatedItemId() {
     sectionStore.data.updatedItemId = 0;
     clearInterval(interval);
   }, 2000);
+}
+
+function fillUpdateWindowWithItemData(itemIdInDB, itemIndexInArray) {
+  sectionStore.receiveItemToFillUpdateWindow(itemIdInDB, itemIndexInArray);
+}
+function fillCreateWindowWithItemData(itemIdInDB, itemIndexInArray) {
+  sectionStore.receiveItemToFillCreateWindow(itemIdInDB, itemIndexInArray);
 }
 
 function copyValue(value, paramName) {

@@ -13,11 +13,10 @@
           style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
         >
-          <div class="row q-col-gutter-md q-mb-md q-pt-sm">
+          <div class="row q-col-gutter-md q-mb-sm q-pt-sm">
             <q-input
               class="col-5 q-pt-sm"
               outlined
-              autofocus
               v-model="sectionStore.newItem.article"
               label="Артикль"
               :rules="[
@@ -49,12 +48,46 @@
               class="col-7 q-pt-sm"
               outlined
               v-model="sectionStore.newItem.group_id"
+              :debounce="700"
               label="ID групи"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть ID групи',
-                (val) => val.length <= 255 || 'Не більше 32 символів',
+                (val) => val.length <= 36 || 'Не більше 36 символів',
               ]"
-            />
+              :loading="sectionStore.data.isItemDataLoading"
+            >
+              <template v-slot:append>
+                <q-icon
+                  v-if="!sectionStore.data.isItemDataLoading"
+                  name="cached"
+                  class="cursor-pointer q-ml-xs"
+                  @click.stop.prevent="generateGroupID"
+                >
+                  <q-tooltip
+                    class="bg-black text-body2"
+                    :offset="[0, 7]"
+                    anchor="bottom middle"
+                    self="top middle"
+                    >Згенерувати ID групи</q-tooltip
+                  >
+                </q-icon>
+              </template>
+              <span
+                v-if="sectionStore.bufferedItems.length > 0"
+                style="
+                  position: absolute;
+                  bottom: -23px;
+                  right: -40px;
+                  color: green;
+                  font-size: 12px;
+                  cursor: pointer;
+                  z-index: 9999;
+                "
+                @click.prevent.stop="showDataReplacementDialog"
+              >
+                Знайдено відповідність у базі даних
+              </span>
+            </q-input>
             <q-select
               :hide-dropdown-icon="
                 sectionStore.newItem.type != null &&
@@ -153,7 +186,7 @@
               :options="colorStore.simpleItems"
               @filter="colorFilter"
               :loading="colorStore.data.isItemsLoading"
-              class="col-4 q-pt-sm"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -201,7 +234,7 @@
               option-label="value"
               @filter="sizeFilter"
               :loading="sizeStore.data.isItemsLoading"
-              class="col-4 q-pt-sm"
+              class="col-4 q-pt-sm q-pb-md"
             >
               <template
                 v-if="
@@ -249,7 +282,7 @@
             </q-select>
 
             <q-input
-              class="col-4 q-pt-sm q-pb-md"
+              class="col-4 q-pt-sm"
               outlined
               v-model="sectionStore.newItem.price"
               label="Ціна"
@@ -269,7 +302,7 @@
               class="col-4 q-pt-sm"
             />
             <q-input
-              class="col-4 q-pt-sm q-pb-md"
+              class="col-4 q-pt-sm"
               outlined
               v-model="sectionStore.newItem.lack"
               label="Нестача"
@@ -339,6 +372,7 @@
                 :amountOfImages="sectionStore.newItem.images.length"
                 :imageUrl="image.url"
                 :index="index"
+                :previewMode="false"
                 @remove="removeImage"
                 @move="moveImage"
               />
@@ -404,8 +438,12 @@
       </q-form>
     </q-card>
   </q-dialog>
+
+  <!-- DATA REPLACEMENT DIALOG -->
+  <DataReplacementDialogComponent />
 </template>
 <script setup>
+import { v4 as uuidv4 } from "uuid";
 import { watch } from "vue";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
@@ -418,6 +456,7 @@ import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
 import WarehouseFormComponent from "src/components/item/single/WarehouseFormComponent.vue";
 import ImageComponent from "./ImageComponent.vue";
+import DataReplacementDialogComponent from "./DataReplacementDialogComponent.vue";
 
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
@@ -442,7 +481,11 @@ const warehouseTemplate = {
   ],
 };
 
-function showCreateDialog() {
+function showDataReplacementDialog() {
+  sectionStore.dialogs.replaceDataInCreateItemWindow.isShown = true;
+}
+
+function clearCreateItemDialogData() {
   sectionStore.newItem.group_id = "";
   sectionStore.newItem.article = "";
   sectionStore.newItem.title = "";
@@ -457,6 +500,7 @@ function showCreateDialog() {
   sectionStore.newItem.unit = null;
   sectionStore.newItem.availableIn = [];
   sectionStore.newItem.images = [];
+  sectionStore.bufferedItems = [];
 }
 
 function addAvailableIn() {
@@ -466,6 +510,10 @@ function addAvailableIn() {
 
 function removeAllWarehouses() {
   sectionStore.newItem.availableIn = [];
+}
+
+function generateGroupID() {
+  sectionStore.newItem.group_id = uuidv4();
 }
 
 function moveImage(imageIndex, direction) {
@@ -557,8 +605,73 @@ function genderFilter(val, update, abort) {
 watch(
   () => sectionStore.dialogs.create.isShown,
   (newValue) => {
+    if (
+      newValue === true &&
+      sectionStore.data.creatingItemIndexInArray === -1
+    ) {
+      /**
+       * clear data only if clicked "create new item",
+       * if clicked "create new item from another item" - prevent data clearing
+       */
+      clearCreateItemDialogData();
+    }
+
+    /**
+     * if create item dialog has opened with prepared data, proceed
+     * calculating of accepted images from db - make blob from them
+     * and prepare those files for sending them to backend
+     */
+    if (newValue === true && sectionStore.data.creatingItemIndexInArray != -1) {
+      sectionStore.newItem.images.forEach((image, index) => {
+        fetch(image.url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            sectionStore.newItem.images[index].file = new File(
+              [blob],
+              image.name,
+              { type: image.mimeType }
+            );
+          });
+      });
+    }
+  }
+);
+
+/**
+ * if item data replacement dialog is opened, we have relevant data
+ * in "sectionStore.bufferedItems" array. Also, there images are stored.
+ * As we need to use those images later in backend, we should prepare them
+ * and transform them into blob files
+ */
+watch(
+  () => sectionStore.dialogs.replaceDataInCreateItemWindow.isShown,
+  (newValue) => {
     if (newValue === true) {
-      showCreateDialog();
+      sectionStore.bufferedItems.forEach((item, bufferedItemIndex) => {
+        item.images.forEach((image, index) => {
+          fetch(image.url)
+            .then((res) => res.blob())
+            .then((blob) => {
+              sectionStore.bufferedItems[bufferedItemIndex].images[index].file =
+                new File([blob], image.name, { type: image.mimeType });
+            });
+        });
+      });
+    }
+  }
+);
+
+/**
+ * Clear "sectionStore.bufferedItems" variable if we are typing more than 36
+ * symbols in "group_id" field of item creation dialog
+ */
+watch(
+  () => sectionStore.newItem.group_id,
+  (newValue) => {
+    if (newValue.length <= 36) {
+      sectionStore.receiveItemsByGroupID(newValue);
+    } else {
+      sectionStore.bufferedItems = [];
     }
   }
 );

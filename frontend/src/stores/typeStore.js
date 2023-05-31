@@ -110,11 +110,6 @@ export const useTypeStore = defineStore("type", {
           params: {
             itemsPerPage: appConfigStore.amountOfItemsPerPages.types,
             page: appConfigStore.currentPages.types,
-            articleFilterValue:
-              appConfigStore.filters.data.types.selectedParams.article.value,
-            articleFilterMode:
-              appConfigStore.filters.data.types.selectedParams.article
-                .filterMode.value,
             nameFilterValue:
               appConfigStore.filters.data.types.selectedParams.name.value,
             nameFilterMode:

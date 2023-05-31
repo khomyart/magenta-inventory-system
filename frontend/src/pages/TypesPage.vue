@@ -108,7 +108,6 @@
             "
             :isMoveAllowed="
               appStore.filters.data.types.selectedParams.order.value === '' &&
-              appStore.filters.data.types.selectedParams.article.value === '' &&
               appStore.filters.data.types.selectedParams.name.value === ''
             "
           ></type-component>
@@ -156,17 +155,6 @@
             style="max-height: 50vh; width: 300px"
             class="scroll q-pt-md"
           >
-            <q-input
-              class="q-mb-sm"
-              outlined
-              v-model="updatedItem.article"
-              autofocus
-              label="Артикль"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть артикль',
-                (val) => val.length <= 8 || 'Не більше 8 символів',
-              ]"
-            />
             <q-input
               outlined
               v-model="updatedItem.name"
@@ -241,17 +229,8 @@ const sectionStore = useTypeStore();
 const router = useRouter();
 const $q = useQuasar();
 
-const fieldsSequance = ["article", "name"];
+const fieldsSequance = ["name"];
 const fieldsDetails = [
-  {
-    label: "Артикль",
-    searchBarLabel: "Значення артиклю",
-    type: "universal",
-    orderButtonLabels: {
-      up: "Від 0 до 9, від A до Z, від А до Я",
-      down: "Від Я до А, від Z до A, від 9 до 0",
-    },
-  },
   {
     label: "Назва",
     searchBarLabel: "Назва виду",
@@ -271,7 +250,6 @@ const allowenses = {
 
 let updatedItem = reactive({
   id: "",
-  article: "",
   name: "",
 });
 
@@ -282,7 +260,6 @@ let deletedItem = reactive({
 
 let tempFieldWidths = reactive({
   //px
-  article: 0,
   name: 0,
 });
 
@@ -309,7 +286,6 @@ function moveItem(id, direction) {
 
 function showUpdateDialog(item) {
   updatedItem.id = item.id;
-  updatedItem.article = item.article;
   updatedItem.name = item.name;
   sectionStore.dialogs.update.isShown = true;
 }
@@ -359,15 +335,11 @@ function setFilterOrder(field, fieldOrder) {
 const computedFilterWidth = computed(() => {
   return {
     buttons: {
-      article:
-        appStore.filters.data[currentSection].width.dynamic.article -
-        appStore.filters.availableParams.filterButtonXPadding,
       name:
         appStore.filters.data[currentSection].width.dynamic.name -
         appStore.filters.availableParams.filterButtonXPadding,
     },
     fields: {
-      article: appStore.filters.data[currentSection].width.dynamic.article,
       name: appStore.filters.data[currentSection].width.dynamic.name,
       separator: appStore.filters.availableParams.separatorWidth,
       lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 2,
@@ -395,7 +367,6 @@ watch(
 watch(
   [
     () => appStore.filters.data[currentSection].selectedParams.order.combined,
-    () => appStore.filters.data[currentSection].selectedParams.article.value,
     () => appStore.filters.data[currentSection].selectedParams.name.value,
   ],
   () => {

@@ -10,8 +10,8 @@ Route::get('/items', [ItemController::class,'read'])
 Route::post('/items/{id}', [ItemController::class,'update'])
 ->middleware('api.authorization:update,items')->whereNumber('id');
 
-Route::get('/items/{id}', [ItemController::class,'getItemPreparedToUpdate'])
-->middleware('api.authorization:update,items')->whereNumber('id');
+Route::get('/items/prepared', [ItemController::class,'getItemsWithPreparedData'])
+->middleware('api.authorization:read,items');
 
 Route::delete('/items/{id}', [ItemController::class,'delete'])
 ->middleware('api.authorization:delete,items')->whereNumber('id');

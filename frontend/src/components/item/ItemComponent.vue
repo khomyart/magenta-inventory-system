@@ -29,7 +29,8 @@
           flat
           :loading="
             props.sectionStore.data.isItemDataLoading &&
-            props.sectionStore.data.updatedItemIndexInArray == props.index
+            (props.sectionStore.data.updatingItemIndexInArray == props.index ||
+              props.sectionStore.data.creatingItemIndexInArray == props.index)
           "
         >
           <q-menu :offset="[5, 5]">
@@ -51,27 +52,24 @@
                 v-close-popup
                 @click="
                   $emit(
-                    'getInfoAboutCurrentItem',
+                    'fillCreateWindowWithItemData',
                     props.itemInfo.id,
                     props.index
                   )
                 "
               >
                 <div class="context-menu-item">
-                  <q-icon size="sm" name="edit" left></q-icon>
-                  <span
-                    >Створити на основі<br />
-                    вибраного</span
-                  >
+                  <q-icon size="sm" name="add_task" left></q-icon>
+                  <span>Створити предмет <br />на основі вибраного</span>
                 </div>
               </q-item>
               <q-item
-                v-if="props.allowenses.update == true"
+                v-if="props.allowenses.create == true"
                 clickable
                 v-close-popup
                 @click="
                   $emit(
-                    'getInfoAboutCurrentItem',
+                    'fillUpdateWindowWithItemData',
                     props.itemInfo.id,
                     props.index
                   )
@@ -475,7 +473,8 @@ import { useQuasar } from "quasar";
 const $q = useQuasar();
 
 const emit = defineEmits([
-  "getInfoAboutCurrentItem",
+  "fillCreateWindowWithItemData",
+  "fillUpdateWindowWithItemData",
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",

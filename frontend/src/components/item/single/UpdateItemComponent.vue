@@ -16,7 +16,6 @@
           <div class="row q-col-gutter-md q-mb-sm q-pt-sm">
             <q-input
               class="col-5 q-pt-sm"
-              autofocus
               outlined
               v-model="sectionStore.selectedItemForUpdating.article"
               label="Артикль"
@@ -193,7 +192,7 @@
             </q-select>
 
             <q-input
-              class="col-4 q-pt-sm"
+              class="col-4 q-pt-sm q-pb-md"
               outlined
               v-model="sectionStore.selectedItemForUpdating.price"
               label="Ціна"
@@ -210,10 +209,10 @@
               v-model="sectionStore.selectedItemForUpdating.currency"
               label="Валюта"
               :options="['UAH', 'USD', 'EUR']"
-              class="col-4 q-pt-sm"
+              class="col-4 q-pt-sm q-pb-md"
             />
             <q-input
-              class="col-4 q-pt-sm"
+              class="col-4 q-pt-sm q-pb-md"
               outlined
               v-model="sectionStore.selectedItemForUpdating.lack"
               label="Нестача"
@@ -286,6 +285,7 @@
                 "
                 :imageUrl="image.url"
                 :index="index"
+                :previewMode="false"
                 @remove="removeImage"
                 @move="moveImage"
               />

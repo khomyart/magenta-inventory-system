@@ -1,10 +1,17 @@
 <template>
   <div class="col-3">
-    <div class="image-holder">
+    <div
+      class="image-holder"
+      :style="{
+        height: props.previewMode == false ? '100px' : '60px',
+        padding: props.previewMode == false ? '5px' : '2px',
+      }"
+    >
       <div class="image" :style="`background-image: url(${props.imageUrl});`">
         <div class="buttons-holder">
           <div class="row justify-end">
             <q-btn
+              v-if="props.previewMode == false"
               icon="delete"
               size="10px"
               style="width: 20px"
@@ -27,7 +34,7 @@
               style="width: 20px"
               color="white"
               text-color="black"
-              v-if="props.index != 0"
+              v-if="props.index != 0 && props.previewMode == false"
               @click="$emit('move', props.index, 'left')"
             ></q-btn>
             <q-btn
@@ -38,7 +45,8 @@
               text-color="black"
               v-if="
                 props.amountOfImages != 1 &&
-                props.amountOfImages != props.index + 1
+                props.amountOfImages != props.index + 1 &&
+                props.previewMode == false
               "
               @click="$emit('move', props.index, 'right')"
             ></q-btn>
@@ -50,7 +58,12 @@
 </template>
 
 <script setup>
-const props = defineProps(["imageUrl", "index", "amountOfImages"]);
+const props = defineProps([
+  "imageUrl",
+  "index",
+  "amountOfImages",
+  "previewMode",
+]);
 const emits = defineEmits(["move", "remove", "show"]);
 </script>
 
@@ -66,7 +79,6 @@ const emits = defineEmits(["move", "remove", "show"]);
 }
 
 .image-holder {
-  height: 100px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 3px;
   overflow: hidden;
@@ -74,7 +86,7 @@ const emits = defineEmits(["move", "remove", "show"]);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 5px;
+
   transition: all 0.2s;
   cursor: pointer;
 }

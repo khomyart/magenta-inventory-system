@@ -112,26 +112,6 @@
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
-        style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.article, 'Артикль')"
-      >
-        <div class="item-text">
-          {{ props.itemInfo.article }}
-        </div>
-      </div>
-    </td>
-    <td class="separator-cell">
-      <div
-        :class="{
-          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
-        }"
-      ></div>
-    </td>
-    <td class="item-cell">
-      <div
-        :class="{
-          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
-        }"
         :style="{
           borderRadius:
             props.gap == 0

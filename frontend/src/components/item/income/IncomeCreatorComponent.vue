@@ -29,14 +29,14 @@
         </div>
       </q-card-section>
       <q-separator></q-separator>
-      <q-form @submit.prevent="">
+      <q-form @submit.prevent="submit">
         <q-card-section
           style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
         >
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 text-center">Склади</div>
+            <div class="col-4 text-center">Склади:</div>
             <div class="col-4">
               <q-btn
                 class="q-mr-sm"
@@ -88,7 +88,7 @@
             flat
             color="primary"
             type="submit"
-            :loading="sectionStore.dialogs.create.isLoading"
+            :loading="sectionStore.dialogs.incomeCreator.isLoading"
             ><b>Створити</b></q-btn
           >
         </q-card-actions>
@@ -107,6 +107,10 @@ const warehouseTemplate = {
   warehouse: null,
   batches: [],
 };
+
+function submit() {
+  sectionStore.sendIncomeData();
+}
 
 function showIncomeCreatorDialog() {
   sectionStore.dialogs.incomeCreator.isShown = true;

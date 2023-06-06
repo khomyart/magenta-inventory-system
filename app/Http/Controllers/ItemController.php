@@ -286,9 +286,9 @@ class ItemController extends Controller
 
         $warehousesData = $request->validate([
             "warehouses" => "nullable",
-            "warehouses.*.id" => "required|numeric",
+            "warehouses.*.id" => "required|numeric|exists:warehouses,id",
             "warehouses.*.batches" => "required",
-            "warehouses.*.batches.*.amount" => "required|numeric|gte:1",
+            "warehouses.*.batches.*.amount" => "required|numeric|integer|gte:1",
             "warehouses.*.batches.*.price" => "required|numeric|gte:1",
             "warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
         ]);
@@ -360,8 +360,55 @@ class ItemController extends Controller
         return response($itemData);
     }
 
+    public function income(Request $request) {
+        $data = $request->validate([
+            "warehouses" => "required",
+            "warehouses.*.id" => "required|numeric|exists:warehouses,id",
+            "warehouses.*.batches" => "required",
+            "warehouses.*.batches.*.amount" => "required|integer|gte:1",
+            "warehouses.*.batches.*.price" => "required|numeric|gte:1",
+            "warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
+            "warehouses.*.batches.*.items" => "required",
+            "warehouses.*.batches.*.items.*.id" => "required|numeric|exists:items,id",
+        ]);
+
+        //processing warehouses info
+        foreach ($data["warehouses"] as $key => $warehouse) {
+            foreach ($warehouse["batches"] as $key => $batch) {
+                foreach ($batch["items"] as $key => $item) {
+                    Batch::create([
+                        "item_id" => $item["id"],
+                        "warehouse_id" => $warehouse["id"],
+                        "price_per_item" => $batch["price"],
+                        "currency" => $batch["currency"],
+                        "amount_of_items" => $batch["amount"],
+                    ]);
+
+                    //check if item has records in item_warehouse_amounts table about its amount
+                    //if has - add batch["amount"] to its amount
+                    //if not - create record with batch["amount"] number as its amount
+                    $itemWarehouseAmounts = ItemWarehouseAmount::where("item_id", $item["id"])
+                    ->where("warehouse_id", $warehouse["id"])->first();
+
+                    if ($itemWarehouseAmounts != null) {
+                        $itemWarehouseAmounts->amount += $batch["amount"];
+                        $itemWarehouseAmounts->save();
+                    } else {
+                        ItemWarehouseAmount::create([
+                            "item_id" => $item["id"],
+                            "warehouse_id" => $warehouse["id"],
+                            "amount" => $batch["amount"],
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return response("OK", 200);
+    }
+
     /**
-     * Receive an item, or array of items (depends on request parameters)
+     * Gives an item, or array of items (depends on request parameters)
      * as a response
      *
      * @param Request $request Contains two variables: "mode", "value":

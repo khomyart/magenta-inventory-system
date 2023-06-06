@@ -228,7 +228,7 @@ let loadingStates = reactive({
 
 let batchTemplate = {
   amount: "",
-  price: 0,
+  price: null,
   currency: "UAH",
 };
 

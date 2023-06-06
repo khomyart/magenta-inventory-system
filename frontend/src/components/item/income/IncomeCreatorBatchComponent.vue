@@ -23,7 +23,7 @@
         v-model="
           sectionStore.income[props.warehouseIndex].batches[props.index].price
         "
-        type="number"
+        type="text"
         :rules="[
           (val) => (val !== null && val !== '') || 'Введіть ціну',
           (val) => val >= 1 || 'Не менше 1',
@@ -64,8 +64,8 @@
       class="row q-col-gutter-lg"
       :class="{
         'q-pb-sm':
-          sectionStore.income[props.warehouseIndex].batches[props.index]
-            .items == 0,
+          sectionStore.income[props.warehouseIndex].batches[props.index].items
+            .length == 0,
       }"
     >
       <q-select
@@ -74,25 +74,34 @@
         outlined
         use-input
         hide-selected
-        v-model="
-          sectionStore.income[props.warehouseIndex].batches[props.index].items
-        "
+        v-model="tempItemHolder"
         label="Артикль предмета"
         input-debounce="400"
         :options="sectionStore.itemsFoundByArticle.data"
         @filter="itemArticleFilter"
+        @update:model-value="addSelectedItemToStore"
         class="col-12"
-        :rules="[(val) => val.length >= 1 || 'Оберіть хоча б один предмет']"
+        :loading="loadingState.items === true"
+        :rules="[
+          () =>
+            sectionStore.income[props.warehouseIndex].batches[props.index].items
+              .length >= 1 || 'Оберіть хоча б один предмет',
+        ]"
         hide-dropdown-icon
       >
-        <template v-slot:append>
+        <template v-slot:append v-if="loadingState.items === false">
           <q-avatar>
             <q-icon size="23px" name="search"></q-icon>
           </q-avatar>
         </template>
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
-            <div class="col-12 row item-component items-center">
+            <div
+              class="col-12 row item-component items-center"
+              :class="{
+                'active-item-component': isItemExistedInList(scope.opt.id),
+              }"
+            >
               <div class="img-component-holder">
                 <img
                   v-if="scope.opt.image"
@@ -187,17 +196,42 @@
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
+import { ref, reactive } from "vue";
 const sectionStore = useItemStore();
 const props = defineProps(["warehouseIndex", "index", "imagesStoreUrl"]);
+let tempItemHolder = ref({});
+let loadingState = reactive({
+  items: false,
+});
 
 function itemArticleFilter(val, update, abort) {
+  sectionStore.itemsFoundByArticle.data = [];
   update(() => {
-    console.log(val);
     if (val.length > 0) {
-      sectionStore.itemsFoundByArticle.data = [];
-      sectionStore.receiveItemsByArticle(val);
+      sectionStore.receiveItemsByArticle(val, loadingState);
     }
   });
+}
+
+function isItemExistedInList(itemId) {
+  let currentBatch =
+    sectionStore.income[props.warehouseIndex].batches[props.index];
+
+  return currentBatch.items.filter((item) => item.id === itemId).length > 0
+    ? true
+    : false;
+}
+
+function addSelectedItemToStore(val) {
+  let isValueExist = isItemExistedInList(val.id);
+
+  if (!isValueExist) {
+    sectionStore.income[props.warehouseIndex].batches[props.index].items.push(
+      val
+    );
+  }
+
+  tempItemHolder.value = {};
 }
 
 function removeBatch() {
@@ -216,6 +250,10 @@ function removeItem(itemIndex) {
   border-radius: 4px;
 }
 .item-component {
+}
+
+.active-item-component {
+  color: #a32cc7;
 }
 
 .img-component-holder {

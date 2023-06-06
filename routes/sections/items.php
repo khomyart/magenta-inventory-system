@@ -15,3 +15,6 @@ Route::get('/items/prepared', [ItemController::class,'getItemsWithPreparedData']
 
 Route::delete('/items/{id}', [ItemController::class,'delete'])
 ->middleware('api.authorization:delete,items')->whereNumber('id');
+
+Route::post('/items/income', [ItemController::class,'income'])
+->middleware('api.authorization:income,items');

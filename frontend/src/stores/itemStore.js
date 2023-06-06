@@ -56,6 +56,7 @@ export const useItemStore = defineStore("item", {
       },
       incomeCreator: {
         isShown: false,
+        isLoading: false,
       },
     },
     data: {
@@ -462,8 +463,9 @@ export const useItemStore = defineStore("item", {
           this.data.creatingItemIndexInArray = -1;
         });
     },
-    receiveItemsByArticle(article) {
+    receiveItemsByArticle(article, loadingState) {
       this.data.isItemDataLoading = true;
+      loadingState.items = true;
       api
         .get(`/${sectionName}/prepared`, {
           params: {
@@ -479,6 +481,30 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.data.isItemDataLoading = false;
+          loadingState.items = false;
+        });
+    },
+    sendIncomeData() {
+      let preparedIncome = {
+        warehouses: [],
+      };
+      preparedIncome.warehouses = this.income.map((income, index) => ({
+        id: income.warehouse.id,
+        batches: income.batches,
+      }));
+
+      this.dialogs.incomeCreator.isLoading = true;
+      api
+        .post(`/${sectionName}/income`, preparedIncome)
+        .then((res) => {
+          this.dialogs.incomeCreator.isShown = false;
+          this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.incomeCreator.isLoading = false;
         });
     },
   },

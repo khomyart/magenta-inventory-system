@@ -167,7 +167,7 @@
     <div class="row q-my-sm">
       <div class="col-4"></div>
       <div class="col-4 flex items-center justify-center text-bold text-h6">
-        Партії
+        Партії:
       </div>
       <div class="col-4">
         <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
@@ -236,7 +236,7 @@ let loadingStates = reactive({
 
 let batchTemplate = {
   amount: "",
-  price: 0,
+  price: null,
   currency: "UAH",
   items: [],
 };

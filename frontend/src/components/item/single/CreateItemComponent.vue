@@ -8,7 +8,7 @@
         </div>
       </q-card-section>
       <q-separator></q-separator>
-      <q-form @submit="sectionStore.create()">
+      <q-form @submit.prevent="submit">
         <q-card-section
           style="max-height: 700px; height: 60vh"
           class="scroll col-12 q-pt-lg"
@@ -480,6 +480,10 @@ const warehouseTemplate = {
     },
   ],
 };
+
+function submit() {
+  sectionStore.create();
+}
 
 function showDataReplacementDialog() {
   sectionStore.dialogs.replaceDataInCreateItemWindow.isShown = true;

@@ -445,9 +445,12 @@ class ItemController extends Controller
 
             $section = DB::table($this->section);
             $section->select(
+                "items.id AS id",
                 "items.article AS article",
                 "sizes.value AS size",
                 "colors.article AS color_article",
+                "colors.value AS color_value",
+                "colors.text_color_value AS text_color_value",
                 "items.title AS title",
                 DB::raw("(SELECT src FROM images i WHERE items.id = i.item_id LIMIT 1) AS image"),
             )
@@ -461,7 +464,7 @@ class ItemController extends Controller
                 $section->where("items.article", "LIKE", "%{$params[0]}%");
             }
 
-            if (isset($params[1]) && count($params) == 2) {
+            if (count($params) == 2) {
                 $section->orWhere(function(Builder $query) use ($params) {
                     $query->where("items.article", "LIKE", "%{$params[0]}%")
                         ->where("colors.article", "LIKE", "%{$params[1]}%");
@@ -472,7 +475,7 @@ class ItemController extends Controller
                 });
             }
 
-            if (isset($params[2]) && count($params) == 3) {
+            if (count($params) == 3) {
                 $section->where("colors.article", "LIKE", "%{$params[1]}%")
                 ->where("sizes.value", "LIKE", "%{$params[2]}%");
             }

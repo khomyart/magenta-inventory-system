@@ -3,12 +3,10 @@
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
         dense
-        autocomplete=""
-        :hide-dropdown-icon="
-          sectionStore.newItem.availableIn[props.index].country != null
-        "
+        autocomplete="false"
+        :hide-dropdown-icon="sectionStore.income[props.index].country != null"
         outlined
-        v-model="sectionStore.newItem.availableIn[props.index].country"
+        v-model="sectionStore.income[props.index].country"
         use-input
         hide-selected
         fill-input
@@ -23,23 +21,21 @@
         class="col-6"
         :rules="[
           () =>
-            (sectionStore.newItem.availableIn[props.index].country != null &&
-              sectionStore.newItem.availableIn[props.index].country.id !=
-                undefined) ||
+            (sectionStore.income[props.index].country != null &&
+              sectionStore.income[props.index].country.id != undefined) ||
             'Оберіть країну',
         ]"
       >
         <template
           v-if="
-            sectionStore.newItem.availableIn[props.index].country &&
-            !loadingStates.country
+            sectionStore.income[props.index].country && !loadingStates.country
           "
           v-slot:append
         >
           <q-icon
             name="cancel"
             @click.stop.prevent="
-              sectionStore.newItem.availableIn[props.index].country = null;
+              sectionStore.income[props.index].country = null;
               countryUpdate();
             "
             class="cursor-pointer"
@@ -48,15 +44,14 @@
       </q-select>
       <q-select
         dense
-        autocomplete=""
+        autocomplete="false"
         :hide-dropdown-icon="
-          sectionStore.newItem.availableIn[props.index].country == null ||
-          sectionStore.newItem.availableIn[props.index].country.id ==
-            undefined ||
-          sectionStore.newItem.availableIn[props.index].city != null
+          sectionStore.income[props.index].country == null ||
+          sectionStore.income[props.index].country.id == undefined ||
+          sectionStore.income[props.index].city != null
         "
         outlined
-        v-model="sectionStore.newItem.availableIn[props.index].city"
+        v-model="sectionStore.income[props.index].city"
         label="Місто"
         use-input
         hide-selected
@@ -70,28 +65,24 @@
         :loading="loadingStates.city"
         class="col-6"
         :disable="
-          sectionStore.newItem.availableIn[props.index].country == null ||
-          sectionStore.newItem.availableIn[props.index].country.id == undefined
+          sectionStore.income[props.index].country == null ||
+          sectionStore.income[props.index].country.id == undefined
         "
         :rules="[
           () =>
-            (sectionStore.newItem.availableIn[props.index].city != null &&
-              sectionStore.newItem.availableIn[props.index].city.id !=
-                undefined) ||
+            (sectionStore.income[props.index].city != null &&
+              sectionStore.income[props.index].city.id != undefined) ||
             'Оберіть місто',
         ]"
       >
         <template
-          v-if="
-            sectionStore.newItem.availableIn[props.index].city &&
-            !loadingStates.city
-          "
+          v-if="sectionStore.income[props.index].city && !loadingStates.city"
           v-slot:append
         >
           <q-icon
             name="cancel"
             @click.stop.prevent="
-              sectionStore.newItem.availableIn[props.index].city = null;
+              sectionStore.income[props.index].city = null;
               cityUpdate();
             "
             class="cursor-pointer"
@@ -102,14 +93,14 @@
     <div class="row q-col-gutter-lg">
       <q-select
         dense
-        autocomplete=""
+        autocomplete="false"
         :hide-dropdown-icon="
-          sectionStore.newItem.availableIn[props.index].city == null ||
-          sectionStore.newItem.availableIn[props.index].city.id == undefined ||
-          sectionStore.newItem.availableIn[props.index].warehouse != null
+          sectionStore.income[props.index].city == null ||
+          sectionStore.income[props.index].city.id == undefined ||
+          sectionStore.income[props.index].warehouse != null
         "
         outlined
-        v-model="sectionStore.newItem.availableIn[props.index].warehouse"
+        v-model="sectionStore.income[props.index].warehouse"
         label="Склад"
         use-input
         hide-selected
@@ -122,14 +113,13 @@
         :loading="loadingStates.warehouse"
         class="col-10"
         :disable="
-          sectionStore.newItem.availableIn[props.index].city == null ||
-          sectionStore.newItem.availableIn[props.index].city.id == undefined
+          sectionStore.income[props.index].city == null ||
+          sectionStore.income[props.index].city.id == undefined
         "
         :rules="[
           () =>
-            (sectionStore.newItem.availableIn[props.index].warehouse != null &&
-              sectionStore.newItem.availableIn[props.index].warehouse.id !=
-                undefined) ||
+            (sectionStore.income[props.index].warehouse != null &&
+              sectionStore.income[props.index].warehouse.id != undefined) ||
             'Оберіть склад',
         ]"
       >
@@ -140,7 +130,7 @@
         </template>
         <template
           v-if="
-            sectionStore.newItem.availableIn[props.index].warehouse &&
+            sectionStore.income[props.index].warehouse &&
             !loadingStates.warehouse
           "
           v-slot:append
@@ -148,13 +138,13 @@
           <q-icon
             name="cancel"
             @click.stop.prevent="
-              sectionStore.newItem.availableIn[props.index].warehouse = null
+              sectionStore.income[props.index].warehouse = null
             "
             class="cursor-pointer"
           />
         </template>
       </q-select>
-      <div class="col-2 flex items-start">
+      <div class="col-2 d-flex items-start">
         <q-btn
           class="q-mr-sm"
           flat
@@ -176,14 +166,11 @@
     <q-separator class="q-mt-sm" />
     <div class="row q-my-sm">
       <div class="col-4"></div>
-      <div
-        class="col-4 flex items-center justify-center text-bold"
-        style="font-size: 1.1rem"
-      >
-        Партії:
+      <div class="col-4 flex items-center justify-center text-bold text-h6">
+        Партії
       </div>
       <div class="col-4">
-        <q-btn class="q-mr-sm" round flat icon="add" @click="addBatch">
+        <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
           <q-tooltip
             class="bg-black text-body2"
             anchor="bottom middle"
@@ -193,14 +180,33 @@
             Додати партію
           </q-tooltip>
         </q-btn>
+        <q-btn
+          class="q-mr-sm"
+          round
+          flat
+          icon="delete"
+          @click="removeAllBatches"
+        >
+          <q-tooltip
+            class="bg-black text-body2"
+            anchor="bottom middle"
+            self="top middle"
+            :offset="[0, 5]"
+          >
+            Видалити всі партії
+          </q-tooltip>
+        </q-btn>
       </div>
     </div>
     <template
-      v-for="(item, batchIndex) in sectionStore.newItem.availableIn[props.index]
-        .batches"
+      v-for="(item, batchIndex) in sectionStore.income[props.index].batches"
       :key="batchIndex"
     >
-      <BatchFormComponent :warehouseIndex="props.index" :index="batchIndex" />
+      <IncomeCreatorBatchComponent
+        :warehouseIndex="props.index"
+        :index="batchIndex"
+        :imagesStoreUrl="appConfigStore.imagesStoreUrl"
+      />
     </template>
   </div>
 </template>
@@ -211,11 +217,13 @@ import { useCityStore } from "src/stores/helpers/cityStore";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useItemStore } from "src/stores/itemStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
-import BatchFormComponent from "./BatchFormComponent.vue";
+import { useAppConfigStore } from "src/stores/appConfigStore";
+import IncomeCreatorBatchComponent from "./IncomeCreatorBatchComponent.vue";
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
 const cityStore = useCityStore();
 const warehouseStore = useWarehouseStore();
+const appConfigStore = useAppConfigStore();
 
 const props = defineProps(["index"]);
 //makes possible to do loading animation for every individual
@@ -230,10 +238,20 @@ let batchTemplate = {
   amount: "",
   price: 0,
   currency: "UAH",
+  items: [],
 };
 
 function removeWarehouse() {
-  sectionStore.newItem.availableIn.splice(props.index, 1);
+  sectionStore.income.splice(props.index, 1);
+}
+
+function createBatch() {
+  let batch = JSON.parse(JSON.stringify(batchTemplate));
+  sectionStore.income[props.index].batches.push(batch);
+}
+
+function removeAllBatches() {
+  sectionStore.income[props.index].batches = [];
 }
 
 function countryFilter(val, update, abort) {
@@ -249,7 +267,7 @@ function cityFilter(val, update, abort) {
     loadingStates.city = true;
     cityStore.items = [];
     cityStore.receive(
-      sectionStore.newItem.availableIn[props.index].country.id,
+      sectionStore.income[props.index].country.id,
       val,
       loadingStates
     );
@@ -262,7 +280,7 @@ function warehouseFilter(val, update, abort) {
     warehouseStore.simpleItems = [];
     warehouseStore.simpleReceive(
       val,
-      sectionStore.newItem.availableIn[props.index].city.id,
+      sectionStore.income[props.index].city.id,
       loadingStates
     );
   });
@@ -270,18 +288,13 @@ function warehouseFilter(val, update, abort) {
 
 //if changing country - clear city and warehouse
 function countryUpdate() {
-  sectionStore.newItem.availableIn[props.index].city = null;
-  sectionStore.newItem.availableIn[props.index].warehouse = null;
+  sectionStore.income[props.index].city = null;
+  sectionStore.income[props.index].warehouse = null;
 }
 
 //if changing city - clear warehouse
 function cityUpdate() {
-  sectionStore.newItem.availableIn[props.index].warehouse = null;
-}
-
-function addBatch() {
-  let batch = JSON.parse(JSON.stringify(batchTemplate));
-  sectionStore.newItem.availableIn[props.index].batches.push(batch);
+  sectionStore.income[props.index].warehouse = null;
 }
 </script>
 <style scoped>
@@ -289,6 +302,6 @@ function addBatch() {
   border: 1px solid rgba(0, 0, 0, 0.185);
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.158);
   border-radius: 4px;
-  padding: 15px 15px 7px;
+  padding: 15px 15px 0px;
 }
 </style>

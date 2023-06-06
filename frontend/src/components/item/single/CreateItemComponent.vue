@@ -316,7 +316,7 @@
           <q-separator class="q-mb-sm" />
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 flex justify-center items-center">
+            <div class="col-4 text-center">
               Зображення
               <input
                 id="imagesInput"
@@ -380,7 +380,7 @@
           </div>
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 flex justify-center items-center">Наявність</div>
+            <div class="col-4 text-center">Наявність</div>
             <div class="col-4">
               <q-btn
                 class="q-mr-sm"

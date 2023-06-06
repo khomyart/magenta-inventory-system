@@ -23,8 +23,13 @@ export const useItemStore = defineStore("item", {
       availableIn: [],
       images: [],
     },
+    income: [],
     selectedItemForUpdating: {},
     bufferedItems: [],
+    //includes items themself, amount of found items, show limitation info
+    itemsFoundByArticle: {
+      data: [],
+    },
     items: [],
     dialogs: {
       create: {
@@ -455,6 +460,25 @@ export const useItemStore = defineStore("item", {
         .finally(() => {
           this.data.isItemDataLoading = false;
           this.data.creatingItemIndexInArray = -1;
+        });
+    },
+    receiveItemsByArticle(article) {
+      this.data.isItemDataLoading = true;
+      api
+        .get(`/${sectionName}/prepared`, {
+          params: {
+            mode: "article",
+            value: article,
+          },
+        })
+        .then((res) => {
+          this.itemsFoundByArticle = { ...res.data };
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.data.isItemDataLoading = false;
         });
     },
   },

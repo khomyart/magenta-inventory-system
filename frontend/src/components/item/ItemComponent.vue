@@ -47,7 +47,7 @@
                 </div>
               </q-item>
               <q-item
-                v-if="props.allowenses.update == true"
+                v-if="props.allowenses.create == true"
                 clickable
                 v-close-popup
                 @click="
@@ -64,7 +64,6 @@
                 </div>
               </q-item>
               <q-item
-                v-if="props.allowenses.create == true"
                 clickable
                 v-close-popup
                 @click="
@@ -74,6 +73,7 @@
                     props.index
                   )
                 "
+                v-if="props.allowenses.update == true"
               >
                 <div class="context-menu-item">
                   <q-icon size="sm" name="edit" left></q-icon>

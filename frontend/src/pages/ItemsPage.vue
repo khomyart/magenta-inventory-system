@@ -160,6 +160,7 @@
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
             :allowenses="{
+              create: allowenses.create,
               update: allowenses.update,
               delete: allowenses.delete,
             }"

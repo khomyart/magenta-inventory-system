@@ -36,7 +36,7 @@
         >
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 text-center">Склади:</div>
+            <div class="col-4 text-center">Групи:</div>
             <div class="col-4">
               <q-btn
                 class="q-mr-sm"
@@ -51,7 +51,7 @@
                   self="top middle"
                   :offset="[0, 5]"
                 >
-                  Додати склад
+                  Додати групу
                 </q-tooltip>
               </q-btn>
               <q-btn
@@ -67,7 +67,7 @@
                   self="top middle"
                   :offset="[0, 5]"
                 >
-                  Видалити всі склади
+                  Видалити всі групи
                 </q-tooltip>
               </q-btn>
             </div>

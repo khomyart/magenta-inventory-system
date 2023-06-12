@@ -36,15 +36,7 @@
       <FilterByWarehouseComponent />
       <q-separator vertical class="q-mx-sm"></q-separator>
       <IncomeCreatorComponent />
-      <q-btn flat round color="black" icon="arrow_upward">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[-20, 7]"
-        >
-          Зарахувати списання
-        </q-tooltip>
-      </q-btn>
+      <OutcomeCreatorComponent />
       <q-btn
         flat
         round
@@ -330,6 +322,7 @@ import ColorButtonComponent from "src/components/filter_bar/ColorButtonComponent
 import PriceButtonComponent from "src/components/filter_bar/PriceButtonComponent.vue";
 import FilterByWarehouseComponent from "src/components/item/FilterByWarehouseComponent.vue";
 import IncomeCreatorComponent from "src/components/item/income/IncomeCreatorComponent.vue";
+import OutcomeCreatorComponent from "src/components/item/outcome/OutcomeCreatorComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();

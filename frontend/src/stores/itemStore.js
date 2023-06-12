@@ -24,6 +24,7 @@ export const useItemStore = defineStore("item", {
       images: [],
     },
     income: [],
+    outcome: {},
     selectedItemForUpdating: {},
     bufferedItems: [],
     //includes items themself, amount of found items, show limitation info
@@ -55,6 +56,10 @@ export const useItemStore = defineStore("item", {
         isShown: false,
       },
       incomeCreator: {
+        isShown: false,
+        isLoading: false,
+      },
+      outcomeCreator: {
         isShown: false,
         isLoading: false,
       },
@@ -463,7 +468,7 @@ export const useItemStore = defineStore("item", {
           this.data.creatingItemIndexInArray = -1;
         });
     },
-    receiveItemsByArticle(article, loadingState) {
+    receiveItemsByArticle(article, loadingState, warehouseId = 0) {
       this.data.isItemDataLoading = true;
       loadingState.items = true;
       api
@@ -471,6 +476,7 @@ export const useItemStore = defineStore("item", {
           params: {
             mode: "article",
             value: article,
+            warehouse_id: warehouseId,
           },
         })
         .then((res) => {
@@ -506,6 +512,9 @@ export const useItemStore = defineStore("item", {
         .finally(() => {
           this.dialogs.incomeCreator.isLoading = false;
         });
+    },
+    sendOutcomeData() {
+      console.log(this.outcome);
     },
   },
 });

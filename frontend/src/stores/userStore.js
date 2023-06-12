@@ -21,6 +21,7 @@ export const useUserStore = defineStore("user", {
   getters: {},
   actions: {
     login(userData) {
+      this.data.isLoading = true;
       api
         .post("/login", userData)
         .then((res) => {
@@ -35,8 +36,8 @@ export const useUserStore = defineStore("user", {
           this.data.isLoginSuccesed = true;
         })
         .catch((err) => {
-          this.data.isLoading = false;
           appConfigStore.catchRequestError(err);
+          this.data.isLoading = false;
         });
     },
     logout() {

@@ -1,6 +1,6 @@
 <template>
   <div class="col-12 batch-wrapper q-mb-md q-pt-md q-px-md">
-    <div class="row q-col-gutter-lg q-pb-sm">
+    <div class="row q-col-gutter-md q-pb-sm">
       <q-input
         class="col-4"
         label="Кількість"

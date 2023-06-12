@@ -412,8 +412,9 @@ class ItemController extends Controller
      * as a response
      *
      * @param Request $request Contains two variables: "mode", "value":
-     * mode -   way of building item search query (search by id, group_id or article)
-     * value -  value, which is used for query forming
+     * mode -           way of building item search query (search by id, group_id or article)
+     * value -          value, which is used for query forming
+     * warehouse_id -   id of warehouse where searching need to be done (works in pair with article mode)
      *
      * @return array of items, or a single item as array
      */
@@ -421,6 +422,7 @@ class ItemController extends Controller
         $filterData = $request->validate([
             "mode" => ["required", "string", "regex:/^id$|^group_id$|^article$/i"],
             "value" => "nullable|string|max:36",
+            "warehouse_id" => "integer"
         ]);
 
         if ($filterData["value"] === null) return 0;
@@ -491,6 +493,8 @@ class ItemController extends Controller
             $params = explode(" ",  trim($filterData["value"]));
 
             $section = DB::table($this->section);
+
+            //select forming
             $section->select(
                 "items.id AS id",
                 "items.article AS article",
@@ -499,14 +503,31 @@ class ItemController extends Controller
                 "colors.value AS color_value",
                 "colors.text_color_value AS text_color_value",
                 "items.title AS title",
+
                 DB::raw("(SELECT src FROM images i WHERE items.id = i.item_id LIMIT 1) AS image"),
-            )
-            ->leftJoin("colors", "items.color_id", "=", "colors.id")
-            ->leftJoin("sizes", "items.size_id", "=", "sizes.id")
-            ->orderBy("items.article", "asc")
+            );
+
+            if ($filterData["warehouse_id"] != 0) {
+                $section->addSelect(
+                    "item_warehouse_amounts.warehouse_id AS warehouse_id",
+                    "item_warehouse_amounts.amount AS amount",
+                );
+            }
+
+            //join forming
+            $section->leftJoin("colors", "items.color_id", "=", "colors.id")
+            ->leftJoin("sizes", "items.size_id", "=", "sizes.id");
+
+            if ($filterData["warehouse_id"] != 0) {
+                $section->rightJoin("item_warehouse_amounts", "items.id", "=", "item_warehouse_amounts.item_id");
+            }
+
+            //ordering forming
+            $section->orderBy("items.article", "asc")
             ->orderBy("colors.article", "asc")
             ->orderBy("sizes.number_in_row", "asc");
 
+            //"WHERE" statement forming
             if (count($params) == 1) {
                 $section->where("items.article", "LIKE", "%{$params[0]}%");
             }
@@ -527,8 +548,14 @@ class ItemController extends Controller
                 ->where("sizes.value", "LIKE", "%{$params[2]}%");
             }
 
+            if ($filterData["warehouse_id"] != 0) {
+                $section->where("item_warehouse_amounts.warehouse_id", "=", $filterData["warehouse_id"]);
+            }
+
+            //additional query tweaks
             $amountOfItems = $section->count();
             $section->limit($this->defaultQueryResultLimit);
+
             $items = $section->get();
 
             return response()->json([

@@ -16,7 +16,7 @@
   </q-btn>
 
   <q-dialog v-model="sectionStore.dialogs.outcomeCreator.isShown">
-    <q-card style="width: 95vw; max-width: 600px">
+    <q-card style="width: 100vw; max-width: 600px">
       <q-card-section>
         <div class="text-h6 flex items-center">
           <q-icon name="arrow_upward" color="black" size="md" class="q-mr-sm" />
@@ -26,7 +26,7 @@
       <q-separator></q-separator>
       <q-form @submit.prevent="submit">
         <q-card-section
-          style="max-height: 700px; height: 60vh"
+          style="max-height: 700px; height: 70vh"
           class="scroll col-12"
         >
           <OutcomeCreatorGroupComponent />
@@ -66,6 +66,7 @@ function showOutcomeCreatorDialog() {
     reasonName: "sell",
     additionalReasonName: "",
     reasonDetail: "",
+    outcomeAmount: "",
     items: [],
   };
 }

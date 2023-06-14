@@ -514,7 +514,17 @@ export const useItemStore = defineStore("item", {
         });
     },
     sendOutcomeData() {
-      console.log(this.outcome);
+      let preparedOutcome = {
+        warehouseId: this.outcome.warehouse.id,
+        items: this.outcome.items.map((item) => ({
+          id: item.id,
+          reason: item.reasonName,
+          additionalReason: item.additionalReasonName,
+          reasonDetail: item.reasonDetail,
+          amount: item.outcomeAmount,
+        })),
+      };
+      console.log("prepared data:", preparedOutcome);
     },
   },
 });

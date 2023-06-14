@@ -1,5 +1,5 @@
 <template>
-  <div class="col-12 q-mb-md">
+  <div class="col-12">
     <div
       class="text-h6 q-mb-md q-mb-sm-sm text-weight-medium text-left q-pl-md"
     >
@@ -7,7 +7,6 @@
     </div>
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="sectionStore.outcome.country != null"
         outlined
@@ -46,7 +45,6 @@
         </template>
       </q-select>
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.outcome.country == null ||
@@ -93,7 +91,6 @@
         </template>
       </q-select>
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.outcome.city == null ||
@@ -157,25 +154,27 @@
           label="Оберіть причину"
           emit-value
           map-options
-          dense
           outlined
           class="col-12 col-sm-6 q-pb-sm"
         />
         <q-input
           outlined
-          dense
           class="col-12 col-sm-6"
           label="Назва причини"
           v-model="sectionStore.outcome.additionalReasonName"
           v-if="sectionStore.outcome.reasonName === 'other'"
-          :rules="[
-            (val) => val.length > 0 || 'Введіть назву причини',
-            (val) => val.length < 255 || 'Не більше 255 символів',
-          ]"
+          :reactive-rules="true"
+          :rules="
+            isAllItemsLockedToCustomValues().reason
+              ? [(val) => true]
+              : [
+                  (val) => val.length > 0 || 'Введіть назву причини',
+                  (val) => val.length < 255 || 'Не більше 255 символів',
+                ]
+          "
         />
         <q-input
           outlined
-          dense
           label="Деталі"
           v-model="sectionStore.outcome.reasonDetail"
           :class="{
@@ -194,9 +193,8 @@
       >
         Предмети
       </div>
-      <div class="row q-col-gutter-md">
+      <div id="article_select_input" class="row q-col-gutter-md">
         <q-select
-          dense
           autocomplete="false"
           outlined
           use-input
@@ -207,7 +205,7 @@
           :options="sectionStore.itemsFoundByArticle.data"
           @filter="itemArticleFilter"
           @update:model-value="addSelectedItemToStore"
-          class="col-12"
+          class="col-12 col-sm-7"
           :loading="loadingStates.items === true"
           hide-dropdown-icon
           :rules="[
@@ -224,27 +222,29 @@
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
               <div
-                class="col-12 row item-component items-center"
+                class="list-item-body"
                 :class="{
-                  'active-item-component': isItemExistedInList(scope.opt.id),
+                  'active-item-component': isItemExistInList(scope.opt.id),
                 }"
               >
-                <div class="img-component-holder">
+                <div class="list-item-description-image-holder">
                   <img
-                    v-if="scope.opt.image"
+                    v-if="scope.opt.image != null"
+                    class="list-item-description-image"
                     :src="`${appConfigStore.imagesStoreUrl}/${scope.opt.image}`"
-                    alt=""
                   />
                 </div>
-                <div class="q-pl-md description d-flex column">
-                  <div class="title text-subtitle1">{{ scope.opt.title }}</div>
-                  <div class="size-and-color row">
-                    <div class="article q-mr-xs">
+                <div class="list-item-description-text-holder q-ml-md">
+                  <div class="title">
+                    {{ scope.opt.title }}
+                  </div>
+                  <div class="article">
+                    <div class="article-text q-mr-xs">
                       {{ scope.opt.article }}
                     </div>
                     <div
                       v-if="scope.opt.color_value"
-                      class="color q-mr-xs"
+                      class="article-color q-mr-xs"
                       :style="{ backgroundColor: scope.opt.color_value }"
                     >
                       <span :style="{ color: scope.opt.text_color_value }">{{
@@ -255,9 +255,7 @@
                       {{ scope.opt.size }}
                     </div>
                   </div>
-                  <div class="amount q-mt-sm">
-                    Наявність: {{ scope.opt.amount }}
-                  </div>
+                  <div class="available">Наявність: {{ scope.opt.amount }}</div>
                 </div>
               </div>
             </q-item>
@@ -275,10 +273,29 @@
             </div>
           </template>
         </q-select>
+        <q-input
+          outlined
+          class="col-12 col-sm-5 q-pt-sm q-pt-sm-md"
+          label="Кількість"
+          step="1"
+          v-model="sectionStore.outcome.outcomeAmount"
+          :reactive-rules="true"
+          :rules="
+            isAllItemsLockedToCustomValues().amount
+              ? [(val) => true]
+              : [
+                  (val) => val != '' || 'Вкажіть кількість',
+                  (val) => val > 0 || 'Не менше 1',
+                ]
+          "
+          mask="######"
+        />
       </div>
       <div class="row col-12" v-if="sectionStore.outcome.items.length > 0">
-        <div class="col-12 items-wrapper q-pa-md q-mb-md">
-          <div class="q-gutter-lg col-12">
+        <div
+          class="col-12 items-wrapper q-px-md q-pt-lg q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+        >
+          <div class="q-gutter-md">
             <OutcomeCreatorGroupItemComponent
               v-for="(item, itemIndex) in sectionStore.outcome.items"
               :key="item.id"
@@ -308,6 +325,14 @@ const cityStore = useCityStore();
 const warehouseStore = useWarehouseStore();
 
 const props = defineProps(["index"]);
+const additionalOutcomeInfoTemplate = {
+  reasonName: "sell",
+  additionalReasonName: "",
+  reasonDetail: "",
+  outcomeAmount: "",
+  outcomeAmountCustomMode: false,
+  reasonCustomMode: false,
+};
 //makes possible to do loading animation for every individual
 //set of inputs (co., ci., wa.)
 let loadingStates = reactive({
@@ -391,21 +416,69 @@ function itemArticleFilter(val, update, abort) {
   });
 }
 
-function isItemExistedInList(itemId) {
+function isItemExistInList(itemId) {
   let items = sectionStore.outcome.items;
 
   return items.filter((item) => item.id === itemId).length > 0 ? true : false;
 }
 
 function addSelectedItemToStore(val) {
-  let isValueExist = isItemExistedInList(val.id);
+  let isValueExist = isItemExistInList(val.id);
 
   if (!isValueExist) {
+    let additionalInfoInjectionTargetIndex = sectionStore.outcome.items.length;
     sectionStore.outcome.items.push(val);
+
+    Object.keys(additionalOutcomeInfoTemplate).forEach((key) => {
+      sectionStore.outcome.items[additionalInfoInjectionTargetIndex][key] =
+        sectionStore.outcome[key];
+    });
   }
 
   tempItemHolder.value = {};
 }
+/**
+ * Check are all items where modified by their inner dialog window.
+ * If so, their values are specific to themselves and they have no need in
+ * general, top-level value of group, like general "amount", or "reason"
+ *
+ * return
+ */
+function isAllItemsLockedToCustomValues() {
+  let amountOfCustomAmountElements = sectionStore.outcome.items.filter(
+    (el) => el.outcomeAmountCustomMode === true
+  );
+  let amountOfCustomReasonElements = sectionStore.outcome.items.filter(
+    (el) => el.reasonCustomMode === true
+  );
+
+  return {
+    amount:
+      amountOfCustomAmountElements.length === sectionStore.outcome.items.length
+        ? true
+        : false,
+    reason:
+      amountOfCustomReasonElements.length === sectionStore.outcome.items.length
+        ? true
+        : false,
+  };
+}
+
+watch(
+  () => loadingStates.items,
+  (newState, oldState) => {
+    //if items loading is done, item list appeared
+    //so we can set proper width for it
+    if (newState === false) {
+      let articleSelectInput = document.querySelector("#article_select_input");
+      let listMenu = document.querySelector("[role='listbox']");
+
+      if (listMenu != null) {
+        listMenu.style.width = `${articleSelectInput.offsetWidth - 16}px`;
+      }
+    }
+  }
+);
 </script>
 <style scoped>
 .group-wrapper {
@@ -417,18 +490,15 @@ function addSelectedItemToStore(val) {
 .active-item-component {
   color: #a32cc7;
 }
-
-.title {
-  /* width: 110px; */
-  width: 100%;
-  max-width: 600px;
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.list-item-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-width: 0;
 }
-
-.img-component-holder {
+.list-item-description-image-holder {
+  min-width: 75px;
+  min-height: 75px;
   width: 75px;
   height: 75px;
   overflow: hidden;
@@ -436,12 +506,31 @@ function addSelectedItemToStore(val) {
   justify-content: center;
   border-radius: 5px;
   background-color: rgb(217, 217, 205);
+  flex: 0 0 75px;
 }
-.img-component-holder img {
+.list-item-description-image {
   height: 100%;
   width: auto;
 }
-.color {
+.list-item-description-text-holder {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.title {
+  width: 100%;
+  height: fit-content;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.article {
+  display: flex;
+  flex-direction: row;
+}
+.article-color {
   width: fit-content;
   padding: 0 10px;
   height: 20px;

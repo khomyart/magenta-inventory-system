@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Image;
-use App\Models\Batch;
+use App\Models\Income;
+use App\Models\Outcome;
 use App\Models\Type;
 use App\Models\Gender;
 use App\Models\ItemWarehouseAmount;
@@ -20,7 +21,7 @@ class ItemController extends Controller
     public $section = "items";
     public $currencyForSearching = null;
     //field names are used for accepting filters while searching in db
-    public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "model", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "batches.amount_of_items", "units.name"];
+    public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "model", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "income.amount_of_items", "units.name"];
     //field names are used for validating incoming data
     public $readFieldsFromFrontend = ["group_id", "article", "title", "model", "price", "type", "gender", "size", "color", "amount", "units"];
     public $defaultQueryResultLimit = 5;
@@ -331,7 +332,7 @@ class ItemController extends Controller
                 $amountOfItemPerWarehouse = 0;
 
                 foreach ($warehouse["batches"] as $key => $batch) {
-                    Batch::create([
+                    Income::create([
                         "item_id" => $item->id,
                         "warehouse_id" => $warehouse["id"],
                         "price_per_item" => $batch["price"],
@@ -360,7 +361,7 @@ class ItemController extends Controller
         return response($itemData);
     }
 
-    public function income(Request $request) {
+    public function setIncome(Request $request) {
         $data = $request->validate([
             "warehouses" => "required",
             "warehouses.*.id" => "required|numeric|exists:warehouses,id",
@@ -376,7 +377,7 @@ class ItemController extends Controller
         foreach ($data["warehouses"] as $key => $warehouse) {
             foreach ($warehouse["batches"] as $key => $batch) {
                 foreach ($batch["items"] as $key => $item) {
-                    Batch::create([
+                    Income::create([
                         "item_id" => $item["id"],
                         "warehouse_id" => $warehouse["id"],
                         "price_per_item" => $batch["price"],
@@ -407,11 +408,75 @@ class ItemController extends Controller
         return response("OK", 200);
     }
 
+    public function setOutcome(Request $request) {
+        $data = $request->validate([
+            "warehouseId" => "required|integer|numeric|exists:warehouses,id",
+            "items" => "required",
+            "items.*.id" => "required|integer|numeric|exists:items,id",
+            "items.*.additionalReason" => "nullable|string|max:255",
+            "items.*.reason" => "required|string|max:255",
+            "items.*.reasonDetail" => "nullable|string|max:1000",
+            "items.*.amount" => "required|numeric|gte:1|max:999999",
+        ]);
+
+        $isItemsExistsInWarehouse = true;
+        $isOutcomeAmountOfItemIsLessThanActualAmount = true;
+
+        foreach ($data["items"] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
+                ->where("warehouse_id", $data["warehouseId"])->first();
+
+            if ($currentItem == null || $currentItem->amount == 0) {
+                $isItemsExistsInWarehouse = false;
+                break;
+            }
+
+            if ($item["amount"] > $currentItem->amount) {
+                $isOutcomeAmountOfItemIsLessThanActualAmount = false;
+                break;
+            }
+        }
+
+        if ($isItemsExistsInWarehouse === false) {
+            return ErrorHandler::responseWith("Предмета не існує на складах", 404);
+        }
+        if ($isOutcomeAmountOfItemIsLessThanActualAmount === false) {
+            return ErrorHandler::responseWith("Списання перевищує наявність");
+        }
+
+        foreach ($data["items"] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
+                ->where("warehouse_id", $data["warehouseId"])->first();
+
+            //create outcome
+            Outcome::create([
+                "item_id" => $item["id"],
+                "warehouse_id" => $data["warehouseId"],
+                "amount" => $item["amount"],
+                "reason_name" => $item["reason"],
+                "additional_reason_name" =>
+                    $item["reason"] === "other" ? $item["additionalReason"] : null,
+                "detail" => $item["reasonDetail"],
+            ]);
+
+            $differenceBetweenAmounts = $currentItem->amount - $item["amount"];
+
+            if ($differenceBetweenAmounts == 0) {
+                $currentItem->delete();
+            } else {
+                $currentItem->amount = $differenceBetweenAmounts;
+                $currentItem->save();
+            }
+        }
+
+        return response("OK", 200);
+    }
+
     /**
-     * Gives an item, or array of items (depends on request parameters)
+     * Give an item, or array of items (depends on request parameters)
      * as a response
      *
-     * @param Request $request Contains two variables: "mode", "value":
+     * @param Request $request Contains three variables: "mode", "value", "warehouse_id":
      * mode -           way of building item search query (search by id, group_id or article)
      * value -          value, which is used for query forming
      * warehouse_id -   id of warehouse where searching need to be done (works in pair with article mode)
@@ -720,7 +785,7 @@ class ItemController extends Controller
             "colors.description AS color", //extra field for ordering
             "colors.value AS color_value",
             "colors.text_color_value AS text_color_value",
-            DB::raw('SUM(batches.amount_of_items) AS amount'),
+            DB::raw('SUM(income.amount_of_items) AS amount'),
             "units.name AS unit_name",
             "units.name AS units", //extra field for ordering
             "units.description AS unit_description",
@@ -730,7 +795,7 @@ class ItemController extends Controller
         ->leftJoin('genders', 'items.gender_id', '=', 'genders.id')
         ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
         ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
-        ->leftJoin('batches', 'items.id', '=', 'batches.item_id')
+        ->leftJoin('income', 'items.id', '=', 'income.item_id')
         ->where("items.id", $id);
         $updatedItem = $section->get()[0];
         $updatedItem = json_decode(json_encode($updatedItem), true);

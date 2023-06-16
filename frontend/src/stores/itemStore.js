@@ -524,7 +524,20 @@ export const useItemStore = defineStore("item", {
           amount: item.outcomeAmount,
         })),
       };
-      console.log("prepared data:", preparedOutcome);
+
+      this.dialogs.outcomeCreator.isLoading = true;
+      api
+        .post(`/${sectionName}/outcome`, preparedOutcome)
+        .then((res) => {
+          this.dialogs.outcomeCreator.isShown = false;
+          this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.outcomeCreator.isLoading = false;
+        });
     },
   },
 });

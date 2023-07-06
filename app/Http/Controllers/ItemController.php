@@ -933,7 +933,7 @@ class ItemController extends Controller
                     Gender::find($validationItem["gender_id"])->name : "відсутнє значення";
 
                 return "Неможливо {$action}: невірне значення
-                    характеристики \"стать\" для предмету з
+                    характеристики \"гендер\" для предмету з
                     даним артиклем. (Пропозиція: \"{$genderName}\")";
             }
         }

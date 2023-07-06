@@ -69,7 +69,11 @@
             >
               <q-item-section>Одиночний предмет</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup>
+            <q-item
+              clickable
+              v-close-popup
+              @click="sectionStore.dialogs.createMultiple.isShown = true"
+            >
               <q-item-section>Групу предметів</q-item-section>
             </q-item>
           </q-list>
@@ -217,6 +221,8 @@
     </div>
     <!--CREATING DIALOG-->
     <CreateItemComponent />
+    <!--CREATING MULTIPLE DIALOG-->
+    <CreateMultipleItemsComponent />
     <!--UPDATING DIALOG-->
     <UpdateItemComponent />
     <!-- DELETING DIALOG -->
@@ -315,6 +321,7 @@ import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useQuasar } from "quasar";
 import ItemComponent from "src/components/item/ItemComponent.vue";
 import CreateItemComponent from "src/components/item/single/CreateItemComponent.vue";
+import CreateMultipleItemsComponent from "src/components/item/createMultiple/CreateMultipleItemsComponent.vue";
 import UpdateItemComponent from "src/components/item/single/UpdateItemComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";

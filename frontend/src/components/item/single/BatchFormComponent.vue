@@ -2,7 +2,6 @@
   <div class="col-12 batch-wrapper q-mb-md q-pt-md q-px-md">
     <div class="row q-col-gutter-md q-mb-xs">
       <q-input
-        dense
         type="number"
         class="col-4"
         outlined
@@ -18,7 +17,6 @@
         ]"
       />
       <q-input
-        dense
         type="number"
         class="col-3"
         outlined
@@ -35,7 +33,6 @@
       />
       <q-select
         class="col-3"
-        dense
         hide-dropdown-icon
         outlined
         v-model="
@@ -50,7 +47,7 @@
         <q-btn
           flat
           icon="remove"
-          style="height: 39px; width: 100%"
+          style="height: 56px; width: 100%"
           @click="removeBatch"
           v-if="props.index != 0"
         >

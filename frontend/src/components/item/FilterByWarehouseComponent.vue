@@ -22,7 +22,7 @@
         </div>
         <div class="row q-px-md q-pb-md">
           <q-select
-            autocomplete=""
+            autocomplete="false"
             outlined
             v-model="appStore.filters.data.items.selectedParams.warehouse"
             label="Склад"

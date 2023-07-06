@@ -161,6 +161,7 @@ const sectionStore = useColorStore();
 function showCreateDialog() {
   newItem.value = "";
   newItem.description = "";
+  newItem.article = "";
   sectionStore.dialogs.create.isShown = true;
 }
 

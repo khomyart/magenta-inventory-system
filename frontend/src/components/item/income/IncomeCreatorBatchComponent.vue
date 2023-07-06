@@ -5,7 +5,6 @@
         class="col-4"
         label="Кількість"
         outlined
-        dense
         v-model="
           sectionStore.income[props.warehouseIndex].batches[props.index].amount
         "
@@ -19,7 +18,6 @@
         class="col-3"
         label="Ціна"
         outlined
-        dense
         v-model="
           sectionStore.income[props.warehouseIndex].batches[props.index].price
         "
@@ -31,7 +29,6 @@
       ></q-input>
       <q-select
         class="col-3"
-        dense
         hide-dropdown-icon
         outlined
         v-model="
@@ -46,7 +43,7 @@
           class="q-mr-sm"
           flat
           icon="remove"
-          style="height: 39px; width: 100%"
+          style="height: 56px; width: 100%"
           @click="removeBatch"
         >
           <q-tooltip
@@ -69,7 +66,6 @@
       }"
     >
       <q-select
-        dense
         autocomplete="false"
         outlined
         use-input
@@ -80,7 +76,7 @@
         :options="sectionStore.itemsFoundByArticle.data"
         @filter="itemArticleFilter"
         @update:model-value="addSelectedItemToStore"
-        class="col-12"
+        class="col-12 article-select-input"
         :loading="loadingState.items === true"
         :rules="[
           () =>
@@ -97,27 +93,29 @@
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
             <div
-              class="col-12 row item-component items-center"
+              class="list-item-body"
               :class="{
-                'active-item-component': isItemExistedInList(scope.opt.id),
+                'active-item-component': isItemExistInList(scope.opt.id),
               }"
             >
-              <div class="img-component-holder">
+              <div class="list-item-description-image-holder">
                 <img
-                  v-if="scope.opt.image"
+                  v-if="scope.opt.image != null"
+                  class="list-item-description-image"
                   :src="`${props.imagesStoreUrl}/${scope.opt.image}`"
-                  alt=""
                 />
               </div>
-              <div class="q-pl-md description d-flex column">
-                <div class="title">{{ scope.opt.title }}</div>
-                <div class="size-and-color row q-pt-xs">
-                  <div class="article q-mr-sm">
+              <div class="list-item-description-text-holder q-ml-md">
+                <div class="title">
+                  {{ scope.opt.title }}
+                </div>
+                <div class="article">
+                  <div class="article-text q-mr-xs">
                     {{ scope.opt.article }}
                   </div>
                   <div
                     v-if="scope.opt.color_value"
-                    class="color q-mr-sm"
+                    class="article-color q-mr-xs"
                     :style="{ backgroundColor: scope.opt.color_value }"
                   >
                     <span :style="{ color: scope.opt.text_color_value }">{{
@@ -128,6 +126,7 @@
                     {{ scope.opt.size }}
                   </div>
                 </div>
+                <div class="available">Наявність: {{ scope.opt.amount }}</div>
               </div>
             </div>
           </q-item>
@@ -185,7 +184,6 @@
               flat
               size="8px"
               icon="close"
-              dense
               @click="removeItem(itemIndex)"
             />
           </div>
@@ -196,7 +194,7 @@
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 const sectionStore = useItemStore();
 const props = defineProps(["warehouseIndex", "index", "imagesStoreUrl"]);
 let tempItemHolder = ref({});
@@ -213,7 +211,7 @@ function itemArticleFilter(val, update, abort) {
   });
 }
 
-function isItemExistedInList(itemId) {
+function isItemExistInList(itemId) {
   let currentBatch =
     sectionStore.income[props.warehouseIndex].batches[props.index];
 
@@ -223,7 +221,7 @@ function isItemExistedInList(itemId) {
 }
 
 function addSelectedItemToStore(val) {
-  let isValueExist = isItemExistedInList(val.id);
+  let isValueExist = isItemExistInList(val.id);
 
   if (!isValueExist) {
     sectionStore.income[props.warehouseIndex].batches[props.index].items.push(
@@ -243,6 +241,22 @@ function removeItem(itemIndex) {
     1
   );
 }
+
+watch(
+  () => loadingState.items,
+  (newState, oldState) => {
+    //if items loading is done, item list appeared
+    //so we can set proper width for it
+    if (newState === false) {
+      let articleSelectInput = document.querySelector(".article-select-input");
+      let listMenu = document.querySelector("[role='listbox']");
+
+      if (listMenu != null) {
+        listMenu.style.width = `${articleSelectInput.offsetWidth - 32}px`;
+      }
+    }
+  }
+);
 </script>
 <style scoped>
 .batch-wrapper {
@@ -256,20 +270,47 @@ function removeItem(itemIndex) {
   color: #a32cc7;
 }
 
-.img-component-holder {
-  width: 50px;
-  height: 50px;
+.list-item-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.list-item-description-image-holder {
+  min-width: 75px;
+  min-height: 75px;
+  width: 75px;
+  height: 75px;
   overflow: hidden;
   display: flex;
   justify-content: center;
   border-radius: 5px;
   background-color: rgb(217, 217, 205);
+  flex: 0 0 75px;
 }
-.img-component-holder img {
+.list-item-description-image {
   height: 100%;
   width: auto;
 }
-.color {
+.list-item-description-text-holder {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.title {
+  width: 100%;
+  height: fit-content;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.article {
+  display: flex;
+  flex-direction: row;
+}
+.article-color {
   width: fit-content;
   padding: 0 10px;
   height: 20px;

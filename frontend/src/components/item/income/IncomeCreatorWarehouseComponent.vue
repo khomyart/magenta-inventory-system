@@ -2,7 +2,6 @@
   <div class="col-12 warehouse-wrapper q-mb-md">
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="sectionStore.income[props.index].country != null"
         outlined
@@ -43,7 +42,6 @@
         </template>
       </q-select>
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.income[props.index].country == null ||
@@ -92,7 +90,6 @@
     </div>
     <div class="row q-col-gutter-lg">
       <q-select
-        dense
         autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.income[props.index].city == null ||
@@ -149,7 +146,7 @@
           class="q-mr-sm"
           flat
           icon="remove"
-          style="height: 39px; width: 100%"
+          style="height: 56px; width: 100%"
           @click="removeWarehouse"
         >
           <q-tooltip

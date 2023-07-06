@@ -205,9 +205,9 @@
           :options="sectionStore.itemsFoundByArticle.data"
           @filter="itemArticleFilter"
           @update:model-value="addSelectedItemToStore"
-          class="col-12 col-sm-7"
           :loading="loadingStates.items === true"
           hide-dropdown-icon
+          class="col-12 col-sm-7"
           :rules="[
             () =>
               sectionStore.outcome.items.length >= 1 ||
@@ -441,8 +441,6 @@ function addSelectedItemToStore(val) {
  * Check are all items where modified by their inner dialog window.
  * If so, their values are specific to themselves and they have no need in
  * general, top-level value of group, like general "amount", or "reason"
- *
- * return
  */
 function isAllItemsLockedToCustomValues() {
   let amountOfCustomAmountElements = sectionStore.outcome.items.filter(

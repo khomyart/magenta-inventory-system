@@ -23,6 +23,24 @@ export const useItemStore = defineStore("item", {
       availableIn: [],
       images: [],
     },
+    newMultipleItems: {
+      main: {
+        groupID: "",
+        type: null,
+        units: "",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+      genders: [],
+      colors: [],
+      sizes: [],
+    },
     income: [],
     outcome: {},
     selectedItemForUpdating: {},
@@ -37,7 +55,7 @@ export const useItemStore = defineStore("item", {
         isShown: false,
         isLoading: false,
       },
-      createFew: {
+      createMultiple: {
         isShown: false,
         isLoading: false,
       },

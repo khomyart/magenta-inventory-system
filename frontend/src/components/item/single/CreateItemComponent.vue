@@ -197,9 +197,9 @@
                   <span>{{ scope.opt.value }}</span>
                   <q-tooltip
                     class="bg-black text-body2"
-                    anchor="center right"
-                    self="center left"
-                    :offset="[0, 0]"
+                    anchor="center start"
+                    self="center end"
+                    :offset="[5, 0]"
                   >
                     {{ scope.opt.description }}
                   </q-tooltip>

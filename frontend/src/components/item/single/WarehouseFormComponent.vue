@@ -2,8 +2,7 @@
   <div class="col-12 warehouse-wrapper q-mb-md">
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
-        dense
-        autocomplete=""
+        autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.newItem.availableIn[props.index].country != null
         "
@@ -47,8 +46,7 @@
         </template>
       </q-select>
       <q-select
-        dense
-        autocomplete=""
+        autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.newItem.availableIn[props.index].country == null ||
           sectionStore.newItem.availableIn[props.index].country.id ==
@@ -101,8 +99,7 @@
     </div>
     <div class="row q-col-gutter-lg">
       <q-select
-        dense
-        autocomplete=""
+        autocomplete="false"
         :hide-dropdown-icon="
           sectionStore.newItem.availableIn[props.index].city == null ||
           sectionStore.newItem.availableIn[props.index].city.id == undefined ||
@@ -159,7 +156,7 @@
           class="q-mr-sm"
           flat
           icon="remove"
-          style="height: 39px; width: 100%"
+          style="height: 56px; width: 100%"
           @click="removeWarehouse"
         >
           <q-tooltip

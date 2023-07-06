@@ -286,7 +286,7 @@
           <div class="item-size">
             <q-tooltip
               v-if="props.itemInfo.size_name != null"
-              :offset="[0, 5]"
+              :offset="[8, 5]"
               :target="`#size-of-item-${props.itemInfo.id}`"
               class="bg-black text-body2"
               anchor="center left"
@@ -397,13 +397,18 @@
   <q-dialog v-model="showImage" seamless>
     <q-card>
       <q-card-section class="row items-center q-pb-md">
-        <div class="text-h6 flex items-center">
-          <q-icon name="photo" color="black" size="md" /><b class="q-ml-sm">{{
-            props.itemInfo.title
-          }}</b>
+        <div class="text-h6 images-dialog-header">
+          <q-icon name="photo" color="black" size="md" class="icon-header" />
+          <div class="q-ml-sm text-header">{{ props.itemInfo.title }}</div>
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            v-close-popup
+            class="close-button-header"
+          />
         </div>
-        <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
       <q-card-section class="flex justify-center">
         <template v-if="props.itemInfo.images.length > 1">
@@ -606,3 +611,27 @@ onUpdated(() => {
   }
 });
 </script>
+
+<style scoped>
+.images-dialog-header {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+.icon-header {
+  display: flex;
+  flex: 0 0;
+  margin-right: 5px;
+}
+.text-header {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.close-button-header {
+  margin-left: 5px;
+  display: flex;
+  flex: 0 0;
+}
+</style>

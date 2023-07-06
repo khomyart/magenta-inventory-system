@@ -114,7 +114,21 @@ function submit() {
 
 function showIncomeCreatorDialog() {
   sectionStore.dialogs.incomeCreator.isShown = true;
-  sectionStore.income = [];
+  sectionStore.income = [
+    {
+      country: null,
+      city: null,
+      warehouse: null,
+      batches: [
+        {
+          amount: "",
+          price: null,
+          currency: "UAH",
+          items: [],
+        },
+      ],
+    },
+  ];
 }
 
 function addWarehouse() {

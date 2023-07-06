@@ -101,6 +101,8 @@ function setFilterOrder(field, fieldOrder) {
 function clearAllFilters() {
   let filter = appStore.filters.data[props.filterIn];
   for (const [key] of Object.entries(filter.selectedParams)) {
+    if (key === "warehouse") continue;
+
     filter.selectedParams[key].value = "";
 
     if (key === "price" || key === "amount") {

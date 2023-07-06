@@ -86,11 +86,19 @@ class ColorController extends Controller
         if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
             $query = $sectionModel::orderBy("description", "asc");
         } else {
-            //if input param starts with "#"
-            if ($data["nameFilterValue"][0] === "#") {
-                $query = $sectionModel::where("value", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
-            } else {
-                $query = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
+            //if input param starts with "#" or with "!"
+            switch ($data["nameFilterValue"][0]) {
+                case "#":
+                    $colorSearchValue = substr($data["nameFilterValue"], 1);
+                    $query = $sectionModel::where("value", "like", "%{$colorSearchValue}%")->orderBy("description", "asc");
+                    break;
+                case "!":
+                    $colorSearchValue = substr($data["nameFilterValue"], 1);
+                    $query = $sectionModel::where("article", "like", "%{$colorSearchValue}%")->orderBy("description", "asc");
+                    break;
+                default:
+                    $query = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
+                    break;
             }
         }
 

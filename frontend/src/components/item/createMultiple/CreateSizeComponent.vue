@@ -61,7 +61,7 @@
       <div class="q-gutter-md row">
         <template
           v-for="(item, itemIndex) in sectionStore.newMultipleItems.sizes"
-          :key="item.id"
+          :key="itemIndex"
         >
           <div
             v-if="
@@ -210,17 +210,22 @@ let genderName = computed(() => {
 });
 
 let colorName = computed(() => {
-  let capitalizedColorName =
-    sectionStore.newMultipleItems.colors[props.colorArrayIndex].description;
+  let capitalizedColorName = "";
 
-  if (props.genderArrayIndex == -1) {
+  if (
+    sectionStore.newMultipleItems.colors[props.colorArrayIndex] != undefined
+  ) {
     capitalizedColorName =
-      capitalizedColorName.charAt(0).toUpperCase() +
-      capitalizedColorName.slice(1);
-  } else {
-    capitalizedColorName =
-      capitalizedColorName.charAt(0).toLowerCase() +
-      capitalizedColorName.slice(1);
+      sectionStore.newMultipleItems.colors[props.colorArrayIndex].description;
+    if (props.genderArrayIndex == -1) {
+      capitalizedColorName =
+        capitalizedColorName.charAt(0).toUpperCase() +
+        capitalizedColorName.slice(1);
+    } else {
+      capitalizedColorName =
+        capitalizedColorName.charAt(0).toLowerCase() +
+        capitalizedColorName.slice(1);
+    }
   }
 
   return capitalizedColorName;

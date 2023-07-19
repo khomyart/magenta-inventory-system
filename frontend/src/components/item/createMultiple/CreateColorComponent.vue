@@ -59,7 +59,7 @@
       <div class="q-gutter-md row">
         <template
           v-for="(item, itemIndex) in sectionStore.newMultipleItems.colors"
-          :key="item.id"
+          :key="itemIndex"
         >
           <div
             v-if="item.connections.genderArrayIndex === props.genderArrayIndex"
@@ -88,7 +88,10 @@
         </template>
       </div>
       <q-separator class="q-mt-md" />
-      <SelectedColorFormComponent :colorArrayIndex="props.selectedColorIndex" />
+      <!-- <SelectedColorFormComponent
+        :colorArrayIndex="props.selectedColorIndex"
+        v-if="props.selectedColorIndex != -1"
+      /> -->
     </div>
   </div>
   <div id="bottom_of_colors_container"></div>

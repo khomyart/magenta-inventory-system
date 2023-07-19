@@ -6,8 +6,15 @@
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
           Група предметів, г: {{ selectedIndexes.genders }}, к:
           {{ selectedIndexes.colors }}, р: {{ selectedIndexes.sizes }}
-          <q-btn class="q-ml-md" @click="fillNewMultipleItemObjectWithItems"
-            >Заповнити</q-btn
+          <q-btn
+            class="q-ml-md"
+            @click="fillNewMultipleItemObjectWithItems(true)"
+            >з. розм.</q-btn
+          >
+          <q-btn
+            class="q-ml-md"
+            @click="fillNewMultipleItemObjectWithItems(false)"
+            >з. без розм.</q-btn
           >
         </div>
       </q-card-section>
@@ -249,6 +256,7 @@
               </div>
               <q-separator class="q-mt-md" />
               <SelectedGenderFormComponent
+                v-if="selectedIndexes.genders != -1"
                 :genderArrayIndex="selectedIndexes.genders"
               />
             </div>
@@ -317,6 +325,7 @@ import { useUnitStore } from "src/stores/unitStore";
 import SelectedGenderFormComponent from "src/components/item/createMultiple/SelectedGenderFormComponent.vue";
 import CreateColorComponent from "./CreateColorComponent.vue";
 import CreateSizeComponent from "./CreateSizeComponent.vue";
+import { colors } from "quasar";
 
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
@@ -409,7 +418,7 @@ function isGenderExistInList(itemId) {
  * General function
  */
 
-function fillNewMultipleItemObjectWithItems() {
+function fillNewMultipleItemObjectWithItems(sizes = true) {
   let items = {
     main: {
       groupID: "",
@@ -1035,8 +1044,282 @@ function fillNewMultipleItemObjectWithItems() {
       },
     ],
   };
+
+  let itemsWithoutSizes = {
+    main: {
+      groupID: "",
+      type: null,
+      units: "",
+      detail: {
+        title: "",
+        model: "",
+        article: "",
+        price: "",
+        currency: "UAH",
+        lack: 10,
+      },
+    },
+    genders: [
+      {
+        id: 10,
+        name: "щось4",
+        number_in_row: 1,
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+      {
+        id: 2,
+        name: "4",
+        number_in_row: 3,
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+      {
+        id: 4,
+        name: "діти",
+        number_in_row: 5,
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+      {
+        id: 5,
+        name: "чоловіч",
+        number_in_row: 6,
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+      {
+        id: 3,
+        name: "5",
+        number_in_row: 4,
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+      },
+    ],
+    colors: [
+      {
+        id: 6,
+        value: "#14cc61",
+        article: "GR",
+        description: "Гріно",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 4 },
+        indexInArray: 0,
+      },
+      {
+        id: 7,
+        value: "#f5e798",
+        article: "CR",
+        description: "Кремі",
+        text_color_value: "#000000",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 3 },
+        indexInArray: 1,
+      },
+      {
+        id: 3,
+        value: "#2833fc",
+        article: "Article2",
+        description: "Каралоуий",
+        text_color_value: "#000000",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 2 },
+        indexInArray: 2,
+      },
+      {
+        id: 3,
+        value: "#2833fc",
+        article: "Article2",
+        description: "Каралоуий",
+        text_color_value: "#000000",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 1 },
+        indexInArray: 3,
+      },
+      {
+        id: 7,
+        value: "#f5e798",
+        article: "CR",
+        description: "Кремі",
+        text_color_value: "#000000",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 1 },
+        indexInArray: 4,
+      },
+      {
+        id: 1,
+        value: "#e61c1c",
+        article: "WHI",
+        description: "WRYYY",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 0 },
+        indexInArray: 5,
+      },
+      {
+        id: 5,
+        value: "#ee00ff",
+        article: "MA",
+        description: "Маджентовий",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 4 },
+        indexInArray: 6,
+      },
+      {
+        id: 5,
+        value: "#ee00ff",
+        article: "MA",
+        description: "Маджентовий",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 3 },
+        indexInArray: 7,
+      },
+      {
+        id: 1,
+        value: "#e61c1c",
+        article: "WHI",
+        description: "WRYYY",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 2 },
+        indexInArray: 8,
+      },
+      {
+        id: 5,
+        value: "#ee00ff",
+        article: "MA",
+        description: "Маджентовий",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 1 },
+        indexInArray: 9,
+      },
+      {
+        id: 6,
+        value: "#14cc61",
+        article: "GR",
+        description: "Гріно",
+        text_color_value: "#ffffff",
+        detail: {
+          title: "",
+          model: "",
+          article: "",
+          price: "",
+          currency: "UAH",
+          lack: 10,
+        },
+        connections: { genderArrayIndex: 0 },
+        indexInArray: 10,
+      },
+    ],
+    sizes: [],
+  };
+
   sectionStore.newMultipleItems = {};
-  sectionStore.newMultipleItems = items;
+  sectionStore.newMultipleItems = sizes === true ? items : itemsWithoutSizes;
   selectItem(0, "gender");
 }
 
@@ -1130,7 +1413,11 @@ function recalculateSizesConnectionIndexes(
         deletingColorIndex != null &&
         size.connections.colorArrayIndex > deletingColorIndex
       ) {
-        size.connections.colorArrayIndex -= 1;
+        let previousColorIndex = removingItemInfo(
+          deletingColorIndex,
+          "color"
+        ).previousIndex;
+        size.connections.colorArrayIndex = previousColorIndex;
       }
 
       return size;
@@ -1143,61 +1430,90 @@ function removeItem(itemIndex, type) {
 
   //if removing gender, remove all colors and sizes which are belong to it
   if (type === "gender") {
-    // itemsAmount = sectionStore.newMultipleItems.genders.length;
+    //select color with index -1 (it hides color form) to avoid unexpected issues
+    selectItem(-1, "color");
 
-    //Dependent colors removing
+    //dependent colors detecting
     let genderColors = sectionStore.newMultipleItems.colors.filter(
       (color) => color.connections.genderArrayIndex === itemIndex
     );
-    let colorsIndexes = genderColors.map((color) => {
-      return color.indexInArray;
+    let colorsIndexes = genderColors.map((color) => color.indexInArray);
+
+    //sort color indexes from highest to lowest
+    //and remove colors by their indexes in array
+    colorsIndexes = colorsIndexes.sort((a, b) => b - a);
+    colorsIndexes.forEach((colorIndex) => {
+      removeItem(colorIndex, "color");
     });
 
-    colorsIndexes.reverse().forEach((colorIndex) => {
-      sectionStore.newMultipleItems.colors.splice(colorIndex, 1);
-    });
     recalculateColorsArrayIndexes();
     recalculateColorsConnectionIndexes(itemIndex);
+    // selectItem(-1, "size");
 
-    //Dependent sizes removing
-    let genderSizes = sectionStore.newMultipleItems.sizes.filter(
-      (size) => size.connections.genderArrayIndex === itemIndex
-    );
-    let sizesIndexes = genderSizes.map((size) => {
-      return size.indexInArray;
-    });
+    // let genderSizes = sectionStore.newMultipleItems.sizes.filter(
+    //   (size) => size.connections.genderArrayIndex === itemIndex
+    // );
+    // let sizesIndexes = genderSizes.map((size) => {
+    //   return size.indexInArray;
+    // });
 
-    sizesIndexes.reverse().forEach((sizeIndex) => {
-      sectionStore.newMultipleItems.sizes.splice(sizeIndex, 1);
-    });
+    // sizesIndexes = sizesIndexes.sort((a, b) => b - a);
+    // sizesIndexes.forEach((sizeIndex) => {
+    //   removeItem(sizeIndex, "size");
+    // });
 
-    recalculateSizesArrayIndexes();
-    recalculateSizesConnectionIndexes(itemIndex, null);
-    if (colorsIndexes.length > 0) {
-      colorsIndexes.forEach((colorIndex) => {
-        recalculateSizesConnectionIndexes(null, colorIndex);
-      });
-    }
+    // recalculateSizesArrayIndexes();
+    // recalculateSizesConnectionIndexes(null, itemIndex);
   }
 
+  //if removing color, remove all sizes which are belong to it
   if (type === "color") {
+    selectItem(-1, "size");
+    //selecting color indexes which are higher than deleting one
+    let colorIndexes = sectionStore.newMultipleItems.colors.filter(
+      (color, index) => index > itemIndex
+    );
+    colorIndexes = colorIndexes
+      .map((el) => el.indexInArray)
+      .sort((a, b) => a - b);
+
+    //dependent sizes detecting, receiving their indexes
     let colorSizes = sectionStore.newMultipleItems.sizes.filter(
       (size) => size.connections.colorArrayIndex === itemIndex
     );
-    let sizesIndexes = colorSizes.map((size) => {
-      return size.indexInArray;
+    let sizeIndexes = colorSizes.map((size) => size.indexInArray);
+
+    //setting sizes new connection indexes
+    let indexesOfReconnectedSizes = [];
+    colorIndexes.forEach((colorIndex) => {
+      sectionStore.newMultipleItems.sizes.forEach((size, index) => {
+        if (size.connections.colorArrayIndex === colorIndex) {
+          indexesOfReconnectedSizes.push(size.indexInArray);
+        }
+      });
+    });
+    indexesOfReconnectedSizes.forEach((sizeIndex) => {
+      let targetColorIndex =
+        sectionStore.newMultipleItems.sizes[sizeIndex].connections
+          .colorArrayIndex - 1;
+      //change parent color index
+      sectionStore.newMultipleItems.sizes[
+        sizeIndex
+      ].connections.colorArrayIndex = targetColorIndex;
     });
 
-    sizesIndexes.reverse().forEach((sizeIndex) => {
-      sectionStore.newMultipleItems.sizes.splice(sizeIndex, 1);
+    //sort size indexes from highest to lowest
+    //and remove sizes by their indexes in array
+    sizeIndexes = sizeIndexes.sort((a, b) => b - a);
+    sizeIndexes.forEach((sizeIndex) => {
+      removeItem(sizeIndex, "size");
     });
 
     recalculateSizesArrayIndexes();
-    recalculateSizesConnectionIndexes(null, itemIndex);
   }
 
   sectionStore.newMultipleItems[`${type}s`].splice(itemIndex, 1);
-
+  console.log(`removed ${type}:`, itemIndex);
   recalculateColorsArrayIndexes();
   recalculateSizesArrayIndexes();
 

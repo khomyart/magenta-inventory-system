@@ -1325,7 +1325,6 @@ function fillNewMultipleItemObjectWithItems(sizes = true) {
 
 function selectItem(itemIndex, itemType) {
   selectedIndexes[`${itemType}s`] = itemIndex;
-  console.log("selected:", itemType, itemIndex);
   //when selecting gender, chose first color of it
   if (itemType === "gender") {
     let genderColors = sectionStore.newMultipleItems.colors.filter(
@@ -1432,12 +1431,29 @@ function removeItem(itemIndex, type) {
   if (type === "gender") {
     //select color with index -1 (it hides color form) to avoid unexpected issues
     selectItem(-1, "color");
+    selectItem(-1, "size");
 
-    //dependent colors detecting
+    //dependent colors
     let genderColors = sectionStore.newMultipleItems.colors.filter(
       (color) => color.connections.genderArrayIndex === itemIndex
     );
     let colorsIndexes = genderColors.map((color) => color.indexInArray);
+
+    //dependent sizes
+    let genderSizes = sectionStore.newMultipleItems.sizes.filter(
+      (size) => size.connections.genderArrayIndex === itemIndex
+    );
+    let sizesIndexes = genderSizes.map((size) => size.indexInArray);
+
+    //recalculate sizes-genders connection
+    sectionStore.newMultipleItems.sizes =
+      sectionStore.newMultipleItems.sizes.map((size) => {
+        if (size.connections.genderArrayIndex > itemIndex) {
+          size.connections.genderArrayIndex -= 1;
+        }
+
+        return size;
+      });
 
     //sort color indexes from highest to lowest
     //and remove colors by their indexes in array
@@ -1446,7 +1462,16 @@ function removeItem(itemIndex, type) {
       removeItem(colorIndex, "color");
     });
 
+    //if colors are nit used, just remove dependent sizes
+    if (!isUsed.colors) {
+      sizesIndexes = sizesIndexes.sort((a, b) => b - a);
+      sizesIndexes.forEach((sizeIndex) => {
+        removeItem(sizeIndex, "size");
+      });
+    }
+
     recalculateColorsArrayIndexes();
+    recalculateSizesArrayIndexes();
     recalculateColorsConnectionIndexes(itemIndex);
     // selectItem(-1, "size");
 
@@ -1513,7 +1538,6 @@ function removeItem(itemIndex, type) {
   }
 
   sectionStore.newMultipleItems[`${type}s`].splice(itemIndex, 1);
-  console.log(`removed ${type}:`, itemIndex);
   recalculateColorsArrayIndexes();
   recalculateSizesArrayIndexes();
 

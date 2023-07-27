@@ -29,7 +29,9 @@
         :loading="colorStore.data.isItemsLoading"
         hide-dropdown-icon
         class="col-12 q-pb-sm"
-        :rules="[() => true]"
+        :rules="[
+          () => getContextColors().length > 0 || 'Оберіть хоча б один колір',
+        ]"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -42,7 +44,6 @@
                 'active-item-component': isColorExistInList(scope.opt.id),
               }"
             >
-              {{ isColorExistInList(scope.opt.id) }} |
               {{ scope.opt.description }} (!{{ scope.opt.article }},
               {{ scope.opt.value }})
             </span>
@@ -54,7 +55,7 @@
   <div class="row col-12" v-if="getContextColors().length > 0">
     <div
       id="colors_container"
-      class="col-12 items-wrapper q-px-md q-pt-md q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+      class="col-12 items-wrapper q-px-md q-pt-md q-mb-sm q-mt-sm q-mt-sm-sm"
     >
       <div class="q-gutter-md row">
         <template
@@ -88,10 +89,11 @@
         </template>
       </div>
       <q-separator class="q-mt-md" />
-      <!-- <SelectedColorFormComponent
+      <SelectedColorFormComponent
         :colorArrayIndex="props.selectedColorIndex"
         v-if="props.selectedColorIndex != -1"
-      /> -->
+        :rules="props.rules"
+      />
     </div>
   </div>
   <div id="bottom_of_colors_container"></div>
@@ -107,6 +109,7 @@ const props = defineProps([
   "genderArrayIndex",
   "selectedColorIndex",
   "isColorsUsed",
+  "rules",
 ]);
 const emits = defineEmits(["selectColor", "removeColor"]);
 let tempColorHolder = null;

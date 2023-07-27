@@ -4,7 +4,7 @@
       class="col-6 q-pt-sm q-mb-md"
       outlined
       v-model="
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.title
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.title
       "
       label="Назва"
     />
@@ -12,7 +12,7 @@
       class="col-6 q-pt-sm q-mb-md"
       outlined
       v-model="
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.model
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.model
       "
       label="Модель"
     />
@@ -22,7 +22,7 @@
       label="Ціна"
       type="number"
       v-model="
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.price
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.price
       "
     />
     <q-select
@@ -30,7 +30,7 @@
       outlined
       label="Валюта"
       v-model="
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail
           .currency
       "
       :options="['UAH', 'USD', 'EUR']"
@@ -40,7 +40,7 @@
       class="col-4 q-pt-sm q-mb-md"
       outlined
       v-model="
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.lack
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.lack
       "
       label="Нестача"
       type="number"
@@ -50,5 +50,5 @@
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
 const sectionStore = useItemStore();
-const props = defineProps(["colorArrayIndex", "rules"]);
+const props = defineProps(["sizeArrayIndex", "rules"]);
 </script>

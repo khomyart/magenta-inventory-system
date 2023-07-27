@@ -1,47 +1,35 @@
 <template>
-  <div class="row q-col-gutter-md q-mt-sm q-mb-sm">
+  <div class="row q-col-gutter-md q-mt-sm">
     <q-input
-      class="col-5 q-pt-sm"
+      class="col-5 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
           .article
       "
       label="Артикль"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Введіть артикль',
-        // (val) => val.length <= 10 || 'Не більше 10 символів',
-      ]"
     />
     <q-input
-      class="col-7 q-pt-sm"
+      class="col-7 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
           .model
       "
       label="Модель"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Введіть модель',
-        // (val) => val.length <= 255 || 'Не більше 255 символів',
-      ]"
     />
     <q-input
-      class="col-12 q-pt-sm"
+      class="col-12 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
           .title
       "
       label="Назва"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Введіть назву',
-        // (val) => val.length <= 255 || 'Не більше 255 символів',
-      ]"
     />
 
     <q-input
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
       outlined
       label="Ціна"
       type="number"
@@ -49,11 +37,6 @@
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
           .price
       "
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-        // (val) => val.length <= 13 || 'Не більше 13 символів',
-        // (val) => val >= 1 || 'Не менше 1',
-      ]"
     />
     <q-select
       hide-dropdown-icon
@@ -64,10 +47,10 @@
           .currency
       "
       :options="['UAH', 'USD', 'EUR']"
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
     />
     <q-input
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
@@ -75,15 +58,11 @@
       "
       label="Нестача"
       type="number"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
-        // (val) => val >= 1 || 'Не менше одиниці',
-      ]"
     />
   </div>
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
 const sectionStore = useItemStore();
-const props = defineProps(["genderArrayIndex"]);
+const props = defineProps(["genderArrayIndex", "rules"]);
 </script>

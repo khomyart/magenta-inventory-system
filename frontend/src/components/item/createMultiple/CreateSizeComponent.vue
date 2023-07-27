@@ -37,7 +37,9 @@
         :loading="sizeStore.data.isItemsLoading"
         hide-dropdown-icon
         class="col-12 q-pb-sm"
-        :rules="[() => true]"
+        :rules="[
+          () => getContextSizes().length > 0 || 'Оберіть хоча б один розмір',
+        ]"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -46,7 +48,7 @@
                 'active-item-component': isSizeExistInList(scope.opt.id),
               }"
             >
-              {{ isSizeExistInList(scope.opt.id) }} | {{ scope.opt.value }}
+              {{ scope.opt.value }}
             </span>
           </q-item>
         </template>
@@ -56,7 +58,7 @@
   <div class="row col-12" v-if="getContextSizes().length > 0">
     <div
       id="colors_container"
-      class="col-12 items-wrapper q-px-md q-pt-md q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+      class="col-12 items-wrapper q-px-md q-pt-md q-mb-sm q-mt-sm q-mt-sm-sm"
     >
       <div class="q-gutter-md row">
         <template
@@ -89,6 +91,11 @@
         </template>
       </div>
       <q-separator class="q-mt-md" />
+      <SelectedSizeFormComponent
+        :sizeArrayIndex="props.selectedSizeIndex"
+        v-if="props.selectedSizeIndex != -1"
+        :rules="props.rules"
+      />
     </div>
   </div>
   <div id="bottom_of_sizes_container"></div>
@@ -97,6 +104,7 @@
 import { computed } from "vue";
 import { useItemStore } from "src/stores/itemStore";
 import { useSizeStore } from "src/stores/sizeStore";
+import SelectedSizeFormComponent from "./SelectedSizeFormComponent.vue";
 const sectionStore = useItemStore();
 const sizeStore = useSizeStore();
 const props = defineProps([
@@ -104,6 +112,7 @@ const props = defineProps([
   "colorArrayIndex",
   "selectedSizeIndex",
   "isSizesUsed",
+  "rules",
 ]);
 const emits = defineEmits(["selectSize", "removeSize"]);
 let tempSizeHolder = null;

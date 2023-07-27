@@ -37,6 +37,11 @@ export const useAppConfigStore = defineStore("appConfig", {
           text: "",
         },
       },
+      display: {
+        isShown: false,
+        isHTML: false,
+        text: "",
+      },
     },
     allowenses: {
       list: {},
@@ -589,19 +594,15 @@ export const useAppConfigStore = defineStore("appConfig", {
       /**
        * interactive errors (calls dialog window)
        */
-      if (err.response.status === 422) {
-        this.showErrorMessage(err.response.data.message, 422);
-        return;
-      }
-
-      if (err.response.status === 403) {
-        this.showErrorMessage(err.response.data.message, 403);
+      if (err.response.status === 422 || err.response.status === 403) {
+        this.showErrorMessage(err.response.data.message, false);
         return;
       }
     },
-    showErrorMessage(errorMessage, code) {
-      this.errors.responses[code].isShown = true;
-      this.errors.responses[code].text = errorMessage;
+    showErrorMessage(errorMessage, formatAsHTML = false) {
+      this.errors.display.isHTML = formatAsHTML;
+      this.errors.display.isShown = true;
+      this.errors.display.text = errorMessage;
     },
     updateLocalStorageConfig() {
       console.log("ui stored");

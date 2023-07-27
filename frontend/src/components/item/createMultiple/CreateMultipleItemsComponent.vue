@@ -6,16 +6,7 @@
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
           Група предметів, г: {{ selectedIndexes.genders }}, к:
           {{ selectedIndexes.colors }}, р: {{ selectedIndexes.sizes }}
-          <q-btn
-            class="q-ml-md"
-            @click="fillNewMultipleItemObjectWithItems(true)"
-            >з. розм.</q-btn
-          >
-          <q-btn
-            class="q-ml-md"
-            @click="fillNewMultipleItemObjectWithItems(false)"
-            >з. без розм.</q-btn
-          >
+          <q-btn @click="validator('color')">Validator</q-btn>
         </div>
       </q-card-section>
       <q-separator></q-separator>
@@ -225,7 +216,7 @@
           >
             <div
               id="genders_container"
-              class="col-12 items-wrapper q-px-md q-pt-md q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+              class="col-12 items-wrapper q-px-md q-pt-md q-mb-sm q-mt-sm q-mt-sm-sm"
             >
               <div class="q-gutter-md row">
                 <template
@@ -258,6 +249,7 @@
               <SelectedGenderFormComponent
                 v-if="selectedIndexes.genders != -1"
                 :genderArrayIndex="selectedIndexes.genders"
+                :rules="genderFieldsRules"
               />
             </div>
           </div>
@@ -269,6 +261,7 @@
             "
             :genderArrayIndex="selectedIndexes.genders"
             :selectedColorIndex="selectedIndexes.colors"
+            :rules="colorFieldsRules"
             @selectColor="selectItem"
             @removeColor="removeItem"
           />
@@ -289,6 +282,7 @@
             :colorArrayIndex="selectedIndexes.colors"
             :genderArrayIndex="selectedIndexes.genders"
             :selectedSizeIndex="selectedIndexes.sizes"
+            :rules="sizeFieldsRules"
             @selectSize="selectItem"
             @removeSize="removeItem"
           />
@@ -312,7 +306,7 @@
 </template>
 <script setup>
 import { v4 as uuidv4 } from "uuid";
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -325,8 +319,9 @@ import { useUnitStore } from "src/stores/unitStore";
 import SelectedGenderFormComponent from "src/components/item/createMultiple/SelectedGenderFormComponent.vue";
 import CreateColorComponent from "./CreateColorComponent.vue";
 import CreateSizeComponent from "./CreateSizeComponent.vue";
-import { colors } from "quasar";
+import { useAppConfigStore } from "src/stores/appConfigStore";
 
+const appStore = useAppConfigStore();
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
 const cityStore = useCityStore();
@@ -340,7 +335,7 @@ const unitStore = useUnitStore();
 const isUsed = reactive({
   genders: true,
   colors: true,
-  sizes: true,
+  sizes: false,
 });
 
 let templHolders = reactive({
@@ -355,13 +350,72 @@ let selectedIndexes = reactive({
   sizes: -1,
 });
 
-function submit() {
-  console.log("submited");
-}
+/**
+ * Rules
+ */
+let genderFieldsRules = {
+  article: [
+    (val) => (val !== null && val !== "") || "Введіть артикль",
+    (val) => val.length <= 10 || "Не більше 10 символів",
+  ],
+  model: [
+    (val) => (val !== null && val !== "") || "Введіть модель",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  title: [
+    (val) => (val !== null && val !== "") || "Введіть назву",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  price: [
+    (val) => (val !== null && val !== "") || "Вкажіть ціну",
+    (val) => val.length <= 13 || "Не більше 13 символів",
+    (val) => val >= 1 || "Не менше 1",
+  ],
+  lack: [
+    (val) => (val !== null && val !== "") || "Вкажіть нестачу",
+    (val) => val >= 1 || "Не менше одиниці",
+  ],
+};
 
-function generateGroupID() {
-  sectionStore.newMultipleItems.main.groupID = uuidv4();
-}
+let colorFieldsRules = {
+  model: [
+    (val) => (val !== null && val !== "") || "Введіть модель",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  title: [
+    (val) => (val !== null && val !== "") || "Введіть назву",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  price: [
+    (val) => (val !== null && val !== "") || "Вкажіть ціну",
+    (val) => val.length <= 13 || "Не більше 13 символів",
+    (val) => val >= 1 || "Не менше 1",
+  ],
+  lack: [
+    (val) => (val !== null && val !== "") || "Вкажіть нестачу",
+    (val) => val >= 1 || "Не менше одиниці",
+  ],
+};
+
+let sizeFieldsRules = {
+  model: [
+    (val) => (val !== null && val !== "") || "Введіть модель",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  title: [
+    (val) => (val !== null && val !== "") || "Введіть назву",
+    (val) => val.length <= 255 || "Не більше 255 символів",
+  ],
+  price: [
+    (val) => (val !== null && val !== "") || "Вкажіть ціну",
+    (val) => val.length <= 13 || "Не більше 13 символів",
+    (val) => val >= 1 || "Не менше 1",
+  ],
+  lack: [
+    (val) => (val !== null && val !== "") || "Вкажіть нестачу",
+    (val) => val >= 1 || "Не менше одиниці",
+  ],
+};
 
 function typeFilter(val, update, abort) {
   update(() => {
@@ -415,912 +469,290 @@ function isGenderExistInList(itemId) {
 }
 
 /**
+ * @param {string} type validation target type (gender, size or color)
+ * @return {array} list of items (with selected type), their indexes, amount of errors and errors info
+ */
+function validator(type) {
+  let errorsCollector = [];
+  let items = sectionStore.newMultipleItems[`${type}s`];
+
+  items.forEach((item, itemIndex) => {
+    let fieldsValues = item.detail;
+
+    errorsCollector.push({
+      index: itemIndex,
+      amountOfErrors: 0,
+      errorsFor: {
+        model: {
+          list: [],
+          display: "",
+        },
+        title: {
+          list: [],
+          display: "",
+        },
+        price: {
+          list: [],
+          display: "",
+        },
+        lack: {
+          list: [],
+          display: "",
+        },
+      },
+    });
+
+    let fieldsRules = [];
+    switch (type) {
+      case "gender":
+        fieldsRules = genderFieldsRules;
+        //if we are using sizes or colors and did not selected anything from it
+        //count as error
+        if (isUsed.colors === true) {
+          let dependentColors = sectionStore.newMultipleItems.colors.filter(
+            (color) => color.connections.genderArrayIndex === itemIndex
+          );
+
+          if (dependentColors.length === 0) {
+            errorsCollector[itemIndex].errorsFor.colors = {
+              list: [],
+              display: "Оберіть хоча б один колір",
+            };
+            errorsCollector[itemIndex].amountOfErrors += 1;
+          }
+        }
+
+        if (isUsed.sizes === true && isUsed.colors === false) {
+          let dependentSizes = sectionStore.newMultipleItems.sizes.filter(
+            (size) => size.connections.genderArrayIndex === itemIndex
+          );
+
+          if (dependentSizes.length === 0) {
+            errorsCollector[itemIndex].errorsFor.sizes = {
+              list: [],
+              display: "Оберіть хоча б один розмір",
+            };
+            errorsCollector[itemIndex].amountOfErrors += 1;
+          }
+        }
+
+        errorsCollector[itemIndex].errorsFor.article = {
+          list: [],
+          display: "",
+        };
+
+        break;
+      case "color":
+        fieldsRules = colorFieldsRules;
+        errorsCollector[itemIndex].connections = item.connections;
+        //if we are using sizes and selected 0 sizes for particular color
+        if (isUsed.sizes === true) {
+          let dependentSizes = sectionStore.newMultipleItems.sizes.filter(
+            (size) => size.connections.colorArrayIndex === item.indexInArray
+          );
+
+          if (dependentSizes.length === 0) {
+            errorsCollector[itemIndex].errorsFor.sizes = {
+              list: [],
+              display: "Оберіть хоча б один розмір",
+            };
+            errorsCollector[itemIndex].amountOfErrors += 1;
+          }
+        }
+
+        break;
+      case "size":
+        fieldsRules = sizeFieldsRules;
+        errorsCollector[itemIndex].connections = item.connections;
+        break;
+    }
+
+    Object.keys(fieldsValues).forEach((fieldName) => {
+      if (fieldsRules[fieldName] != undefined) {
+        let listOfRulesForCurrentField = fieldsRules[fieldName];
+
+        listOfRulesForCurrentField.forEach((rule) => {
+          let validationResult = rule(fieldsValues[fieldName]);
+          errorsCollector[itemIndex].errorsFor[fieldName].list.push(
+            validationResult
+          );
+          if (
+            typeof validationResult === "string" &&
+            errorsCollector[itemIndex].errorsFor[fieldName].display === ""
+          ) {
+            errorsCollector[itemIndex].errorsFor[fieldName].display =
+              validationResult;
+            errorsCollector[itemIndex].amountOfErrors += 1;
+          }
+        });
+      }
+    });
+  });
+
+  return errorsCollector;
+}
+
+/**
  * General function
  */
-
-function fillNewMultipleItemObjectWithItems(sizes = true) {
-  let items = {
-    main: {
-      groupID: "",
-      type: null,
-      units: "",
-      detail: {
-        title: "",
-        model: "",
-        article: "",
-        price: "",
-        currency: "UAH",
-        lack: 10,
-      },
-    },
-    genders: [
-      {
-        id: 10,
-        name: "щось4",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 2,
-        name: "4",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 4,
-        name: "діти",
-        number_in_row: 5,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 5,
-        name: "чоловіч",
-        number_in_row: 6,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 3,
-        name: "5",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-    ],
-    colors: [
-      {
-        id: 6,
-        value: "#14cc61",
-        article: "GR",
-        description: "Гріно",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4 },
-        indexInArray: 0,
-      },
-      {
-        id: 7,
-        value: "#f5e798",
-        article: "CR",
-        description: "Кремі",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3 },
-        indexInArray: 1,
-      },
-      {
-        id: 3,
-        value: "#2833fc",
-        article: "Article2",
-        description: "Каралоуий",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2 },
-        indexInArray: 2,
-      },
-      {
-        id: 3,
-        value: "#2833fc",
-        article: "Article2",
-        description: "Каралоуий",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 3,
-      },
-      {
-        id: 7,
-        value: "#f5e798",
-        article: "CR",
-        description: "Кремі",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 4,
-      },
-      {
-        id: 1,
-        value: "#e61c1c",
-        article: "WHI",
-        description: "WRYYY",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0 },
-        indexInArray: 5,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4 },
-        indexInArray: 6,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3 },
-        indexInArray: 7,
-      },
-      {
-        id: 1,
-        value: "#e61c1c",
-        article: "WHI",
-        description: "WRYYY",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2 },
-        indexInArray: 8,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 9,
-      },
-      {
-        id: 6,
-        value: "#14cc61",
-        article: "GR",
-        description: "Гріно",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0 },
-        indexInArray: 10,
-      },
-    ],
-    sizes: [
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4, colorArrayIndex: 6 },
-        indexInArray: 0,
-      },
-      {
-        id: 4,
-        value: "M",
-        description: "medium",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4, colorArrayIndex: 0 },
-        indexInArray: 1,
-      },
-      {
-        id: 4,
-        value: "M",
-        description: "medium",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3, colorArrayIndex: 7 },
-        indexInArray: 2,
-      },
-      {
-        id: 1,
-        value: "3XXL",
-        description: "опопис",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3, colorArrayIndex: 1 },
-        indexInArray: 3,
-      },
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2, colorArrayIndex: 8 },
-        indexInArray: 4,
-      },
-      {
-        id: 4,
-        value: "M",
-        description: "medium",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2, colorArrayIndex: 2 },
-        indexInArray: 5,
-      },
-      {
-        id: 4,
-        value: "M",
-        description: "medium",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 9 },
-        indexInArray: 6,
-      },
-      {
-        id: 1,
-        value: "3XXL",
-        description: "опопис",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 4 },
-        indexInArray: 7,
-      },
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 3 },
-        indexInArray: 8,
-      },
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0, colorArrayIndex: 10 },
-        indexInArray: 9,
-      },
-      {
-        id: 1,
-        value: "3XXL",
-        description: "опопис",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0, colorArrayIndex: 5 },
-        indexInArray: 10,
-      },
-      {
-        id: 2,
-        value: "X",
-        description: "мяв1",
-        number_in_row: 2,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4, colorArrayIndex: 6 },
-        indexInArray: 11,
-      },
-      {
-        id: 2,
-        value: "X",
-        description: "мяв1",
-        number_in_row: 2,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4, colorArrayIndex: 0 },
-        indexInArray: 12,
-      },
-      {
-        id: 1,
-        value: "3XXL",
-        description: "опопис",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3, colorArrayIndex: 7 },
-        indexInArray: 13,
-      },
-      {
-        id: 5,
-        value: "L",
-        description: "large",
-        number_in_row: 5,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3, colorArrayIndex: 1 },
-        indexInArray: 14,
-      },
-      {
-        id: 5,
-        value: "L",
-        description: "large",
-        number_in_row: 5,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2, colorArrayIndex: 8 },
-        indexInArray: 15,
-      },
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2, colorArrayIndex: 2 },
-        indexInArray: 16,
-      },
-      {
-        id: 2,
-        value: "X",
-        description: "мяв1",
-        number_in_row: 2,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 9 },
-        indexInArray: 17,
-      },
-      {
-        id: 3,
-        value: "S",
-        description: "маленька",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 4 },
-        indexInArray: 18,
-      },
-      {
-        id: 5,
-        value: "L",
-        description: "large",
-        number_in_row: 5,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1, colorArrayIndex: 3 },
-        indexInArray: 19,
-      },
-      {
-        id: 4,
-        value: "M",
-        description: "medium",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0, colorArrayIndex: 10 },
-        indexInArray: 20,
-      },
-      {
-        id: 2,
-        value: "X",
-        description: "мяв1",
-        number_in_row: 2,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0, colorArrayIndex: 5 },
-        indexInArray: 21,
-      },
-    ],
+function submit() {
+  let formFields = {
+    genders: validator("gender"),
+    colors: validator("color"),
+    sizes: validator("size"),
   };
+  let combinedFields = [
+    ...formFields.genders,
+    ...formFields.colors,
+    ...formFields.sizes,
+  ];
+  let amountOfErrors = 0;
 
-  let itemsWithoutSizes = {
-    main: {
-      groupID: "",
-      type: null,
-      units: "",
-      detail: {
-        title: "",
-        model: "",
-        article: "",
-        price: "",
-        currency: "UAH",
-        lack: 10,
-      },
-    },
-    genders: [
-      {
-        id: 10,
-        name: "щось4",
-        number_in_row: 1,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 2,
-        name: "4",
-        number_in_row: 3,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 4,
-        name: "діти",
-        number_in_row: 5,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 5,
-        name: "чоловіч",
-        number_in_row: 6,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-      {
-        id: 3,
-        name: "5",
-        number_in_row: 4,
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-      },
-    ],
-    colors: [
-      {
-        id: 6,
-        value: "#14cc61",
-        article: "GR",
-        description: "Гріно",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4 },
-        indexInArray: 0,
-      },
-      {
-        id: 7,
-        value: "#f5e798",
-        article: "CR",
-        description: "Кремі",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3 },
-        indexInArray: 1,
-      },
-      {
-        id: 3,
-        value: "#2833fc",
-        article: "Article2",
-        description: "Каралоуий",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2 },
-        indexInArray: 2,
-      },
-      {
-        id: 3,
-        value: "#2833fc",
-        article: "Article2",
-        description: "Каралоуий",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 3,
-      },
-      {
-        id: 7,
-        value: "#f5e798",
-        article: "CR",
-        description: "Кремі",
-        text_color_value: "#000000",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 4,
-      },
-      {
-        id: 1,
-        value: "#e61c1c",
-        article: "WHI",
-        description: "WRYYY",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0 },
-        indexInArray: 5,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 4 },
-        indexInArray: 6,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 3 },
-        indexInArray: 7,
-      },
-      {
-        id: 1,
-        value: "#e61c1c",
-        article: "WHI",
-        description: "WRYYY",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 2 },
-        indexInArray: 8,
-      },
-      {
-        id: 5,
-        value: "#ee00ff",
-        article: "MA",
-        description: "Маджентовий",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 1 },
-        indexInArray: 9,
-      },
-      {
-        id: 6,
-        value: "#14cc61",
-        article: "GR",
-        description: "Гріно",
-        text_color_value: "#ffffff",
-        detail: {
-          title: "",
-          model: "",
-          article: "",
-          price: "",
-          currency: "UAH",
-          lack: 10,
-        },
-        connections: { genderArrayIndex: 0 },
-        indexInArray: 10,
-      },
-    ],
-    sizes: [],
-  };
+  combinedFields.forEach((field) => {
+    if (field.amountOfErrors > 0) {
+      amountOfErrors += 1;
+    }
+  });
 
-  sectionStore.newMultipleItems = {};
-  sectionStore.newMultipleItems = sizes === true ? items : itemsWithoutSizes;
-  selectItem(0, "gender");
+  if (amountOfErrors > 0) {
+    let errorMessage = generateErrorMessage(formFields);
+    appStore.showErrorMessage(errorMessage, true);
+    return;
+  }
+
+  console.log("submited with: ", formFields.genders);
+}
+
+/**
+ *
+ * @param {object} validatedFormFields object with structure:
+ * {
+ *  genders,
+ *  colors,
+ *  sizes
+ * }
+ */
+function generateErrorMessage(validatedFormFields) {
+  let gendersAndTheirErrors = [];
+  let colorsAndTheirErrors = [];
+  let sizesAndTheirErrors = [];
+
+  //getting genders errors
+  validatedFormFields.genders.forEach((gender, genderIndex) => {
+    gendersAndTheirErrors.push({
+      name: "",
+      errors: [],
+    });
+    gendersAndTheirErrors[genderIndex].name =
+      sectionStore.newMultipleItems.genders[gender.index].name;
+    Object.keys(gender.errorsFor).forEach((fieldName) => {
+      if (gender.errorsFor[fieldName].display != "") {
+        gendersAndTheirErrors[genderIndex].errors.push(
+          gender.errorsFor[fieldName].display
+        );
+      }
+    });
+  });
+
+  //getting colors errors
+  validatedFormFields.colors.forEach((color, colorIndex) => {
+    colorsAndTheirErrors.push({
+      name: "",
+      connections: color.connections,
+      errors: [],
+    });
+    colorsAndTheirErrors[colorIndex].name =
+      sectionStore.newMultipleItems.colors[color.index].description;
+    Object.keys(color.errorsFor).forEach((fieldName) => {
+      if (color.errorsFor[fieldName].display != "") {
+        colorsAndTheirErrors[colorIndex].errors.push(
+          color.errorsFor[fieldName].display
+        );
+      }
+    });
+  });
+
+  //getting sizes errors
+  validatedFormFields.sizes.forEach((size, sizeIndex) => {
+    sizesAndTheirErrors.push({
+      name: "",
+      connections: size.connections,
+      errors: [],
+    });
+    sizesAndTheirErrors[sizeIndex].name =
+      sectionStore.newMultipleItems.sizes[size.index].value;
+    Object.keys(size.errorsFor).forEach((fieldName) => {
+      if (size.errorsFor[fieldName].display != "") {
+        sizesAndTheirErrors[sizeIndex].errors.push(
+          size.errorsFor[fieldName].display
+        );
+      }
+    });
+  });
+
+  let htmlErrorList = "";
+  htmlErrorList += `
+  <ul class="error-list">`;
+  htmlErrorList += `
+    <p class="text-subtitle1 q-my-sm">
+      Гендери
+    </p>
+    `;
+  gendersAndTheirErrors.forEach((gender, genderIndex) => {
+    let genderRelatedColors = colorsAndTheirErrors.filter(
+      (color) => color.connections.genderArrayIndex === genderIndex
+    );
+
+    //Гендер
+    htmlErrorList += `
+    <li class="error-list-entity">
+      <p class="error-list-entity-header">
+        ${gender.name}
+      </p>
+      <ul class="errors">`;
+    gender.errors.forEach((err) => {
+      htmlErrorList += `
+        <li class="errors-entity">
+          ${err}`;
+      htmlErrorList += `
+        </li>`;
+    });
+    htmlErrorList += `
+      </ul>
+      <div class="error-list-entity-devider q-mt-sm"></div>`;
+    htmlErrorList += `
+      <p class="text-subtitle1 q-my-sm">
+        Кольори
+      </p>`;
+    htmlErrorList += `<ul class="error-list">`;
+    //Кольори гендерів
+    for (
+      let colorIndex = 0;
+      colorIndex < genderRelatedColors.length;
+      colorIndex++
+    ) {
+      let color = genderRelatedColors[colorIndex];
+      htmlErrorList += `
+        <li class="error-list-entity">
+          <p class="error-list-entity-header">
+            ${color.name}
+          </p>
+        </li>
+      `;
+    }
+    htmlErrorList += `
+      </ul>`;
+  });
+
+  htmlErrorList += `
+    </li>
+  </ul>`;
+
+  return htmlErrorList;
+}
+
+function generateGroupID() {
+  sectionStore.newMultipleItems.main.groupID = uuidv4();
 }
 
 function selectItem(itemIndex, itemType) {
@@ -1392,38 +824,6 @@ function recalculateColorsConnectionIndexes(deletedGenderIndex) {
     });
 }
 
-/**
- * Sizes are connected to genders and colors
- * So when we deleting colors or gender, should recalculate this connection too
- */
-function recalculateSizesConnectionIndexes(
-  deletedGenderIndex = null,
-  deletingColorIndex = null
-) {
-  sectionStore.newMultipleItems.sizes = sectionStore.newMultipleItems.sizes.map(
-    (size, index) => {
-      if (
-        deletedGenderIndex != null &&
-        size.connections.genderArrayIndex > deletedGenderIndex
-      ) {
-        size.connections.genderArrayIndex -= 1;
-      }
-      if (
-        deletingColorIndex != null &&
-        size.connections.colorArrayIndex > deletingColorIndex
-      ) {
-        let previousColorIndex = removingItemInfo(
-          deletingColorIndex,
-          "color"
-        ).previousIndex;
-        size.connections.colorArrayIndex = previousColorIndex;
-      }
-
-      return size;
-    }
-  );
-}
-
 function removeItem(itemIndex, type) {
   let itemInfo = removingItemInfo(itemIndex, type);
 
@@ -1473,22 +873,6 @@ function removeItem(itemIndex, type) {
     recalculateColorsArrayIndexes();
     recalculateSizesArrayIndexes();
     recalculateColorsConnectionIndexes(itemIndex);
-    // selectItem(-1, "size");
-
-    // let genderSizes = sectionStore.newMultipleItems.sizes.filter(
-    //   (size) => size.connections.genderArrayIndex === itemIndex
-    // );
-    // let sizesIndexes = genderSizes.map((size) => {
-    //   return size.indexInArray;
-    // });
-
-    // sizesIndexes = sizesIndexes.sort((a, b) => b - a);
-    // sizesIndexes.forEach((sizeIndex) => {
-    //   removeItem(sizeIndex, "size");
-    // });
-
-    // recalculateSizesArrayIndexes();
-    // recalculateSizesConnectionIndexes(null, itemIndex);
   }
 
   //if removing color, remove all sizes which are belong to it
@@ -1683,8 +1067,33 @@ function removingItemInfo(currentIndex, type) {
     amountOfContextedItems: amountOfItems,
   };
 }
+
+watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
+  selectedIndexes.genders = -1;
+  selectedIndexes.colors = -1;
+  selectedIndexes.sizes = -1;
+
+  sectionStore.newMultipleItems = {
+    main: {
+      groupID: "",
+      type: null,
+      units: "",
+      detail: {
+        title: "",
+        model: "",
+        article: "",
+        price: "",
+        currency: "UAH",
+        lack: 10,
+      },
+    },
+    genders: [],
+    colors: [],
+    sizes: [],
+  };
+});
 </script>
-<style scoped>
+<style>
 .active-item-component {
   color: #a32cc7;
 }
@@ -1707,5 +1116,32 @@ function removingItemInfo(currentIndex, type) {
 .selected-item {
   border: 1px solid #a32cc7;
   background-color: #a32cc709;
+}
+.error-list {
+  list-style-type: none;
+  padding-left: 5px;
+}
+.error-list-entity {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 8px 15px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.error-list-entity-header {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+.error-list-entity-header::before {
+  content: "-";
+  padding-right: 6px;
+}
+.error-list-entity-devider {
+  width: 100%;
+  height: 1px;
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+}
+.errors {
+  padding-left: 15px;
+  list-style-type: none;
 }
 </style>

@@ -129,11 +129,12 @@
               outlined
               label="Ціна"
               type="number"
+              step="0.01"
               v-model="sectionStore.newMultipleItems.main.detail.price"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Вкажіть ціну',
                 (val) => val.length <= 13 || 'Не більше 13 символів',
-                (val) => val >= 1 || 'Не менше 1',
+                (val) => val >= 1 || 'Ціна Ціна не менше 1',
               ]"
             />
             <q-select
@@ -306,7 +307,7 @@
 </template>
 <script setup>
 import { v4 as uuidv4 } from "uuid";
-import { reactive, watch } from "vue";
+import { reactive, watch, ref, onMounted } from "vue";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -320,6 +321,7 @@ import SelectedGenderFormComponent from "src/components/item/createMultiple/Sele
 import CreateColorComponent from "./CreateColorComponent.vue";
 import CreateSizeComponent from "./CreateSizeComponent.vue";
 import { useAppConfigStore } from "src/stores/appConfigStore";
+import { is } from "quasar";
 
 const appStore = useAppConfigStore();
 const sectionStore = useItemStore();
@@ -335,8 +337,12 @@ const unitStore = useUnitStore();
 const isUsed = reactive({
   genders: true,
   colors: true,
-  sizes: false,
+  sizes: true,
 });
+
+//array of string, looks like:
+//['genders', 'colors', 'sizes']
+let usedCharacteristics = ref([]);
 
 let templHolders = reactive({
   gender: {},
@@ -369,7 +375,7 @@ let genderFieldsRules = {
   price: [
     (val) => (val !== null && val !== "") || "Вкажіть ціну",
     (val) => val.length <= 13 || "Не більше 13 символів",
-    (val) => val >= 1 || "Не менше 1",
+    (val) => val >= 1 || "Ціна не менше 1",
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
@@ -389,7 +395,7 @@ let colorFieldsRules = {
   price: [
     (val) => (val !== null && val !== "") || "Вкажіть ціну",
     (val) => val.length <= 13 || "Не більше 13 символів",
-    (val) => val >= 1 || "Не менше 1",
+    (val) => val >= 1 || "Ціна не менше 1",
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
@@ -409,7 +415,7 @@ let sizeFieldsRules = {
   price: [
     (val) => (val !== null && val !== "") || "Вкажіть ціну",
     (val) => val.length <= 13 || "Не більше 13 символів",
-    (val) => val >= 1 || "Не менше 1",
+    (val) => val >= 1 || "Ціна не менше 1",
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
@@ -470,36 +476,44 @@ function isGenderExistInList(itemId) {
 
 /**
  * @param {string} type validation target type (gender, size or color)
+ * @param {boolean} restricted if true - limit amount of rules for some types to minimum, for instance:
+ * genders - only checking for article and amount of colors and sizes.
+ * colors - only checking for amount of sizes
  * @return {array} list of items (with selected type), their indexes, amount of errors and errors info
  */
-function validator(type) {
+function validator(type, restricted = false) {
   let errorsCollector = [];
   let items = sectionStore.newMultipleItems[`${type}s`];
 
   items.forEach((item, itemIndex) => {
     let fieldsValues = item.detail;
+    let errorsFor = {
+      model: {
+        list: [],
+        display: "",
+      },
+      title: {
+        list: [],
+        display: "",
+      },
+      price: {
+        list: [],
+        display: "",
+      },
+      lack: {
+        list: [],
+        display: "",
+      },
+    };
+
+    if (restricted === true && (type === "gender" || type === "color")) {
+      errorsFor = {};
+    }
 
     errorsCollector.push({
-      index: itemIndex,
+      indexInArray: itemIndex,
       amountOfErrors: 0,
-      errorsFor: {
-        model: {
-          list: [],
-          display: "",
-        },
-        title: {
-          list: [],
-          display: "",
-        },
-        price: {
-          list: [],
-          display: "",
-        },
-        lack: {
-          list: [],
-          display: "",
-        },
-      },
+      errorsFor: { ...errorsFor },
     });
 
     let fieldsRules = [];
@@ -545,6 +559,7 @@ function validator(type) {
       case "color":
         fieldsRules = colorFieldsRules;
         errorsCollector[itemIndex].connections = item.connections;
+        errorsCollector[itemIndex].value = item.value;
         //if we are using sizes and selected 0 sizes for particular color
         if (isUsed.sizes === true) {
           let dependentSizes = sectionStore.newMultipleItems.sizes.filter(
@@ -568,7 +583,10 @@ function validator(type) {
     }
 
     Object.keys(fieldsValues).forEach((fieldName) => {
-      if (fieldsRules[fieldName] != undefined) {
+      if (
+        fieldsRules[fieldName] != undefined &&
+        errorsCollector[itemIndex].errorsFor[fieldName] != undefined
+      ) {
         let listOfRulesForCurrentField = fieldsRules[fieldName];
 
         listOfRulesForCurrentField.forEach((rule) => {
@@ -597,8 +615,11 @@ function validator(type) {
  */
 function submit() {
   let formFields = {
-    genders: validator("gender"),
-    colors: validator("color"),
+    genders: validator(
+      "gender",
+      isUsed.genders && (isUsed.colors || isUsed.sizes)
+    ),
+    colors: validator("color", isUsed.sizes),
     sizes: validator("size"),
   };
   let combinedFields = [
@@ -614,13 +635,12 @@ function submit() {
     }
   });
 
+  console.log("submited with: ", formFields);
   if (amountOfErrors > 0) {
     let errorMessage = generateErrorMessage(formFields);
     appStore.showErrorMessage(errorMessage, true);
     return;
   }
-
-  console.log("submited with: ", formFields.genders);
 }
 
 /**
@@ -644,7 +664,7 @@ function generateErrorMessage(validatedFormFields) {
       errors: [],
     });
     gendersAndTheirErrors[genderIndex].name =
-      sectionStore.newMultipleItems.genders[gender.index].name;
+      sectionStore.newMultipleItems.genders[gender.indexInArray].name;
     Object.keys(gender.errorsFor).forEach((fieldName) => {
       if (gender.errorsFor[fieldName].display != "") {
         gendersAndTheirErrors[genderIndex].errors.push(
@@ -658,11 +678,13 @@ function generateErrorMessage(validatedFormFields) {
   validatedFormFields.colors.forEach((color, colorIndex) => {
     colorsAndTheirErrors.push({
       name: "",
+      value: color.value,
       connections: color.connections,
       errors: [],
+      indexInArray: color.indexInArray,
     });
     colorsAndTheirErrors[colorIndex].name =
-      sectionStore.newMultipleItems.colors[color.index].description;
+      sectionStore.newMultipleItems.colors[color.indexInArray].description;
     Object.keys(color.errorsFor).forEach((fieldName) => {
       if (color.errorsFor[fieldName].display != "") {
         colorsAndTheirErrors[colorIndex].errors.push(
@@ -678,9 +700,10 @@ function generateErrorMessage(validatedFormFields) {
       name: "",
       connections: size.connections,
       errors: [],
+      indexInArray: size.indexInArray,
     });
     sizesAndTheirErrors[sizeIndex].name =
-      sectionStore.newMultipleItems.sizes[size.index].value;
+      sectionStore.newMultipleItems.sizes[size.indexInArray].value;
     Object.keys(size.errorsFor).forEach((fieldName) => {
       if (size.errorsFor[fieldName].display != "") {
         sizesAndTheirErrors[sizeIndex].errors.push(
@@ -691,22 +714,59 @@ function generateErrorMessage(validatedFormFields) {
   });
 
   let htmlErrorList = "";
+
+  if (!isUsed.genders && isUsed.colors) {
+    htmlErrorList = generateListOfColorsErrors(
+      colorsAndTheirErrors,
+      sizesAndTheirErrors
+    );
+    return htmlErrorList;
+  }
+
+  if (!isUsed.genders && !isUsed.colors) {
+    htmlErrorList = generateListOfSizesErrors(sizesAndTheirErrors);
+    return htmlErrorList;
+  }
+
+  htmlErrorList = generateListOfGendersErrors(
+    gendersAndTheirErrors,
+    colorsAndTheirErrors,
+    sizesAndTheirErrors
+  );
+  return htmlErrorList;
+}
+
+/**
+ *
+ * @param {array} gendersAndTheirErrors
+ * @param {array} colorsAndTheirErrors all colors
+ * @param {array} sizesAndTheirErrors all sizes
+ *
+ * @return {string} html list with genders, related types and their errors
+ */
+function generateListOfGendersErrors(
+  gendersAndTheirErrors,
+  colorsAndTheirErrors = [],
+  sizesAndTheirErrors = []
+) {
+  let htmlErrorList = "";
   htmlErrorList += `
   <ul class="error-list">`;
-  htmlErrorList += `
-    <p class="text-subtitle1 q-my-sm">
-      Гендери
-    </p>
-    `;
+
   gendersAndTheirErrors.forEach((gender, genderIndex) => {
     let genderRelatedColors = colorsAndTheirErrors.filter(
       (color) => color.connections.genderArrayIndex === genderIndex
     );
+    let genderRelatedSizes = sizesAndTheirErrors.filter(
+      (size) => size.connections.genderArrayIndex === genderIndex
+    );
 
-    //Гендер
     htmlErrorList += `
     <li class="error-list-entity">
       <p class="error-list-entity-header">
+        <span style="margin: -2px 5px 0px 0px;" class="material-symbols-outlined">
+          face_retouching_natural
+        </span>
         ${gender.name}
       </p>
       <ul class="errors">`;
@@ -718,36 +778,139 @@ function generateErrorMessage(validatedFormFields) {
         </li>`;
     });
     htmlErrorList += `
-      </ul>
-      <div class="error-list-entity-devider q-mt-sm"></div>`;
-    htmlErrorList += `
-      <p class="text-subtitle1 q-my-sm">
-        Кольори
-      </p>`;
-    htmlErrorList += `<ul class="error-list">`;
-    //Кольори гендерів
-    for (
-      let colorIndex = 0;
-      colorIndex < genderRelatedColors.length;
-      colorIndex++
-    ) {
-      let color = genderRelatedColors[colorIndex];
-      htmlErrorList += `
-        <li class="error-list-entity">
-          <p class="error-list-entity-header">
-            ${color.name}
-          </p>
-        </li>
-      `;
-    }
-    htmlErrorList += `
       </ul>`;
+
+    //Devider
+    if (genderRelatedColors.length > 0 || genderRelatedSizes.length > 0) {
+      htmlErrorList += `
+      <div class="error-list-entity-devider q-mt-sm"></div>`;
+    }
+
+    //INNER CONENT
+    if (isUsed.colors) {
+      htmlErrorList += generateListOfColorsErrors(
+        genderRelatedColors,
+        sizesAndTheirErrors
+      );
+    }
+
+    if (!isUsed.colors && isUsed.sizes) {
+      htmlErrorList += generateListOfSizesErrors(genderRelatedSizes);
+    }
+
+    htmlErrorList += `
+    </li>`;
   });
 
   htmlErrorList += `
-    </li>
   </ul>`;
+  return htmlErrorList;
+}
 
+/**
+ *
+ * @param {array} colorsAndTheirErrors related to context colors
+ * @param {array} sizesAndTheirErrors all sizes
+ *
+ * @return {string} html list with colors, related sizes and their errors
+ */
+function generateListOfColorsErrors(
+  colorsAndTheirErrors,
+  sizesAndTheirErrors = []
+) {
+  let htmlErrorList = "";
+  htmlErrorList += `
+  <ul class="error-list">`;
+
+  colorsAndTheirErrors.forEach((color, colorIndex) => {
+    let colorRelatedSizes = sizesAndTheirErrors.filter(
+      (size) => size.connections.colorArrayIndex === color.indexInArray
+    );
+
+    htmlErrorList += `
+    <li class="error-list-entity">
+      <div class="error-list-entity-header">
+        <div style="margin: -2px 5px 0px 0px;" class="material-symbols-outlined">
+          palette
+        </div>
+        ${color.name}
+        <div style="
+          display: inline-block;
+          background: ${color.value};
+          height: 15px;
+          width: 15px;
+          margin: -2px 0px 0px 5px;
+          border-radius: 2px;
+        ">
+        </div>
+      </div>
+      <ul class="errors">`;
+    color.errors.forEach((err) => {
+      htmlErrorList += `
+        <li class="errors-entity">
+          ${err}`;
+      htmlErrorList += `
+        </li>`;
+    });
+    htmlErrorList += `
+      </ul>`;
+
+    //Devider
+    if (colorRelatedSizes.length > 0) {
+      htmlErrorList += `
+      <div class="error-list-entity-devider q-mt-sm"></div>`;
+    }
+
+    //INNER CONENT
+    htmlErrorList += generateListOfSizesErrors(colorRelatedSizes);
+    htmlErrorList += `
+    </li>`;
+  });
+
+  htmlErrorList += `
+  </ul>`;
+  return htmlErrorList;
+}
+
+/**
+ *
+ * @param {array} sizesAndTheirErrors related to context sizes
+ *
+ * @return {string} html list with sizes, related sizes and their errors
+ */
+function generateListOfSizesErrors(sizesAndTheirErrors) {
+  let htmlErrorList = "";
+  htmlErrorList += `
+  <ul class="error-list">`;
+
+  sizesAndTheirErrors.forEach((size) => {
+    if (size.errors.length === 0) return;
+
+    htmlErrorList += `
+    <li class="error-list-entity">
+      <p class="error-list-entity-header">
+        <span style="margin: -2px 5px 0px 0px;" class="material-symbols-outlined">
+          straighten
+        </span>
+        ${size.name}
+      </p>
+      <ul class="errors">`;
+    size.errors.forEach((err) => {
+      htmlErrorList += `
+        <li class="errors-entity">
+          ${err}`;
+      htmlErrorList += `
+        </li>`;
+    });
+    htmlErrorList += `
+      </ul>`;
+
+    htmlErrorList += `
+    </li>`;
+  });
+
+  htmlErrorList += `
+  </ul>`;
   return htmlErrorList;
 }
 
@@ -1091,7 +1254,40 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
     colors: [],
     sizes: [],
   };
+
+  //write "isUsed" to sessionStorage
+  let isUsedStringify = JSON.stringify(isUsed);
+  sessionStorage.setItem(
+    "usedCharacteristicsForMultipleItemCreation",
+    isUsedStringify
+  );
+
+  usedCharacteristics.value = [];
+  if (isUsed.genders) usedCharacteristics.value.push("genders");
+  if (isUsed.colors) usedCharacteristics.value.push("colors");
+  if (isUsed.sizes) usedCharacteristics.value.push("sizes");
+  console.log(usedCharacteristics.value);
 });
+
+watch(
+  () => sectionStore.dialogs.createMultiple.isShown,
+  (newValue) => {
+    if (newValue == false) {
+      return;
+    }
+
+    //get "isUsed" from sessionStorage
+    let isUsedFromStorage = sessionStorage.getItem(
+      "usedCharacteristicsForMultipleItemCreation"
+    );
+    if (isUsedFromStorage != null) {
+      isUsedFromStorage = JSON.parse(isUsedFromStorage);
+      isUsed.genders = isUsedFromStorage.genders;
+      isUsed.colors = isUsedFromStorage.colors;
+      isUsed.sizes = isUsedFromStorage.sizes;
+    }
+  }
+);
 </script>
 <style>
 .active-item-component {
@@ -1119,7 +1315,7 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
 }
 .error-list {
   list-style-type: none;
-  padding-left: 5px;
+  padding-left: 0px;
 }
 .error-list-entity {
   border: 1px solid rgba(0, 0, 0, 0.18);
@@ -1129,19 +1325,22 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
 }
 .error-list-entity-header {
   font-weight: bold;
-  margin-bottom: 3px;
-}
-.error-list-entity-header::before {
-  content: "-";
-  padding-right: 6px;
+  margin-bottom: 0px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 .error-list-entity-devider {
   width: 100%;
   height: 1px;
-  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  /* border-top: 1px solid rgba(0, 0, 0, 0.18); */
 }
 .errors {
   padding-left: 15px;
   list-style-type: none;
+}
+.errors-entity::before {
+  content: "-";
+  padding-right: 6px;
 }
 </style>

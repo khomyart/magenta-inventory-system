@@ -287,6 +287,7 @@
               v-model="sectionStore.newItem.price"
               label="Ціна"
               type="number"
+              step="0.01"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Вкажіть ціну',
                 (val) => val.length <= 13 || 'Не більше 13 символів',

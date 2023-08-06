@@ -46,9 +46,11 @@
       type="number"
     />
   </div>
+  <AddImagesComponent :index="props.colorArrayIndex" type="color" />
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
+import AddImagesComponent from "./AddImagesComponent.vue";
 const sectionStore = useItemStore();
 const props = defineProps(["colorArrayIndex", "rules"]);
 </script>

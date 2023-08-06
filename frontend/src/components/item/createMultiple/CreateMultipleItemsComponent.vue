@@ -4,9 +4,8 @@
       <q-card-section>
         <div class="text-h6 flex items-center">
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
-          Група предметів, г: {{ selectedIndexes.genders }}, к:
-          {{ selectedIndexes.colors }}, р: {{ selectedIndexes.sizes }}
-          <q-btn @click="validator('color')">Validator</q-btn>
+          Група предметів г: {{ selectedIndexes.genders }}, c:
+          {{ selectedIndexes.colors }}, s: {{ selectedIndexes.sizes }},
         </div>
       </q-card-section>
       <q-separator></q-separator>
@@ -134,7 +133,7 @@
               :rules="[
                 (val) => (val !== null && val !== '') || 'Вкажіть ціну',
                 (val) => val.length <= 13 || 'Не більше 13 символів',
-                (val) => val >= 1 || 'Ціна Ціна не менше 1',
+                (val) => val >= 1 || 'Не менше 1',
               ]"
             />
             <q-select
@@ -156,9 +155,16 @@
                 (val) => val >= 1 || 'Не менше одиниці',
               ]"
             />
+            <div class="col-12 q-pt-xs">
+              <AddImagesComponent type="main" :index="0" />
+            </div>
           </div>
+          <q-separator
+            class="q-mb-md"
+            v-if="isUsed.genders || isUsed.colors || isUsed.sizes"
+          />
+
           <div class="q-mt-sm" v-if="isUsed.genders === true">
-            <q-separator class="q-mb-md" />
             <div
               class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md"
             >
@@ -251,6 +257,7 @@
                 v-if="selectedIndexes.genders != -1"
                 :genderArrayIndex="selectedIndexes.genders"
                 :rules="genderFieldsRules"
+                :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
               />
             </div>
           </div>
@@ -262,6 +269,7 @@
             "
             :genderArrayIndex="selectedIndexes.genders"
             :selectedColorIndex="selectedIndexes.colors"
+            :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
             :rules="colorFieldsRules"
             @selectColor="selectItem"
             @removeColor="removeItem"
@@ -283,12 +291,28 @@
             :colorArrayIndex="selectedIndexes.colors"
             :genderArrayIndex="selectedIndexes.genders"
             :selectedSizeIndex="selectedIndexes.sizes"
+            :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
             :rules="sizeFieldsRules"
             @selectSize="selectItem"
             @removeSize="removeItem"
           />
+          <AddAvailableInComponent
+            :type="
+              usedCharacteristics.length === 0
+                ? 'main'
+                : usedCharacteristics.slice(-1)[0]
+            "
+            :index="
+              usedCharacteristics.length === 0
+                ? 0
+                : selectedIndexes[usedCharacteristics.slice(-1)]
+            "
+            v-if="
+              usedCharacteristics.length === 0 ||
+              selectedIndexes[usedCharacteristics.slice(-1)] != -1
+            "
+          />
         </q-card-section>
-
         <q-separator />
 
         <q-card-actions align="right">
@@ -308,6 +332,7 @@
 <script setup>
 import { v4 as uuidv4 } from "uuid";
 import { reactive, watch, ref, onMounted } from "vue";
+import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -320,8 +345,8 @@ import { useUnitStore } from "src/stores/unitStore";
 import SelectedGenderFormComponent from "src/components/item/createMultiple/SelectedGenderFormComponent.vue";
 import CreateColorComponent from "./CreateColorComponent.vue";
 import CreateSizeComponent from "./CreateSizeComponent.vue";
-import { useAppConfigStore } from "src/stores/appConfigStore";
-import { is } from "quasar";
+import AddImagesComponent from "./AddImagesComponent.vue";
+import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 
 const appStore = useAppConfigStore();
 const sectionStore = useItemStore();
@@ -339,6 +364,27 @@ const isUsed = reactive({
   colors: true,
   sizes: true,
 });
+
+const newMultupleItemsDefaultState = {
+  main: {
+    groupID: "",
+    type: null,
+    units: "",
+    detail: {
+      title: "",
+      model: "",
+      article: "",
+      price: "",
+      currency: "UAH",
+      lack: 10,
+      images: [],
+      availableIn: [],
+    },
+  },
+  genders: [],
+  colors: [],
+  sizes: [],
+};
 
 //array of string, looks like:
 //['genders', 'colors', 'sizes']
@@ -379,7 +425,7 @@ let genderFieldsRules = {
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
-    (val) => val >= 1 || "Не менше одиниці",
+    (val) => val >= 1 || "Нестача не менше одиниці",
   ],
 };
 
@@ -399,7 +445,7 @@ let colorFieldsRules = {
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
-    (val) => val >= 1 || "Не менше одиниці",
+    (val) => val >= 1 || "Нестача не менше одиниці",
   ],
 };
 
@@ -419,7 +465,7 @@ let sizeFieldsRules = {
   ],
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
-    (val) => val >= 1 || "Не менше одиниці",
+    (val) => val >= 1 || "Нестача не менше одиниці",
   ],
 };
 
@@ -442,6 +488,17 @@ function genderFilter(val, update, abort) {
   });
 }
 
+/**
+ * Clones object
+ * @param {object} object object
+ * @return {object} clone object
+ */
+function cloneObject(object) {
+  let objectClone = {};
+  objectClone = JSON.parse(JSON.stringify(object));
+  return objectClone;
+}
+
 function addSelectedGenderToStore(val) {
   let isValueExist = isGenderExistInList(val.id);
   let bottomOfGendersContainer = document.getElementById(
@@ -452,7 +509,9 @@ function addSelectedGenderToStore(val) {
     let newGenderIndex = sectionStore.newMultipleItems.genders.length;
 
     let newGenderTemplate = { ...val };
-    newGenderTemplate.detail = { ...sectionStore.newMultipleItems.main.detail };
+    newGenderTemplate.detail = cloneObject(
+      sectionStore.newMultipleItems.main.detail
+    );
     sectionStore.newMultipleItems.genders.push(newGenderTemplate);
     templHolders.gender = {};
 
@@ -761,6 +820,24 @@ function generateListOfGendersErrors(
       (size) => size.connections.genderArrayIndex === genderIndex
     );
 
+    let amountOfErrorsInRelatedColors = 0;
+    let amountOfErrorsInRelatedSizes = 0;
+
+    genderRelatedColors.forEach((color) => {
+      amountOfErrorsInRelatedColors += color.errors.length;
+    });
+    genderRelatedSizes.forEach((size) => {
+      amountOfErrorsInRelatedSizes += size.errors.length;
+    });
+
+    //dont show gender if no errors in dependent colors, sizes and gender itself
+    if (
+      amountOfErrorsInRelatedColors === 0 &&
+      amountOfErrorsInRelatedSizes === 0 &&
+      gender.errors.length === 0
+    )
+      return;
+
     htmlErrorList += `
     <li class="error-list-entity">
       <p class="error-list-entity-header">
@@ -826,6 +903,14 @@ function generateListOfColorsErrors(
     let colorRelatedSizes = sizesAndTheirErrors.filter(
       (size) => size.connections.colorArrayIndex === color.indexInArray
     );
+
+    let amountOfErrorsInRelatedSizes = 0;
+    colorRelatedSizes.forEach((size) => {
+      amountOfErrorsInRelatedSizes += size.errors.length;
+    });
+
+    //dont show color if no errors in dependent sizes and color itself
+    if (amountOfErrorsInRelatedSizes === 0 && color.errors.length === 0) return;
 
     htmlErrorList += `
     <li class="error-list-entity">
@@ -1236,24 +1321,9 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
   selectedIndexes.colors = -1;
   selectedIndexes.sizes = -1;
 
-  sectionStore.newMultipleItems = {
-    main: {
-      groupID: "",
-      type: null,
-      units: "",
-      detail: {
-        title: "",
-        model: "",
-        article: "",
-        price: "",
-        currency: "UAH",
-        lack: 10,
-      },
-    },
-    genders: [],
-    colors: [],
-    sizes: [],
-  };
+  sectionStore.newMultipleItems = JSON.parse(
+    JSON.stringify(newMultupleItemsDefaultState)
+  );
 
   //write "isUsed" to sessionStorage
   let isUsedStringify = JSON.stringify(isUsed);
@@ -1273,6 +1343,10 @@ watch(
   () => sectionStore.dialogs.createMultiple.isShown,
   (newValue) => {
     if (newValue == false) {
+      selectedIndexes.genders = -1;
+      selectedIndexes.colors = -1;
+      selectedIndexes.sizes = -1;
+      sectionStore.newMultipleItems = {};
       return;
     }
 
@@ -1286,6 +1360,10 @@ watch(
       isUsed.colors = isUsedFromStorage.colors;
       isUsed.sizes = isUsedFromStorage.sizes;
     }
+
+    sectionStore.newMultipleItems = JSON.parse(
+      JSON.stringify(newMultupleItemsDefaultState)
+    );
   }
 );
 </script>

@@ -148,7 +148,9 @@ export const useTypeStore = defineStore("type", {
         .then((res) => {
           this.simpleItems = res.data;
         })
-        .catch()
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
         .finally(() => {
           this.data.isItemsLoading = false;
         });

@@ -126,7 +126,6 @@
                     {{ scope.opt.size }}
                   </div>
                 </div>
-                <div class="available">Наявність: {{ scope.opt.amount }}</div>
               </div>
             </div>
           </q-item>
@@ -277,16 +276,16 @@ watch(
   min-width: 0;
 }
 .list-item-description-image-holder {
-  min-width: 75px;
-  min-height: 75px;
-  width: 75px;
-  height: 75px;
+  min-width: 60px;
+  min-height: 60px;
+  width: 60px;
+  height: 60px;
   overflow: hidden;
   display: flex;
   justify-content: center;
   border-radius: 5px;
   background-color: rgb(217, 217, 205);
-  flex: 0 0 75px;
+  flex: 0 0 60px;
 }
 .list-item-description-image {
   height: 100%;

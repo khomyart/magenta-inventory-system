@@ -317,7 +317,7 @@
           <q-separator class="q-mb-sm" />
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 text-center">
+            <div class="col-4 flex items-center justify-center">
               Зображення
               <input
                 id="imagesInput"
@@ -381,7 +381,7 @@
           </div>
           <div class="row q-mb-sm text-h6">
             <div class="col-4"></div>
-            <div class="col-4 text-center">Наявність</div>
+            <div class="col-4 flex items-center justify-center">Наявність</div>
             <div class="col-4">
               <q-btn
                 class="q-mr-sm"
@@ -446,6 +446,7 @@
 <script setup>
 import { v4 as uuidv4 } from "uuid";
 import { watch } from "vue";
+import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -455,11 +456,13 @@ import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
+
+import DataReplacementDialogComponent from "./DataReplacementDialogComponent.vue";
 import WarehouseFormComponent from "src/components/item/single/WarehouseFormComponent.vue";
 import ImageComponent from "./ImageComponent.vue";
-import DataReplacementDialogComponent from "./DataReplacementDialogComponent.vue";
 
 const sectionStore = useItemStore();
+const appStore = useAppConfigStore();
 const countryStore = useCountryStore();
 const cityStore = useCityStore();
 const typeStore = useTypeStore();
@@ -547,23 +550,59 @@ function triggerFileInput() {
 }
 
 function onImageInput(ev) {
-  console.log("called");
+  const files = Array.from(ev.target.files);
+  let amountOfErrors = 0;
+  ev.target.value = "";
 
-  const files = ev.target.files;
-  console.log(files);
+  //files existing in list
+  amountOfErrors = 0;
+  files.forEach((file) => {
+    let matchedFiles = sectionStore.newItem.images.filter((image) => {
+      return image.file.name == file.name && image.file.size == file.size;
+    });
+    if (matchedFiles.length > 0) amountOfErrors += 1;
+  });
 
-  Object.keys(files).forEach((i) => {
+  if (amountOfErrors > 0) {
+    let errorMessage = "";
+    if (files.length > 1) {
+      errorMessage = `Одне або більше з обраних зображень вже є у списку`;
+    } else {
+      errorMessage = `Зображення вже є у списку`;
+    }
+    appStore.showErrorMessage(errorMessage, false);
+    return;
+  }
+
+  //files format and size validation
+  amountOfErrors = 0;
+  files.forEach((file) => {
+    if (
+      (file.type !== "image/png" &&
+        file.type !== "image/jpg" &&
+        file.type !== "image/jpeg") ||
+      file.size > 5000000
+    ) {
+      amountOfErrors += 1;
+    }
+  });
+
+  if (amountOfErrors > 0) {
+    let errorMessage = `Дозволені формати файлів: png, jpg, jpeg. <br> Розмір не повинен перевищувати 5 MB`;
+    appStore.showErrorMessage(errorMessage, true);
+    return;
+  }
+
+  files.forEach((file) => {
     const reader = new FileReader();
-
     reader.onload = () => {
-      console.log(reader);
       sectionStore.newItem.images.push({
         url: reader.result,
-        file: files[i],
+        file: file,
       });
     };
 
-    reader.readAsDataURL(files[i]);
+    reader.readAsDataURL(file);
   });
 }
 

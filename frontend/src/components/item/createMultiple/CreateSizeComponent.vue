@@ -1,6 +1,5 @@
 <template>
   <div class="q-mt-sm">
-    <q-separator class="q-mb-md" />
     <div
       class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md flex"
     >
@@ -133,6 +132,17 @@ function removeItem(itemIndex) {
   emits("removeSize", itemIndex, "size");
 }
 
+/**
+ * Clones object
+ * @param {object} object object
+ * @return {object} clone object
+ */
+function cloneObject(object) {
+  let objectClone = {};
+  objectClone = JSON.parse(JSON.stringify(object));
+  return objectClone;
+}
+
 function addSelectedSizeToStore(val) {
   let isValueExist = isSizeExistInList(val.id);
   let bottomOfSizesContainer = document.getElementById(
@@ -144,19 +154,19 @@ function addSelectedSizeToStore(val) {
 
     let newSizeTemplate = { ...val };
     if (props.colorArrayIndex != -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
+      );
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex != -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+      );
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex == -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.main.detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.main.detail
+      );
     }
 
     newSizeTemplate.connections = {

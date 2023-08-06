@@ -1,6 +1,5 @@
 <template>
   <div class="q-mt-sm">
-    <q-separator class="q-mb-md" />
     <div
       class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md"
     >
@@ -130,6 +129,17 @@ function removeItem(itemIndex) {
   emits("removeColor", itemIndex, "color");
 }
 
+/**
+ * Clones object
+ * @param {object} object object
+ * @return {object} clone object
+ */
+function cloneObject(object) {
+  let objectClone = {};
+  objectClone = JSON.parse(JSON.stringify(object));
+  return objectClone;
+}
+
 function addSelectedColorToStore(val) {
   let isValueExist = isColorExistInList(val.id);
   let bottomOfColorContainer = document.getElementById(
@@ -142,13 +152,10 @@ function addSelectedColorToStore(val) {
     let newColorTemplate = { ...val };
     newColorTemplate.detail =
       props.genderArrayIndex != -1
-        ? {
-            ...sectionStore.newMultipleItems.genders[props.genderArrayIndex]
-              .detail,
-          }
-        : {
-            ...sectionStore.newMultipleItems.main.detail,
-          };
+        ? cloneObject(
+            sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          )
+        : cloneObject(sectionStore.newMultipleItems.main.detail);
 
     newColorTemplate.connections = {
       genderArrayIndex: props.genderArrayIndex,

@@ -164,7 +164,7 @@
     <div class="row q-my-sm">
       <div class="col-4"></div>
       <div class="col-4 flex items-center justify-center text-bold text-h6">
-        Партії:
+        Предмети:
       </div>
       <div class="col-4">
         <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
@@ -297,7 +297,6 @@ function cityUpdate() {
 <style scoped>
 .warehouse-wrapper {
   border: 1px solid rgba(0, 0, 0, 0.185);
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.158);
   border-radius: 4px;
   padding: 15px 15px 0px;
 }

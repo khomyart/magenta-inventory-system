@@ -47,10 +47,20 @@
     />
   </div>
   <AddImagesComponent :index="props.colorArrayIndex" type="color" />
+  <AddAvailableInComponent
+    type="colors"
+    :index="props.colorArrayIndex"
+    v-if="props.lastUsedCharacteristic === 'colors'"
+  />
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
 import AddImagesComponent from "./AddImagesComponent.vue";
+import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 const sectionStore = useItemStore();
-const props = defineProps(["colorArrayIndex", "rules"]);
+const props = defineProps([
+  "colorArrayIndex",
+  "lastUsedCharacteristic",
+  "rules",
+]);
 </script>

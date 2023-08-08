@@ -17,13 +17,7 @@
         @update:model-value="countryUpdate"
         @filter="countryFilter"
         :loading="loadingStates.country"
-        class="col-6"
-        :rules="[
-          () =>
-            (target[props.warehouseIndex].country != null &&
-              target[props.warehouseIndex].country.id != undefined) ||
-            'Оберіть країну',
-        ]"
+        class="col-6 q-mb-md"
       >
         <template
           v-if="target[props.warehouseIndex].country && !loadingStates.country"
@@ -59,17 +53,11 @@
         @update:model-value="cityUpdate"
         @filter="cityFilter"
         :loading="loadingStates.city"
-        class="col-6"
+        class="col-6 q-mb-md"
         :disable="
           target[props.warehouseIndex].country == null ||
           target[props.warehouseIndex].country.id == undefined
         "
-        :rules="[
-          () =>
-            (target[props.warehouseIndex].city != null &&
-              target[props.warehouseIndex].city.id != undefined) ||
-            'Оберіть місто',
-        ]"
       >
         <template
           v-if="target[props.warehouseIndex].city && !loadingStates.city"
@@ -106,17 +94,11 @@
         option-label="name"
         @filter="warehouseFilter"
         :loading="loadingStates.warehouse"
-        class="col-10"
+        class="col-10 q-mb-md"
         :disable="
           target[props.warehouseIndex].city == null ||
           target[props.warehouseIndex].city.id == undefined
         "
-        :rules="[
-          () =>
-            (target[props.warehouseIndex].warehouse != null &&
-              target[props.warehouseIndex].warehouse.id != undefined) ||
-            'Оберіть склад',
-        ]"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -290,6 +272,6 @@ function addBatch() {
 .warehouse-wrapper {
   border: 1px solid rgba(0, 0, 0, 0.185);
   border-radius: 4px;
-  padding: 15px 15px 7px;
+  padding: 15px 15px 0px;
 }
 </style>

@@ -61,26 +61,16 @@
     />
   </div>
   <AddImagesComponent :index="props.genderArrayIndex" type="gender" />
-  <!-- <AddAvailableInComponent
-            :type="
-              usedCharacteristics.length === 0
-                ? 'main'
-                : usedCharacteristics.slice(-1)[0]
-            "
-            :index="
-              usedCharacteristics.length === 0
-                ? 0
-                : selectedIndexes[usedCharacteristics.slice(-1)]
-            "
-            v-if="
-              usedCharacteristics.length === 0 ||
-              selectedIndexes[usedCharacteristics.slice(-1)] != -1
-            "
-          /> -->
+  <AddAvailableInComponent
+    :type="'genders'"
+    :index="props.genderArrayIndex"
+    v-if="props.lastUsedCharacteristic === 'genders'"
+  />
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
 import AddImagesComponent from "./AddImagesComponent.vue";
+import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 const sectionStore = useItemStore();
 const props = defineProps([
   "genderArrayIndex",

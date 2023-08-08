@@ -4,8 +4,10 @@
       <q-card-section>
         <div class="text-h6 flex items-center">
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
-          Група предметів г: {{ selectedIndexes.genders }}, c:
-          {{ selectedIndexes.colors }}, s: {{ selectedIndexes.sizes }},
+          Група предметів
+          <q-btn class="q-mx-md" @click="fillSectionStoreWithTemplate()"
+            >fill</q-btn
+          >
         </div>
       </q-card-section>
       <q-separator></q-separator>
@@ -257,7 +259,9 @@
                 v-if="selectedIndexes.genders != -1"
                 :genderArrayIndex="selectedIndexes.genders"
                 :rules="genderFieldsRules"
-                :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
+                :lastUsedCharacteristic="
+                  usedCharacteristics[usedCharacteristics.length - 1]
+                "
               />
             </div>
           </div>
@@ -269,7 +273,9 @@
             "
             :genderArrayIndex="selectedIndexes.genders"
             :selectedColorIndex="selectedIndexes.colors"
-            :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
+            :lastUsedCharacteristic="
+              usedCharacteristics[usedCharacteristics.length - 1]
+            "
             :rules="colorFieldsRules"
             @selectColor="selectItem"
             @removeColor="removeItem"
@@ -291,26 +297,17 @@
             :colorArrayIndex="selectedIndexes.colors"
             :genderArrayIndex="selectedIndexes.genders"
             :selectedSizeIndex="selectedIndexes.sizes"
-            :lastUsedCharacteristic="usedCharacteristics.splice(-1)[0]"
+            :lastUsedCharacteristic="
+              usedCharacteristics[usedCharacteristics.length - 1]
+            "
             :rules="sizeFieldsRules"
             @selectSize="selectItem"
             @removeSize="removeItem"
           />
           <AddAvailableInComponent
-            :type="
-              usedCharacteristics.length === 0
-                ? 'main'
-                : usedCharacteristics.slice(-1)[0]
-            "
-            :index="
-              usedCharacteristics.length === 0
-                ? 0
-                : selectedIndexes[usedCharacteristics.slice(-1)]
-            "
-            v-if="
-              usedCharacteristics.length === 0 ||
-              selectedIndexes[usedCharacteristics.slice(-1)] != -1
-            "
+            :type="'main'"
+            :index="0"
+            v-if="usedCharacteristics.length === 0"
           />
         </q-card-section>
         <q-separator />
@@ -360,9 +357,9 @@ const warehouseStore = useWarehouseStore();
 const unitStore = useUnitStore();
 
 const isUsed = reactive({
-  genders: true,
-  colors: true,
-  sizes: true,
+  genders: false,
+  colors: false,
+  sizes: false,
 });
 
 const newMultupleItemsDefaultState = {
@@ -409,6 +406,15 @@ let genderFieldsRules = {
   article: [
     (val) => (val !== null && val !== "") || "Введіть артикль",
     (val) => val.length <= 10 || "Не більше 10 символів",
+    (val) => {
+      let articleMatches = sectionStore.newMultipleItems.genders.filter(
+        (gender) => {
+          return gender.detail.article === val;
+        }
+      );
+
+      return articleMatches.length <= 1 || "Артиклі не можуть повторюватися";
+    },
   ],
   model: [
     (val) => (val !== null && val !== "") || "Введіть модель",
@@ -466,6 +472,17 @@ let sizeFieldsRules = {
   lack: [
     (val) => (val !== null && val !== "") || "Вкажіть нестачу",
     (val) => val >= 1 || "Нестача не менше одиниці",
+  ],
+};
+
+let batchFieldsRules = {
+  amount: [
+    (val) => (val !== null && val !== "") || "Введіть кількість",
+    (val) => val >= 1 || "Кількість не менше 1",
+  ],
+  price: [
+    (val) => (val !== null && val !== "") || "Введіть ціну",
+    (val) => val >= 1 || "Ціна не менше 1",
   ],
 };
 
@@ -534,6 +551,10 @@ function isGenderExistInList(itemId) {
 }
 
 /**
+ * General function
+ */
+
+/**
  * @param {string} type validation target type (gender, size or color)
  * @param {boolean} restricted if true - limit amount of rules for some types to minimum, for instance:
  * genders - only checking for article and amount of colors and sizes.
@@ -542,10 +563,28 @@ function isGenderExistInList(itemId) {
  */
 function validator(type, restricted = false) {
   let errorsCollector = [];
-  let items = sectionStore.newMultipleItems[`${type}s`];
 
+  if (type === "main") {
+    let warehousesValidationResults = warehouseValidation(
+      sectionStore.newMultipleItems.main.detail.availableIn
+    );
+    errorsCollector = [
+      {
+        amountOfErrors: warehousesValidationResults.amountOfErrors,
+        errorsFor: {
+          warehouses: warehousesValidationResults,
+        },
+      },
+    ];
+    return errorsCollector;
+  }
+
+  let items = sectionStore.newMultipleItems[`${type}s`];
   items.forEach((item, itemIndex) => {
     let fieldsValues = item.detail;
+    let warehousesValidationInfo = warehouseValidation(
+      fieldsValues.availableIn
+    );
     let errorsFor = {
       model: {
         list: [],
@@ -563,6 +602,7 @@ function validator(type, restricted = false) {
         list: [],
         display: "",
       },
+      warehouses: warehousesValidationInfo,
     };
 
     if (restricted === true && (type === "gender" || type === "color")) {
@@ -571,7 +611,7 @@ function validator(type, restricted = false) {
 
     errorsCollector.push({
       indexInArray: itemIndex,
-      amountOfErrors: 0,
+      amountOfErrors: warehousesValidationInfo.amountOfErrors,
       errorsFor: { ...errorsFor },
     });
 
@@ -670,10 +710,95 @@ function validator(type, restricted = false) {
 }
 
 /**
- * General function
+ * Validating warehouses info
+ * @param {array} itemAvailableIn item's availableIn, which are located -> item.detail.availableIn
+ * @return {object} validated warehouses object and additional info with sturcture:
+ * {
+ *  amountOfErrors: number,
+ *  warehouses: array of objects [
+ *    {
+ *      list: array of string [], //of errors
+ *      display: string "", //first met error
+ *      batches: array of objects [ //
+ *         {
+ *           list: array of string, [] //of errors
+ *           display: string "", //first met error
+ *         } ...
+ *      ]
+ *    } ...
+ *  ]
+ * }
  */
+function warehouseValidation(itemAvailableIn) {
+  //warehouses validation
+  let validatedWarehouses = {
+    amountOfErrors: 0,
+    warehouses: [],
+  };
+  let warehouseTemplate = {
+    list: [],
+    display: "",
+    batches: [],
+  };
+  let batchTemplate = {
+    amount: {
+      list: [],
+      display: "",
+    },
+    price: {
+      list: [],
+      display: "",
+    },
+  };
+
+  itemAvailableIn.forEach((availableIn, warehouseIndex) => {
+    validatedWarehouses.warehouses.push(cloneObject(warehouseTemplate));
+
+    if (availableIn.warehouse === null) {
+      validatedWarehouses.warehouses[warehouseIndex].display = "Оберіть склад";
+      validatedWarehouses.warehouses[warehouseIndex].list.push("Оберіть склад");
+      validatedWarehouses.amountOfErrors += 1;
+    }
+
+    availableIn.batches.forEach((batch, batchIndex) => {
+      validatedWarehouses.warehouses[warehouseIndex].batches.push(
+        cloneObject(batchTemplate)
+      );
+
+      let fieldsRules = batchFieldsRules;
+      //batches validation
+      Object.keys(batch).forEach((fieldName) => {
+        if (fieldsRules[fieldName] != undefined) {
+          let listOfRulesForCurrentField = fieldsRules[fieldName];
+
+          listOfRulesForCurrentField.forEach((rule) => {
+            let validationResult = rule(batch[fieldName]);
+            validatedWarehouses.warehouses[warehouseIndex].batches[batchIndex][
+              fieldName
+            ].list.push(validationResult);
+            if (
+              typeof validationResult === "string" &&
+              validatedWarehouses.warehouses[warehouseIndex].batches[
+                batchIndex
+              ][fieldName].display === ""
+            ) {
+              validatedWarehouses.warehouses[warehouseIndex].batches[
+                batchIndex
+              ][fieldName].display = validationResult;
+              validatedWarehouses.amountOfErrors += 1;
+            }
+          });
+        }
+      });
+    });
+  });
+
+  return validatedWarehouses;
+}
+
 function submit() {
   let formFields = {
+    main: validator("main"),
     genders: validator(
       "gender",
       isUsed.genders && (isUsed.colors || isUsed.sizes)
@@ -682,6 +807,7 @@ function submit() {
     sizes: validator("size"),
   };
   let combinedFields = [
+    ...formFields.main,
     ...formFields.genders,
     ...formFields.colors,
     ...formFields.sizes,
@@ -694,7 +820,6 @@ function submit() {
     }
   });
 
-  console.log("submited with: ", formFields);
   if (amountOfErrors > 0) {
     let errorMessage = generateErrorMessage(formFields);
     appStore.showErrorMessage(errorMessage, true);
@@ -712,6 +837,7 @@ function submit() {
  * }
  */
 function generateErrorMessage(validatedFormFields) {
+  let mainAndItsErrors = [];
   let gendersAndTheirErrors = [];
   let colorsAndTheirErrors = [];
   let sizesAndTheirErrors = [];
@@ -721,11 +847,16 @@ function generateErrorMessage(validatedFormFields) {
     gendersAndTheirErrors.push({
       name: "",
       errors: [],
+      warehouses: gender.errorsFor.warehouses,
+      amountOfErrors: gender.amountOfErrors,
     });
     gendersAndTheirErrors[genderIndex].name =
       sectionStore.newMultipleItems.genders[gender.indexInArray].name;
     Object.keys(gender.errorsFor).forEach((fieldName) => {
-      if (gender.errorsFor[fieldName].display != "") {
+      if (
+        gender.errorsFor[fieldName].display != "" &&
+        fieldName != "warehouses"
+      ) {
         gendersAndTheirErrors[genderIndex].errors.push(
           gender.errorsFor[fieldName].display
         );
@@ -741,11 +872,16 @@ function generateErrorMessage(validatedFormFields) {
       connections: color.connections,
       errors: [],
       indexInArray: color.indexInArray,
+      warehouses: color.errorsFor.warehouses,
+      amountOfErrors: color.amountOfErrors,
     });
     colorsAndTheirErrors[colorIndex].name =
       sectionStore.newMultipleItems.colors[color.indexInArray].description;
     Object.keys(color.errorsFor).forEach((fieldName) => {
-      if (color.errorsFor[fieldName].display != "") {
+      if (
+        color.errorsFor[fieldName].display != "" &&
+        fieldName != "warehouses"
+      ) {
         colorsAndTheirErrors[colorIndex].errors.push(
           color.errorsFor[fieldName].display
         );
@@ -760,11 +896,16 @@ function generateErrorMessage(validatedFormFields) {
       connections: size.connections,
       errors: [],
       indexInArray: size.indexInArray,
+      warehouses: size.errorsFor.warehouses,
+      amountOfErrors: size.amountOfErrors,
     });
     sizesAndTheirErrors[sizeIndex].name =
       sectionStore.newMultipleItems.sizes[size.indexInArray].value;
     Object.keys(size.errorsFor).forEach((fieldName) => {
-      if (size.errorsFor[fieldName].display != "") {
+      if (
+        size.errorsFor[fieldName].display != "" &&
+        fieldName != "warehouses"
+      ) {
         sizesAndTheirErrors[sizeIndex].errors.push(
           size.errorsFor[fieldName].display
         );
@@ -773,6 +914,13 @@ function generateErrorMessage(validatedFormFields) {
   });
 
   let htmlErrorList = "";
+
+  if (!isUsed.genders && !isUsed.colors && !isUsed.sizes) {
+    htmlErrorList = generateListOfWarehousesErrors(
+      validatedFormFields.main[0].errorsFor.warehouses.warehouses
+    );
+    return htmlErrorList;
+  }
 
   if (!isUsed.genders && isUsed.colors) {
     htmlErrorList = generateListOfColorsErrors(
@@ -824,17 +972,17 @@ function generateListOfGendersErrors(
     let amountOfErrorsInRelatedSizes = 0;
 
     genderRelatedColors.forEach((color) => {
-      amountOfErrorsInRelatedColors += color.errors.length;
+      amountOfErrorsInRelatedColors += color.amountOfErrors;
     });
     genderRelatedSizes.forEach((size) => {
-      amountOfErrorsInRelatedSizes += size.errors.length;
+      amountOfErrorsInRelatedSizes += size.amountOfErrors;
     });
 
     //dont show gender if no errors in dependent colors, sizes and gender itself
     if (
       amountOfErrorsInRelatedColors === 0 &&
       amountOfErrorsInRelatedSizes === 0 &&
-      gender.errors.length === 0
+      gender.amountOfErrors === 0
     )
       return;
 
@@ -857,8 +1005,21 @@ function generateListOfGendersErrors(
     htmlErrorList += `
       </ul>`;
 
+    if (gender.warehouses != undefined) {
+      if (gender.warehouses.amountOfErrors > 0) {
+        //Devider (warehouses)
+        htmlErrorList += `
+        <div class="error-list-entity-devider q-mt-sm"></div>`;
+
+        //INNER CONENT (warehouses)
+        htmlErrorList += generateListOfWarehousesErrors(
+          gender.warehouses.warehouses
+        );
+      }
+    }
+
     //Devider
-    if (genderRelatedColors.length > 0 || genderRelatedSizes.length > 0) {
+    if (amountOfErrorsInRelatedColors + amountOfErrorsInRelatedSizes > 0) {
       htmlErrorList += `
       <div class="error-list-entity-devider q-mt-sm"></div>`;
     }
@@ -906,11 +1067,12 @@ function generateListOfColorsErrors(
 
     let amountOfErrorsInRelatedSizes = 0;
     colorRelatedSizes.forEach((size) => {
-      amountOfErrorsInRelatedSizes += size.errors.length;
+      amountOfErrorsInRelatedSizes += size.amountOfErrors;
     });
 
-    //dont show color if no errors in dependent sizes and color itself
-    if (amountOfErrorsInRelatedSizes === 0 && color.errors.length === 0) return;
+    //do not show color if no errors in dependent sizes and color itself
+    if (amountOfErrorsInRelatedSizes === 0 && color.amountOfErrors === 0)
+      return;
 
     htmlErrorList += `
     <li class="error-list-entity">
@@ -940,13 +1102,26 @@ function generateListOfColorsErrors(
     htmlErrorList += `
       </ul>`;
 
-    //Devider
+    if (color.warehouses != undefined) {
+      if (color.warehouses.amountOfErrors > 0) {
+        //Devider (warehouses)
+        htmlErrorList += `
+        <div class="error-list-entity-devider q-mt-sm"></div>`;
+
+        //INNER CONENT (warehouses)
+        htmlErrorList += generateListOfWarehousesErrors(
+          color.warehouses.warehouses
+        );
+      }
+    }
+
+    //Devider (sizes)
     if (colorRelatedSizes.length > 0) {
       htmlErrorList += `
       <div class="error-list-entity-devider q-mt-sm"></div>`;
     }
 
-    //INNER CONENT
+    //INNER CONENT (sizes)
     htmlErrorList += generateListOfSizesErrors(colorRelatedSizes);
     htmlErrorList += `
     </li>`;
@@ -969,7 +1144,7 @@ function generateListOfSizesErrors(sizesAndTheirErrors) {
   <ul class="error-list">`;
 
   sizesAndTheirErrors.forEach((size) => {
-    if (size.errors.length === 0) return;
+    if (size.amountOfErrors === 0) return;
 
     htmlErrorList += `
     <li class="error-list-entity">
@@ -987,6 +1162,128 @@ function generateListOfSizesErrors(sizesAndTheirErrors) {
       htmlErrorList += `
         </li>`;
     });
+    htmlErrorList += `
+      </ul>`;
+
+    if (size.warehouses != undefined) {
+      if (size.warehouses.amountOfErrors > 0) {
+        //Devider (warehouses)
+        htmlErrorList += `
+        <div class="error-list-entity-devider q-mt-sm"></div>`;
+
+        //INNER CONENT (warehouses)
+        htmlErrorList += generateListOfWarehousesErrors(
+          size.warehouses.warehouses
+        );
+      }
+    }
+
+    htmlErrorList += `
+    </li>`;
+  });
+
+  htmlErrorList += `
+  </ul>`;
+  return htmlErrorList;
+}
+
+/**
+ * @param {array} warehousesList
+ * @return {string} html list with warehouses
+ */
+function generateListOfWarehousesErrors(warehousesList) {
+  let htmlErrorList = "";
+  htmlErrorList += `
+  <ul class="error-list">`;
+
+  warehousesList.forEach((warehouse, warehouseIndex) => {
+    let amountOfBatchesErrors = 0;
+    //counting amount of batches errors for particular warehouse
+    warehouse.batches.forEach((batch) => {
+      Object.keys(batch).forEach((field) => {
+        if (batch[field].display != "") {
+          amountOfBatchesErrors += 1;
+        }
+      });
+    });
+
+    if (amountOfBatchesErrors == 0 && warehouse.list.length == 0) return;
+
+    htmlErrorList += `
+    <li class="error-list-entity">
+      <p class="error-list-entity-header">
+        <span style="margin: -2px 5px 0px 0px;" class="material-symbols-outlined">
+          warehouse
+        </span>
+        Склад ${warehouseIndex + 1}
+      </p>
+      <ul class="errors">`;
+    warehouse.list.forEach((err) => {
+      htmlErrorList += `
+        <li class="errors-entity">
+          ${err}`;
+      htmlErrorList += `
+        </li>`;
+    });
+
+    htmlErrorList += `
+      </ul>`;
+
+    if (amountOfBatchesErrors > 0) {
+      //DEVIDER
+      htmlErrorList += `
+      <div class="error-list-entity-devider q-mt-sm"></div>`;
+
+      //INNER CONENT
+      htmlErrorList += generateListOfBatchesErrors(warehouse.batches);
+    }
+    htmlErrorList += `
+    </li>`;
+  });
+
+  htmlErrorList += `
+  </ul>`;
+  return htmlErrorList;
+}
+
+/**
+ * @param {array} batchesList
+ * @return {string} html list with batches
+ */
+function generateListOfBatchesErrors(batchesList) {
+  let htmlErrorList = "";
+  htmlErrorList += `
+  <ul class="error-list">`;
+
+  batchesList.forEach((batch, batchIndex) => {
+    let amountOfErrors = 0;
+    Object.keys(batch).forEach((field) => {
+      if (batch[field].display != "") {
+        amountOfErrors += 1;
+      }
+    });
+
+    if (amountOfErrors == 0) return;
+
+    htmlErrorList += `
+    <li class="error-list-entity">
+      <p class="error-list-entity-header">
+        <span style="margin: -2px 5px 0px 0px;" class="material-symbols-outlined">
+          inventory_2
+        </span>
+        Партія ${batchIndex + 1}
+      </p>
+      <ul class="errors">`;
+    Object.keys(batch).forEach((field) => {
+      if (batch[field].display != "") {
+        htmlErrorList += `
+        <li class="errors-entity">
+          ${batch[field].display}`;
+        htmlErrorList += `
+        </li>`;
+      }
+    });
+
     htmlErrorList += `
       </ul>`;
 
@@ -1321,9 +1618,7 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
   selectedIndexes.colors = -1;
   selectedIndexes.sizes = -1;
 
-  sectionStore.newMultipleItems = JSON.parse(
-    JSON.stringify(newMultupleItemsDefaultState)
-  );
+  sectionStore.newMultipleItems = cloneObject(newMultupleItemsDefaultState);
 
   //write "isUsed" to sessionStorage
   let isUsedStringify = JSON.stringify(isUsed);
@@ -1336,17 +1631,16 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
   if (isUsed.genders) usedCharacteristics.value.push("genders");
   if (isUsed.colors) usedCharacteristics.value.push("colors");
   if (isUsed.sizes) usedCharacteristics.value.push("sizes");
-  console.log(usedCharacteristics.value);
 });
 
 watch(
   () => sectionStore.dialogs.createMultiple.isShown,
   (newValue) => {
     if (newValue == false) {
+      sectionStore.newMultipleItems = {};
       selectedIndexes.genders = -1;
       selectedIndexes.colors = -1;
       selectedIndexes.sizes = -1;
-      sectionStore.newMultipleItems = {};
       return;
     }
 
@@ -1361,11 +1655,333 @@ watch(
       isUsed.sizes = isUsedFromStorage.sizes;
     }
 
-    sectionStore.newMultipleItems = JSON.parse(
-      JSON.stringify(newMultupleItemsDefaultState)
-    );
+    sectionStore.newMultipleItems = cloneObject(newMultupleItemsDefaultState);
   }
 );
+
+function fillSectionStoreWithTemplate() {
+  sectionStore.newMultipleItems = newMultipleItemTemplate;
+}
+let newMultipleItemTemplate = {
+  main: {
+    groupID: "1",
+    type: { id: 29, name: "Старе Футболки", number_in_row: 1 },
+    units: "",
+    detail: {
+      title: "2",
+      model: "4",
+      article: "",
+      price: "5",
+      currency: "UAH",
+      lack: 10,
+      images: [],
+      availableIn: [],
+    },
+  },
+  genders: [
+    {
+      id: 10,
+      name: "щось4",
+      number_in_row: 1,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+    },
+    {
+      id: 2,
+      name: "4",
+      number_in_row: 3,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+    },
+  ],
+  colors: [
+    {
+      id: 1,
+      value: "#e61c1c",
+      article: "WHI",
+      description: "WRYYY",
+      text_color_value: "#ffffff",
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0 },
+      indexInArray: 0,
+    },
+    {
+      id: 6,
+      value: "#14cc61",
+      article: "GR",
+      description: "Гріно",
+      text_color_value: "#ffffff",
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0 },
+      indexInArray: 1,
+    },
+    {
+      id: 3,
+      value: "#2833fc",
+      article: "Article2",
+      description: "Каралоуий",
+      text_color_value: "#000000",
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 1 },
+      indexInArray: 2,
+    },
+    {
+      id: 7,
+      value: "#f5e798",
+      article: "CR",
+      description: "Кремі",
+      text_color_value: "#000000",
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 1 },
+      indexInArray: 3,
+    },
+  ],
+  sizes: [
+    {
+      id: 1,
+      value: "3XXL",
+      description: "опопис",
+      number_in_row: 1,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0, colorArrayIndex: 0 },
+      indexInArray: 0,
+    },
+    {
+      id: 2,
+      value: "X",
+      description: "мяв1",
+      number_in_row: 2,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0, colorArrayIndex: 0 },
+      indexInArray: 1,
+    },
+    {
+      id: 3,
+      value: "S",
+      description: "маленька",
+      number_in_row: 3,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0, colorArrayIndex: 0 },
+      indexInArray: 2,
+    },
+    {
+      id: 5,
+      value: "L",
+      description: "large",
+      number_in_row: 5,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 1, colorArrayIndex: 2 },
+      indexInArray: 3,
+    },
+    {
+      id: 4,
+      value: "M",
+      description: "medium",
+      number_in_row: 4,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 1, colorArrayIndex: 2 },
+      indexInArray: 4,
+    },
+    {
+      id: 2,
+      value: "X",
+      description: "мяв1",
+      number_in_row: 2,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 1,
+              country_id: 1,
+              city_id: 1,
+              address: "Київський майдан 6",
+              name: "Підсобка 1",
+              description:
+                "Перша підсобка була створена для чогось більшого, аніж просто бути підсобкою. Там стоять маникени і лежить багато одежі, а ще...",
+            },
+            batches: [{ amount: "", price: "2", currency: "UAH" }],
+          },
+        ],
+      },
+      connections: { genderArrayIndex: 1, colorArrayIndex: 3 },
+      indexInArray: 5,
+    },
+    {
+      id: 3,
+      value: "S",
+      description: "маленька",
+      number_in_row: 3,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0, colorArrayIndex: 1 },
+      indexInArray: 6,
+    },
+    {
+      id: 4,
+      value: "M",
+      description: "medium",
+      number_in_row: 4,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 0, colorArrayIndex: 1 },
+      indexInArray: 7,
+    },
+    {
+      id: 4,
+      value: "M",
+      description: "medium",
+      number_in_row: 4,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 4,
+              country_id: 1,
+              city_id: 1,
+              address: "Улупка Ульянвка 45, 55",
+              name: "Заз",
+              description: "Шопис",
+            },
+            batches: [{ amount: "", price: null, currency: "UAH" }],
+          },
+        ],
+      },
+      connections: { genderArrayIndex: 1, colorArrayIndex: 3 },
+      indexInArray: 8,
+    },
+  ],
+};
 </script>
 <style>
 .active-item-component {
@@ -1396,10 +2012,11 @@ watch(
   padding-left: 0px;
 }
 .error-list-entity {
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  padding: 8px 15px;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  border-left: 1px solid rgba(0, 0, 0, 0.18);
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 8px 0px 0px 15px;
+  border-radius: 4px 0px 0px 0px;
+  margin-bottom: 15px;
 }
 .error-list-entity-header {
   font-weight: bold;

@@ -92,6 +92,7 @@
       <q-separator class="q-mt-md" />
       <SelectedSizeFormComponent
         :sizeArrayIndex="props.selectedSizeIndex"
+        :lastUsedCharacteristic="props.lastUsedCharacteristic"
         v-if="props.selectedSizeIndex != -1"
         :rules="props.rules"
       />
@@ -110,6 +111,7 @@ const props = defineProps([
   "genderArrayIndex",
   "colorArrayIndex",
   "selectedSizeIndex",
+  "lastUsedCharacteristic",
   "isSizesUsed",
   "rules",
 ]);

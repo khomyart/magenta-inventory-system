@@ -47,10 +47,20 @@
     />
   </div>
   <AddImagesComponent :index="props.sizeArrayIndex" type="size" />
+  <AddAvailableInComponent
+    type="sizes"
+    :index="props.sizeArrayIndex"
+    v-if="props.lastUsedCharacteristic === 'sizes'"
+  />
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
 import AddImagesComponent from "./AddImagesComponent.vue";
+import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 const sectionStore = useItemStore();
-const props = defineProps(["sizeArrayIndex", "rules"]);
+const props = defineProps([
+  "sizeArrayIndex",
+  "lastUsedCharacteristic",
+  "rules",
+]);
 </script>

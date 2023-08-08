@@ -1,16 +1,12 @@
 <template>
   <div class="col-12 batch-wrapper q-mb-md q-pt-md q-px-md">
-    <div class="row q-col-gutter-md q-mb-xs">
+    <div class="row q-col-gutter-md q-mb-md">
       <q-input
         type="number"
         class="col-4"
         outlined
         v-model="target.batches[props.index].amount"
         label="Кількість"
-        :rules="[
-          (val) => (val !== null && val !== '') || 'Введіть кількість',
-          (val) => val >= 1 || 'Не менше 1',
-        ]"
       />
       <q-input
         type="number"
@@ -18,10 +14,6 @@
         outlined
         v-model="target.batches[props.index].price"
         label="Ціна"
-        :rules="[
-          (val) => (val !== null && val !== '') || 'Введіть ціну',
-          (val) => val >= 1 || 'Не менше 1',
-        ]"
       />
       <q-select
         class="col-3"

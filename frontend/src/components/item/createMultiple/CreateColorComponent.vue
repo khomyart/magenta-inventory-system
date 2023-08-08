@@ -90,6 +90,7 @@
       <q-separator class="q-mt-md" />
       <SelectedColorFormComponent
         :colorArrayIndex="props.selectedColorIndex"
+        :lastUsedCharacteristic="props.lastUsedCharacteristic"
         v-if="props.selectedColorIndex != -1"
         :rules="props.rules"
       />
@@ -107,6 +108,7 @@ const colorStore = useColorStore();
 const props = defineProps([
   "genderArrayIndex",
   "selectedColorIndex",
+  "lastUsedCharacteristic",
   "isColorsUsed",
   "rules",
 ]);

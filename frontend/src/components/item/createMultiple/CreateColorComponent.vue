@@ -1,6 +1,5 @@
 <template>
   <div class="q-mt-sm">
-    <q-separator class="q-mb-md" />
     <div
       class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md"
     >
@@ -29,7 +28,9 @@
         :loading="colorStore.data.isItemsLoading"
         hide-dropdown-icon
         class="col-12 q-pb-sm"
-        :rules="[() => true]"
+        :rules="[
+          () => getContextColors().length > 0 || 'Оберіть хоча б один колір',
+        ]"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -42,7 +43,6 @@
                 'active-item-component': isColorExistInList(scope.opt.id),
               }"
             >
-              {{ isColorExistInList(scope.opt.id) }} |
               {{ scope.opt.description }} (!{{ scope.opt.article }},
               {{ scope.opt.value }})
             </span>
@@ -54,7 +54,7 @@
   <div class="row col-12" v-if="getContextColors().length > 0">
     <div
       id="colors_container"
-      class="col-12 items-wrapper q-px-md q-pt-md q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+      class="col-12 items-wrapper q-px-md q-pt-md q-mb-sm q-mt-sm q-mt-sm-sm"
     >
       <div class="q-gutter-md row">
         <template
@@ -88,10 +88,12 @@
         </template>
       </div>
       <q-separator class="q-mt-md" />
-      <!-- <SelectedColorFormComponent
+      <SelectedColorFormComponent
         :colorArrayIndex="props.selectedColorIndex"
+        :lastUsedCharacteristic="props.lastUsedCharacteristic"
         v-if="props.selectedColorIndex != -1"
-      /> -->
+        :rules="props.rules"
+      />
     </div>
   </div>
   <div id="bottom_of_colors_container"></div>
@@ -106,7 +108,9 @@ const colorStore = useColorStore();
 const props = defineProps([
   "genderArrayIndex",
   "selectedColorIndex",
+  "lastUsedCharacteristic",
   "isColorsUsed",
+  "rules",
 ]);
 const emits = defineEmits(["selectColor", "removeColor"]);
 let tempColorHolder = null;
@@ -127,6 +131,17 @@ function removeItem(itemIndex) {
   emits("removeColor", itemIndex, "color");
 }
 
+/**
+ * Clones object
+ * @param {object} object object
+ * @return {object} clone object
+ */
+function cloneObject(object) {
+  let objectClone = {};
+  objectClone = JSON.parse(JSON.stringify(object));
+  return objectClone;
+}
+
 function addSelectedColorToStore(val) {
   let isValueExist = isColorExistInList(val.id);
   let bottomOfColorContainer = document.getElementById(
@@ -139,13 +154,10 @@ function addSelectedColorToStore(val) {
     let newColorTemplate = { ...val };
     newColorTemplate.detail =
       props.genderArrayIndex != -1
-        ? {
-            ...sectionStore.newMultipleItems.genders[props.genderArrayIndex]
-              .detail,
-          }
-        : {
-            ...sectionStore.newMultipleItems.main.detail,
-          };
+        ? cloneObject(
+            sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          )
+        : cloneObject(sectionStore.newMultipleItems.main.detail);
 
     newColorTemplate.connections = {
       genderArrayIndex: props.genderArrayIndex,

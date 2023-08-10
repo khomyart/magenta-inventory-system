@@ -1,42 +1,30 @@
 <template>
-  <div class="row q-col-gutter-md q-mt-sm q-mb-sm">
+  <div class="row q-col-gutter-md q-mt-sm">
     <q-input
-      class="col-6 q-pt-sm"
+      class="col-6 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.title
       "
       label="Назва"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Введіть назву',
-        // (val) => val.length <= 255 || 'Не більше 255 символів',
-      ]"
     />
     <q-input
-      class="col-6 q-pt-sm"
+      class="col-6 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.model
       "
       label="Модель"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Введіть модель',
-        // (val) => val.length <= 255 || 'Не більше 255 символів',
-      ]"
     />
     <q-input
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
       outlined
       label="Ціна"
       type="number"
+      step="0.01"
       v-model="
         sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.price
       "
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-        // (val) => val.length <= 13 || 'Не більше 13 символів',
-        // (val) => val >= 1 || 'Не менше 1',
-      ]"
     />
     <q-select
       hide-dropdown-icon
@@ -47,25 +35,33 @@
           .currency
       "
       :options="['UAH', 'USD', 'EUR']"
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
     />
     <q-input
-      class="col-4 q-pt-sm"
+      class="col-4 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.lack
       "
       label="Нестача"
       type="number"
-      :rules="[
-        // (val) => (val !== null && val !== '') || 'Вкажіть нестачу',
-        // (val) => val >= 1 || 'Не менше одиниці',
-      ]"
     />
   </div>
+  <AddImagesComponent :index="props.colorArrayIndex" type="color" />
+  <AddAvailableInComponent
+    type="colors"
+    :index="props.colorArrayIndex"
+    v-if="props.lastUsedCharacteristic === 'colors'"
+  />
 </template>
 <script setup>
 import { useItemStore } from "src/stores/itemStore";
+import AddImagesComponent from "./AddImagesComponent.vue";
+import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 const sectionStore = useItemStore();
-const props = defineProps(["colorArrayIndex"]);
+const props = defineProps([
+  "colorArrayIndex",
+  "lastUsedCharacteristic",
+  "rules",
+]);
 </script>

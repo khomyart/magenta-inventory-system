@@ -1,6 +1,5 @@
 <template>
   <div class="q-mt-sm">
-    <q-separator class="q-mb-md" />
     <div
       class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md flex"
     >
@@ -37,7 +36,9 @@
         :loading="sizeStore.data.isItemsLoading"
         hide-dropdown-icon
         class="col-12 q-pb-sm"
-        :rules="[() => true]"
+        :rules="[
+          () => getContextSizes().length > 0 || 'Оберіть хоча б один розмір',
+        ]"
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps" class="flex items-center">
@@ -46,7 +47,7 @@
                 'active-item-component': isSizeExistInList(scope.opt.id),
               }"
             >
-              {{ isSizeExistInList(scope.opt.id) }} | {{ scope.opt.value }}
+              {{ scope.opt.value }}
             </span>
           </q-item>
         </template>
@@ -56,7 +57,7 @@
   <div class="row col-12" v-if="getContextSizes().length > 0">
     <div
       id="colors_container"
-      class="col-12 items-wrapper q-px-md q-pt-md q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
+      class="col-12 items-wrapper q-px-md q-pt-md q-mb-sm q-mt-sm q-mt-sm-sm"
     >
       <div class="q-gutter-md row">
         <template
@@ -89,6 +90,12 @@
         </template>
       </div>
       <q-separator class="q-mt-md" />
+      <SelectedSizeFormComponent
+        :sizeArrayIndex="props.selectedSizeIndex"
+        :lastUsedCharacteristic="props.lastUsedCharacteristic"
+        v-if="props.selectedSizeIndex != -1"
+        :rules="props.rules"
+      />
     </div>
   </div>
   <div id="bottom_of_sizes_container"></div>
@@ -97,13 +104,16 @@
 import { computed } from "vue";
 import { useItemStore } from "src/stores/itemStore";
 import { useSizeStore } from "src/stores/sizeStore";
+import SelectedSizeFormComponent from "./SelectedSizeFormComponent.vue";
 const sectionStore = useItemStore();
 const sizeStore = useSizeStore();
 const props = defineProps([
   "genderArrayIndex",
   "colorArrayIndex",
   "selectedSizeIndex",
+  "lastUsedCharacteristic",
   "isSizesUsed",
+  "rules",
 ]);
 const emits = defineEmits(["selectSize", "removeSize"]);
 let tempSizeHolder = null;
@@ -124,6 +134,17 @@ function removeItem(itemIndex) {
   emits("removeSize", itemIndex, "size");
 }
 
+/**
+ * Clones object
+ * @param {object} object object
+ * @return {object} clone object
+ */
+function cloneObject(object) {
+  let objectClone = {};
+  objectClone = JSON.parse(JSON.stringify(object));
+  return objectClone;
+}
+
 function addSelectedSizeToStore(val) {
   let isValueExist = isSizeExistInList(val.id);
   let bottomOfSizesContainer = document.getElementById(
@@ -135,19 +156,19 @@ function addSelectedSizeToStore(val) {
 
     let newSizeTemplate = { ...val };
     if (props.colorArrayIndex != -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
+      );
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex != -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+      );
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex == -1) {
-      newSizeTemplate.detail = {
-        ...sectionStore.newMultipleItems.main.detail,
-      };
+      newSizeTemplate.detail = cloneObject(
+        sectionStore.newMultipleItems.main.detail
+      );
     }
 
     newSizeTemplate.connections = {

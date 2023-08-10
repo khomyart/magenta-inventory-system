@@ -1,46 +1,26 @@
 <template>
   <div class="col-12 batch-wrapper q-mb-md q-pt-md q-px-md">
-    <div class="row q-col-gutter-md q-mb-xs">
+    <div class="row q-col-gutter-md q-mb-md">
       <q-input
         type="number"
         class="col-4"
         outlined
-        v-model="
-          sectionStore.newItem.availableIn[props.warehouseIndex].batches[
-            props.index
-          ].amount
-        "
+        v-model="target.batches[props.index].amount"
         label="Кількість"
-        :rules="[
-          (val) => (val !== null && val !== '') || 'Введіть кількість',
-          (val) => val >= 1 || 'Не менше 1',
-        ]"
       />
       <q-input
         type="number"
         step="0.01"
         class="col-3"
         outlined
-        v-model="
-          sectionStore.newItem.availableIn[props.warehouseIndex].batches[
-            props.index
-          ].price
-        "
+        v-model="target.batches[props.index].price"
         label="Ціна"
-        :rules="[
-          (val) => (val !== null && val !== '') || 'Введіть ціну',
-          (val) => val >= 1 || 'Не менше 1',
-        ]"
       />
       <q-select
         class="col-3"
         hide-dropdown-icon
         outlined
-        v-model="
-          sectionStore.newItem.availableIn[props.warehouseIndex].batches[
-            props.index
-          ].currency
-        "
+        v-model="target.batches[props.index].currency"
         label="Валюта"
         :options="['UAH', 'USD', 'EUR']"
       />
@@ -67,16 +47,38 @@
 </template>
 
 <script setup>
+import { watch } from "vue";
 import { useItemStore } from "src/stores/itemStore";
 const sectionStore = useItemStore();
-const props = defineProps(["warehouseIndex", "index"]);
+const props = defineProps([
+  "targetType",
+  "targetIndex",
+  "warehouseIndex",
+  "index",
+]);
+
+let target =
+  props.targetType === "main"
+    ? sectionStore.newMultipleItems.main.detail.availableIn[
+        props.warehouseIndex
+      ]
+    : sectionStore.newMultipleItems[props.targetType][props.targetIndex].detail
+        .availableIn[props.warehouseIndex];
+
+//keep "target" reactive without mutation issues
+watch([() => props.targetType, () => props.targetIndex], () => {
+  target =
+    props.targetType === "main"
+      ? sectionStore.newMultipleItems.main.detail.availableIn[
+          props.warehouseIndex
+        ]
+      : sectionStore.newMultipleItems[props.targetType][props.targetIndex]
+          .detail.availableIn[props.warehouseIndex];
+});
 
 function removeBatch() {
   if (props.index != 0) {
-    sectionStore.newItem.availableIn[props.warehouseIndex].batches.splice(
-      props.index,
-      1
-    );
+    target.batches.splice(props.index, 1);
   }
 }
 </script>

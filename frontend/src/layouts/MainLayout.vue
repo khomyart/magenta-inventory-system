@@ -266,7 +266,7 @@
   </q-dialog>
 
   <q-dialog
-    v-model="store.app.errors.responses[422].isShown"
+    v-model="store.app.errors.display.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -279,8 +279,17 @@
       </q-card-section>
       <q-separator></q-separator>
 
-      <q-card-section class="q-pt-md">
-        {{ store.app.errors.responses[422].text }}
+      <q-card-section
+        class="q-pt-md"
+        v-if="store.app.errors.display.isHTML === false"
+      >
+        {{ store.app.errors.display.text }}
+      </q-card-section>
+      <q-card-section class="q-pt-md" v-else>
+        <div
+          style="width: 100%; height: 100%"
+          v-html="store.app.errors.display.text"
+        ></div>
       </q-card-section>
 
       <q-separator></q-separator>

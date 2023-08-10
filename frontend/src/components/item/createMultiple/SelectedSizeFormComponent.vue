@@ -1,33 +1,21 @@
 <template>
   <div class="row q-col-gutter-md q-mt-sm">
     <q-input
-      class="col-5 q-pt-sm q-mb-md"
+      class="col-6 q-pt-sm q-mb-md"
       outlined
       v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .article
-      "
-      label="Артикль"
-    />
-    <q-input
-      class="col-7 q-pt-sm q-mb-md"
-      outlined
-      v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .model
-      "
-      label="Модель"
-    />
-    <q-input
-      class="col-12 q-pt-sm q-mb-md"
-      outlined
-      v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .title
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.title
       "
       label="Назва"
     />
-
+    <q-input
+      class="col-6 q-pt-sm q-mb-md"
+      outlined
+      v-model="
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.model
+      "
+      label="Модель"
+    />
     <q-input
       class="col-4 q-pt-sm q-mb-md"
       outlined
@@ -35,8 +23,7 @@
       type="number"
       step="0.01"
       v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .price
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.price
       "
     />
     <q-select
@@ -44,7 +31,7 @@
       outlined
       label="Валюта"
       v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail
           .currency
       "
       :options="['UAH', 'USD', 'EUR']"
@@ -54,18 +41,17 @@
       class="col-4 q-pt-sm q-mb-md"
       outlined
       v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .lack
+        sectionStore.newMultipleItems.sizes[props.sizeArrayIndex].detail.lack
       "
       label="Нестача"
       type="number"
     />
   </div>
-  <AddImagesComponent :index="props.genderArrayIndex" type="gender" />
+  <AddImagesComponent :index="props.sizeArrayIndex" type="size" />
   <AddAvailableInComponent
-    :type="'genders'"
-    :index="props.genderArrayIndex"
-    v-if="props.lastUsedCharacteristic === 'genders'"
+    type="sizes"
+    :index="props.sizeArrayIndex"
+    v-if="props.lastUsedCharacteristic === 'sizes'"
   />
 </template>
 <script setup>
@@ -74,8 +60,8 @@ import AddImagesComponent from "./AddImagesComponent.vue";
 import AddAvailableInComponent from "./AddAvailableInComponent.vue";
 const sectionStore = useItemStore();
 const props = defineProps([
-  "genderArrayIndex",
-  "rules",
+  "sizeArrayIndex",
   "lastUsedCharacteristic",
+  "rules",
 ]);
 </script>

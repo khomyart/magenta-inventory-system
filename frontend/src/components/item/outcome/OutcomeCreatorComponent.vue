@@ -11,7 +11,7 @@
       anchor="bottom left"
       :offset="[-20, 7]"
     >
-      Зарахувати списання
+      Списання
     </q-tooltip>
   </q-btn>
 

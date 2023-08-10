@@ -74,6 +74,17 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
+            <q-input
+              class="col-12 q-pt-sm"
+              outlined
+              v-model="sectionStore.newMultipleItems.main.detail.model"
+              label="Модель"
+              :rules="[
+                (val) => (val !== null && val !== '') || 'Введіть модель',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
+              ]"
+            />
+
             <q-select
               :hide-dropdown-icon="
                 sectionStore.newMultipleItems.main.type != null &&
@@ -115,16 +126,55 @@
                 />
               </template>
             </q-select>
-            <q-input
-              class="col-6 q-pt-sm"
+
+            <q-select
+              :hide-dropdown-icon="
+                sectionStore.newMultipleItems.main.unit != null &&
+                sectionStore.newMultipleItems.main.unit.id != undefined
+              "
               outlined
-              v-model="sectionStore.newMultipleItems.main.detail.model"
-              label="Модель"
+              v-model="sectionStore.newMultipleItems.main.unit"
+              use-input
+              hide-selected
+              fill-input
+              autocomplete="false"
+              label="Одиниця виміру"
+              input-debounce="400"
+              :options="unitStore.simpleItems"
+              option-label="name"
+              @filter="unitFilter"
+              :loading="unitStore.data.isItemsLoading"
+              class="col-6 q-pt-sm"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть модель',
-                (val) => val.length <= 255 || 'Не більше 255 символів',
+                () =>
+                  (sectionStore.newMultipleItems.main.unit != null &&
+                    sectionStore.newMultipleItems.main.unit.id != undefined) ||
+                  'Оберіть одиницю виміру',
               ]"
-            />
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" class="flex items-center">
+                  {{ scope.opt.name }} ({{ scope.opt.description }})
+                </q-item>
+              </template>
+
+              <template
+                v-if="
+                  sectionStore.newMultipleItems.main.unit &&
+                  !unitStore.data.isItemsLoading
+                "
+                v-slot:append
+              >
+                <q-icon
+                  name="cancel"
+                  @click.stop.prevent="
+                    sectionStore.newMultipleItems.main.unit = null
+                  "
+                  class="cursor-pointer"
+                />
+              </template>
+            </q-select>
+
             <q-input
               class="col-4 q-pt-sm"
               outlined
@@ -366,7 +416,7 @@ const newMultupleItemsDefaultState = {
   main: {
     groupID: "",
     type: null,
-    units: "",
+    units: null,
     detail: {
       title: "",
       model: "",
@@ -491,6 +541,14 @@ function typeFilter(val, update, abort) {
     typeStore.data.isItemsLoading = true;
     typeStore.simpleItems = [];
     typeStore.simpleReceive(val);
+  });
+}
+
+function unitFilter(val, update, abort) {
+  update(() => {
+    unitStore.data.isItemsLoading = true;
+    unitStore.simpleItems = [];
+    unitStore.simpleReceive(val);
   });
 }
 
@@ -825,6 +883,91 @@ function submit() {
     appStore.showErrorMessage(errorMessage, true);
     return;
   }
+
+  let preparedItems = convertNewMultipleItemsToValidItemsArray(
+    sectionStore.newMultipleItems
+  );
+
+  sectionStore.createMultiple(preparedItems);
+}
+
+/**
+ *
+ * @param {object} newMultipleItems object with usorted unforged inappropriate (for now) items structure
+ * @returns {array} items
+ */
+function convertNewMultipleItemsToValidItemsArray(newMultipleItems) {
+  let preparedItems = [];
+  let type =
+    usedCharacteristics.value.length > 0
+      ? usedCharacteristics.value.slice(-1)[0]
+      : "main";
+
+  //creating copy of newMultipleItems for safety and possibility of making changes in it
+  let items = Object.assign({}, newMultipleItems);
+  items.main = [items.main];
+
+  items[type].forEach((item, newItemIndex) => {
+    let relatedGender = null;
+    let relatedColor = null;
+    let preparedItem = {};
+
+    if (type === "colors") {
+      let genderIndex = item.connections.genderArrayIndex;
+      relatedGender =
+        genderIndex != -1 ? newMultipleItems.genders[genderIndex] : null;
+
+      if (relatedGender != null) preparedItem.gender_id = relatedGender.id;
+
+      preparedItem.color_id = item.id;
+    }
+
+    if (type === "sizes") {
+      let genderIndex = item.connections.genderArrayIndex;
+      let colorIndex = item.connections.colorArrayIndex;
+      relatedGender =
+        genderIndex != -1 ? newMultipleItems.genders[genderIndex] : null;
+      relatedColor =
+        colorIndex != -1 ? newMultipleItems.colors[colorIndex] : null;
+
+      if (relatedGender != null) preparedItem.gender_id = relatedGender.id;
+      if (relatedColor != null) preparedItem.color_id = relatedColor.id;
+
+      preparedItem.size_id = item.id;
+    }
+
+    preparedItem.group_id = newMultipleItems.main.groupID;
+    preparedItem.article =
+      relatedGender != null
+        ? relatedGender.detail.article
+        : newMultipleItems.main.detail.article;
+    preparedItem.title = item.detail.title;
+    preparedItem.model = item.detail.model;
+    preparedItem.price = item.detail.price;
+    preparedItem.currency = item.detail.currency;
+    preparedItem.lack = item.detail.lack;
+    preparedItem.type_id = newMultipleItems.main.type.id;
+    preparedItem.unit_id = newMultipleItems.main.unit.id;
+
+    //warehouses preparation
+    item.detail.availableIn.forEach((availableIn, index) => {
+      if (index == 0) preparedItem.warehouses = [];
+      preparedItem.warehouses.push({
+        id: availableIn.warehouse.id,
+        batches: availableIn.batches,
+      });
+    });
+
+    //images preparation
+    item.detail.images.forEach((image, index) => {
+      if (index == 0) preparedItem.images = [];
+      preparedItem.images.push(image.file);
+    });
+
+    preparedItems.push(preparedItem);
+  });
+
+  return preparedItems;
 }
 
 /**
@@ -1662,6 +1805,131 @@ watch(
 function fillSectionStoreWithTemplate() {
   sectionStore.newMultipleItems = newMultipleItemTemplate;
 }
+let newMultipleItemTemplate2 = {
+  main: {
+    groupID: "1e5fcd32-e6f3-4fee-b086-8773a1ab30b3",
+    type: { id: 54, name: "Кружки", number_in_row: 16 },
+    units: null,
+    detail: {
+      title: "Кружки",
+      model: "Glass Rose",
+      article: "56-7126527",
+      price: "350",
+      currency: "UAH",
+      lack: 10,
+      images: [],
+      availableIn: [],
+    },
+    unit: { id: 5, name: "шт", description: "штуки" },
+  },
+  genders: [],
+  colors: [
+    {
+      id: 1,
+      value: "#e61c1c",
+      article: "WHI",
+      description: "WRYYY",
+      text_color_value: "#ffffff",
+      detail: {
+        title: "Кружки врушна",
+        model: "Glass Rose",
+        article: "56-7126527",
+        price: "350",
+        currency: "UAH",
+        lack: "5",
+        images: [],
+        availableIn: [
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 1,
+              country_id: 1,
+              city_id: 1,
+              address: "Київський майдан 6",
+              name: "Підсобка 1",
+              description:
+                "Перша підсобка була створена для чогось більшого, аніж просто бути підсобкою. Там стоять маникени і лежить багато одежі, а ще...",
+            },
+            batches: [{ amount: "20", price: "250", currency: "UAH" }],
+          },
+        ],
+      },
+      connections: { genderArrayIndex: -1 },
+      indexInArray: 0,
+    },
+    {
+      id: 7,
+      value: "#f5e798",
+      article: "CR",
+      description: "Кремі",
+      text_color_value: "#000000",
+      detail: {
+        title: "Кружки кремі",
+        model: "Glass Rose",
+        article: "56-7126527",
+        price: "350",
+        currency: "UAH",
+        lack: "5",
+        images: [],
+        availableIn: [
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 1,
+              country_id: 1,
+              city_id: 1,
+              address: "Київський майдан 6",
+              name: "Підсобка 1",
+              description:
+                "Перша підсобка була створена для чогось більшого, аніж просто бути підсобкою. Там стоять маникени і лежить багато одежі, а ще...",
+            },
+            batches: [{ amount: "10", price: "200", currency: "UAH" }],
+          },
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 2,
+              country_id: 1,
+              city_id: 1,
+              address: "Улупка Ульянвка 45, 54",
+              name: "Заз",
+              description: "Паз",
+            },
+            batches: [
+              { amount: "15", price: "200", currency: "UAH" },
+              { amount: "20", price: "200", currency: "UAH" },
+            ],
+          },
+        ],
+      },
+      connections: { genderArrayIndex: -1 },
+      indexInArray: 1,
+    },
+    {
+      id: 3,
+      value: "#2833fc",
+      article: "Article2",
+      description: "Каралоуий",
+      text_color_value: "#000000",
+      detail: {
+        title: "Кружки каралоуна",
+        model: "Glass Rose",
+        article: "56-7126527",
+        price: "450",
+        currency: "UAH",
+        lack: "5",
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: -1 },
+      indexInArray: 2,
+    },
+  ],
+  sizes: [],
+};
 let newMultipleItemTemplate = {
   main: {
     groupID: "1",
@@ -1686,7 +1954,7 @@ let newMultipleItemTemplate = {
       detail: {
         title: "2",
         model: "4",
-        article: "",
+        article: "1",
         price: "5",
         currency: "UAH",
         lack: 10,
@@ -1701,7 +1969,22 @@ let newMultipleItemTemplate = {
       detail: {
         title: "2",
         model: "4",
-        article: "",
+        article: "2",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+    },
+    {
+      id: 5,
+      name: "чоловіч",
+      number_in_row: 6,
+      detail: {
+        title: "2",
+        model: "4",
+        article: "3",
         price: "5",
         currency: "UAH",
         lack: 10,
@@ -1787,6 +2070,25 @@ let newMultipleItemTemplate = {
       connections: { genderArrayIndex: 1 },
       indexInArray: 3,
     },
+    {
+      id: 1,
+      value: "#e61c1c",
+      article: "WHI",
+      description: "WRYYY",
+      text_color_value: "#ffffff",
+      detail: {
+        title: "2",
+        model: "4",
+        article: "3",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 2 },
+      indexInArray: 4,
+    },
   ],
   sizes: [
     {
@@ -1820,7 +2122,22 @@ let newMultipleItemTemplate = {
         currency: "UAH",
         lack: 10,
         images: [],
-        availableIn: [],
+        availableIn: [
+          {
+            country: { id: 1, name: "Україна" },
+            city: { id: 1, country_id: 1, name: "Луцьк" },
+            warehouse: {
+              id: 1,
+              country_id: 1,
+              city_id: 1,
+              address: "Київський майдан 6",
+              name: "Підсобка 1",
+              description:
+                "Перша підсобка була створена для чогось більшого, аніж просто бути підсобкою. Там стоять маникени і лежить багато одежі, а ще...",
+            },
+            batches: [{ amount: "10", price: "145", currency: "UAH" }],
+          },
+        ],
       },
       connections: { genderArrayIndex: 0, colorArrayIndex: 0 },
       indexInArray: 1,
@@ -1905,7 +2222,7 @@ let newMultipleItemTemplate = {
               description:
                 "Перша підсобка була створена для чогось більшого, аніж просто бути підсобкою. Там стоять маникени і лежить багато одежі, а ще...",
             },
-            batches: [{ amount: "", price: "2", currency: "UAH" }],
+            batches: [{ amount: "10", price: "222", currency: "UAH" }],
           },
         ],
       },
@@ -1973,12 +2290,30 @@ let newMultipleItemTemplate = {
               name: "Заз",
               description: "Шопис",
             },
-            batches: [{ amount: "", price: null, currency: "UAH" }],
+            batches: [{ amount: "567", price: "70", currency: "UAH" }],
           },
         ],
       },
       connections: { genderArrayIndex: 1, colorArrayIndex: 3 },
       indexInArray: 8,
+    },
+    {
+      id: 1,
+      value: "3XXL",
+      description: "опопис",
+      number_in_row: 1,
+      detail: {
+        title: "Назвуська",
+        model: "4",
+        article: "3",
+        price: "5",
+        currency: "UAH",
+        lack: 10,
+        images: [],
+        availableIn: [],
+      },
+      connections: { genderArrayIndex: 2, colorArrayIndex: 4 },
+      indexInArray: 9,
     },
   ],
 };

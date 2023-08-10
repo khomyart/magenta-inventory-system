@@ -21,6 +21,7 @@
       outlined
       label="Ціна"
       type="number"
+      step="0.01"
       v-model="
         sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail.price
       "

@@ -10,6 +10,7 @@
       />
       <q-input
         type="number"
+        step="0.01"
         class="col-3"
         outlined
         v-model="target.batches[props.index].price"

@@ -4,6 +4,9 @@ use App\Http\Controllers\ItemController;
 Route::post('/items', [ItemController::class,'create'])
 ->middleware('api.authorization:create,items');
 
+Route::post('/items/createMultiple', [ItemController::class,'createMultiple'])
+->middleware('api.authorization:create,items');
+
 Route::get('/items', [ItemController::class,'read'])
 ->middleware('api.authorization:read,items');
 

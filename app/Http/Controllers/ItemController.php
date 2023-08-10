@@ -24,7 +24,8 @@ class ItemController extends Controller
     public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "model", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "income.amount_of_items", "units.name"];
     //field names are used for validating incoming data
     public $readFieldsFromFrontend = ["group_id", "article", "title", "model", "price", "type", "gender", "size", "color", "amount", "units"];
-    public $defaultQueryResultLimit = 5;
+    //if 0 - unlimited
+    public $defaultQueryResultLimit = 0;
 
     /**
      * Templated access to section model
@@ -361,6 +362,103 @@ class ItemController extends Controller
         return response($itemData);
     }
 
+    public function createMultiple(Request $request) {
+        $sectionModel = $this->getSectionModel();
+
+        $itemsData = $request->validate([
+            "items.*.article" => "required|string|max:10",
+            "items.*.group_id" => "required|string|max:36",
+            "items.*.title" => "required|string|max:255",
+            "items.*.model" => "required|string|max:255",
+            "items.*.price" => "required|numeric|gte:1",
+            "items.*.currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
+            "items.*.lack" => "required|numeric|integer|gte:1",
+            "items.*.type_id" => ["required", "exists:types,id"],
+            "items.*.unit_id" => ["required", "exists:units,id"],
+            "items.*.gender_id" => ["nullable", "exists:genders,id"],
+            "items.*.size_id" => ["nullable", "exists:sizes,id"],
+            "items.*.color_id" => ["nullable", "exists:colors,id"],
+        ]);
+
+        $itemsWarehousesData = $request->validate([
+            "items.*.warehouses" => "nullable",
+            "items.*.warehouses.*.id" => "required|numeric|exists:warehouses,id",
+            "items.*.warehouses.*.batches" => "required",
+            "items.*.warehouses.*.batches.*.amount" => "required|numeric|integer|gte:1",
+            "items.*.warehouses.*.batches.*.price" => "required|numeric|gte:1",
+            "items.*.warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
+        ]);
+
+        $itemsImagesData = $request->validate([
+            "items.*.images" => "nullable",
+            "items.*.images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
+        ]);
+
+        foreach ($itemsData["items"] as $itemIndex => $itemData) {
+            $warehousesData =
+                isset($itemsWarehousesData["items"][$itemIndex]) ?
+                    $itemsWarehousesData["items"][$itemIndex]["warehouses"] : [];
+
+            $imagesData =
+                isset($itemsImagesData["items"][$itemIndex]) ?
+                    $itemsImagesData["items"][$itemIndex]["images"] : [];
+
+            /**
+             * Is item creation allowed:
+             */
+            $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
+            if ($specialValidationResult != null)
+                return ErrorHandler::responseWith($specialValidationResult);
+            if ($this->isItemExists($itemData))
+                return ErrorHandler::responseWith("Такий предмет вже існує");
+
+            $item = Item::create($itemData);
+
+            if ($item != null) {
+                //saving images in db and on disk
+                foreach ($imagesData as $key => $file) {
+                    $image = Image::create([
+                        "item_id" => $item->id,
+                        "src" => $file->store('/', 'images'),
+                        "number_in_row" => $key + 1
+                    ]);
+                }
+
+                //processing warehouses info
+                foreach ($warehousesData as $key => $warehouse) {
+                    $amountOfItemPerWarehouse = 0;
+
+                    foreach ($warehouse["batches"] as $key => $batch) {
+                        Income::create([
+                            "item_id" => $item->id,
+                            "warehouse_id" => $warehouse["id"],
+                            "price_per_item" => $batch["price"],
+                            "currency" => $batch["currency"],
+                            "amount_of_items" => $batch["amount"],
+                        ]);
+                        $amountOfItemPerWarehouse += $batch["amount"];
+                    }
+
+                    $matchingItemWarehouseCombination = ItemWarehouseAmount::where("item_id", $item->id)
+                    ->where("warehouse_id", $warehouse["id"])->first();
+
+                    if ($matchingItemWarehouseCombination != null) {
+                        $matchingItemWarehouseCombination->amount += $amountOfItemPerWarehouse;
+                        $matchingItemWarehouseCombination->save();
+                    } else {
+                        ItemWarehouseAmount::create([
+                            "item_id" => $item->id,
+                            "warehouse_id" => $warehouse["id"],
+                            "amount" => $amountOfItemPerWarehouse,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return response("OK", 200);
+    }
+
     public function setIncome(Request $request) {
         $data = $request->validate([
             "warehouses" => "required",
@@ -594,32 +692,58 @@ class ItemController extends Controller
 
             //"WHERE" statement forming
             if (count($params) == 1) {
-                $section->where("items.article", "LIKE", "%{$params[0]}%");
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
+                    $query->where("items.article", "LIKE", "%{$params[0]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                });
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
+                    $query->where("colors.article", "LIKE", "%{$params[0]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                });
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
+                    $query->where("sizes.value", "LIKE", "%{$params[0]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                });
             }
 
             if (count($params) == 2) {
-                $section->orWhere(function(Builder $query) use ($params) {
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
                     $query->where("items.article", "LIKE", "%{$params[0]}%")
                         ->where("colors.article", "LIKE", "%{$params[1]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
                 });
-                $section->orWhere(function(Builder $query) use ($params) {
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
                     $query->where("items.article", "LIKE", "%{$params[0]}%")
                         ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                });
+                $section->orWhere(function(Builder $query) use ($params, $filterData) {
+                    $query->where("colors.article", "LIKE", "%{$params[0]}%")
+                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                    if ($filterData["warehouse_id"] != 0)
+                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
                 });
             }
 
             if (count($params) == 3) {
-                $section->where("colors.article", "LIKE", "%{$params[1]}%")
+                $section->where("items.article", "LIKE", "%{$params[0]}%")
+                ->where("colors.article", "LIKE", "%{$params[1]}%")
                 ->where("sizes.value", "LIKE", "%{$params[2]}%");
+
+                if ($filterData["warehouse_id"] != 0)
+                        $section->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
             }
 
-            if ($filterData["warehouse_id"] != 0) {
-                $section->where("item_warehouse_amounts.warehouse_id", "=", $filterData["warehouse_id"]);
-            }
 
             //additional query tweaks
             $amountOfItems = $section->count();
-            $section->limit($this->defaultQueryResultLimit);
+            if ($this->defaultQueryResultLimit != 0)
+                $section->limit($this->defaultQueryResultLimit);
 
             $items = $section->get();
 
@@ -809,11 +933,11 @@ class ItemController extends Controller
      * Calculates how much item do we have in general,
      * or in particular warehouse
      *
-     * @param integer   $itemId        ID of item from "items" table
-     * @param integer   $warehouseId   ID of warehouse from "warehouses" table
+     * @param integer  $itemId        ID of item from "items" table
+     * @param integer  $warehouseId   ID of warehouse from "warehouses" table
      *
-     * @return null     No records found in "item_warehouse_amount" table
-     * @return integer  Amount of items according to records in "item_warehouse_amount" table
+     * @return null    No records found in "item_warehouse_amount" table
+     * @return integer Amount of items according to records in "item_warehouse_amount" table
      */
     private function getAmountOfItem($itemId, $warehouseId = null) {
         $amountOfItem = DB::table($this->section)
@@ -881,7 +1005,7 @@ class ItemController extends Controller
      * @param integer $id       ID of item. Use this param if checking for item
      *                          updating data
      *
-     * @return string|null String, if we have an error. Null, if everything is good
+     * @return string|null String, if error does exists. Null, if everything is good
      */
     private function getItemDataSpecialValidationResult($itemData, $id = null) {
         $action = $id != null ? "оновити" : "створити";

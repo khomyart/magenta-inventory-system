@@ -78,8 +78,6 @@ export const useItemStore = defineStore("item", {
   getters: {},
   actions: {
     create() {
-      console.log(this.newItem);
-
       let preparedItem = {
         group_id: this.newItem.group_id,
         article: this.newItem.article,
@@ -113,8 +111,6 @@ export const useItemStore = defineStore("item", {
         if (index == 0) preparedItem.images = [];
         preparedItem.images.push(image.file);
       });
-
-      console.log("prepared item:", preparedItem);
 
       let form = new FormData();
       Object.keys(preparedItem).forEach((key) => {
@@ -169,6 +165,70 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.dialogs.create.isLoading = false;
+        });
+    },
+    createMultiple(preparedItems) {
+      let form = new FormData();
+      for (let index = 0; index < preparedItems.length; index++) {
+        let preparedItem = preparedItems[index];
+
+        Object.keys(preparedItem).forEach((key) => {
+          switch (key) {
+            case "images":
+              if (preparedItem[key].length > 0) {
+                preparedItem[key].forEach((image, imageIndex) => {
+                  form.append(
+                    `items[${index}][images][${imageIndex}]`,
+                    image,
+                    image.name
+                  );
+                });
+              }
+              break;
+            case "warehouses":
+              if (preparedItem[key].length > 0) {
+                preparedItem[key].forEach((warehouse, warehouseIndex) => {
+                  form.append(
+                    `items[${index}][warehouses][${warehouseIndex}][id]`,
+                    warehouse.id
+                  );
+                  warehouse.batches.forEach((batch, batchIndex) => {
+                    form.append(
+                      `items[${index}][warehouses][${warehouseIndex}][batches][${batchIndex}][amount]`,
+                      batch.amount
+                    );
+                    form.append(
+                      `items[${index}][warehouses][${warehouseIndex}][batches][${batchIndex}][price]`,
+                      batch.price
+                    );
+                    form.append(
+                      `items[${index}][warehouses][${warehouseIndex}][batches][${batchIndex}][currency]`,
+                      batch.currency
+                    );
+                  });
+                });
+              }
+              break;
+            default:
+              form.append(`items[${index}][${key}]`, preparedItem[key]);
+              break;
+          }
+        });
+      }
+
+      this.dialogs.createMultiple.isLoading = true;
+
+      api
+        .post(`/${sectionName}/createMultiple`, form)
+        .then((res) => {
+          this.dialogs.createMultiple.isShown = false;
+          this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.createMultiple.isLoading = false;
         });
     },
     update() {

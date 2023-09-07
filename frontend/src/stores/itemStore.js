@@ -23,7 +23,13 @@ export const useItemStore = defineStore("item", {
       availableIn: [],
       images: [],
     },
-    newMultipleItems: {},
+    newMultipleItems: {
+      main: {
+        detail: {
+          lack: 0,
+        },
+      },
+    },
     income: [],
     outcome: {},
     selectedItemForUpdating: {},

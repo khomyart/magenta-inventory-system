@@ -152,12 +152,30 @@ function addSelectedColorToStore(val) {
     let newColorIndex = sectionStore.newMultipleItems.colors.length;
 
     let newColorTemplate = { ...val };
-    newColorTemplate.detail =
-      props.genderArrayIndex != -1
-        ? cloneObject(
-            sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          )
-        : cloneObject(sectionStore.newMultipleItems.main.detail);
+
+    if (props.genderArrayIndex != -1) {
+      newColorTemplate.detail = {
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail,
+      };
+      newColorTemplate.detail.images = [
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          .images,
+      ];
+      newColorTemplate.detail.availableIn = [
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          .availableIn,
+      ];
+    } else {
+      newColorTemplate.detail = {
+        ...sectionStore.newMultipleItems.main.detail,
+      };
+      newColorTemplate.detail.images = [
+        ...sectionStore.newMultipleItems.main.detail.images,
+      ];
+      newColorTemplate.detail.availableIn = [
+        ...sectionStore.newMultipleItems.main.detail.availableIn,
+      ];
+    }
 
     newColorTemplate.connections = {
       genderArrayIndex: props.genderArrayIndex,

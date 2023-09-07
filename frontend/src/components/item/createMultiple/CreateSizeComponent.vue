@@ -156,19 +156,41 @@ function addSelectedSizeToStore(val) {
 
     let newSizeTemplate = { ...val };
     if (props.colorArrayIndex != -1) {
-      newSizeTemplate.detail = cloneObject(
-        sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
-      );
+      newSizeTemplate.detail = {
+        ...sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail,
+      };
+      newSizeTemplate.detail.images = [
+        ...sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
+          .images,
+      ];
+      newSizeTemplate.detail.availableIn = [
+        ...sectionStore.newMultipleItems.colors[props.colorArrayIndex].detail
+          .availableIn,
+      ];
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex != -1) {
-      newSizeTemplate.detail = cloneObject(
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-      );
+      newSizeTemplate.detail = {
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail,
+      };
+      newSizeTemplate.detail.images = [
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          .images,
+      ];
+      newSizeTemplate.detail.availableIn = [
+        ...sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+          .availableIn,
+      ];
     }
     if (props.colorArrayIndex == -1 && props.genderArrayIndex == -1) {
-      newSizeTemplate.detail = cloneObject(
-        sectionStore.newMultipleItems.main.detail
-      );
+      newSizeTemplate.detail = {
+        ...sectionStore.newMultipleItems.main.detail,
+      };
+      newSizeTemplate.detail.images = [
+        ...sectionStore.newMultipleItems.main.detail.images,
+      ];
+      newSizeTemplate.detail.availableIn = [
+        ...sectionStore.newMultipleItems.main.detail.availableIn,
+      ];
     }
 
     newSizeTemplate.connections = {

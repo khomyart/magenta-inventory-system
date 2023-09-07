@@ -416,7 +416,7 @@ const newMultupleItemsDefaultState = {
   main: {
     groupID: "",
     type: null,
-    units: null,
+    unit: null,
     detail: {
       title: "",
       model: "",
@@ -584,10 +584,16 @@ function addSelectedGenderToStore(val) {
     let newGenderIndex = sectionStore.newMultipleItems.genders.length;
 
     let newGenderTemplate = { ...val };
-    newGenderTemplate.detail = cloneObject(
-      sectionStore.newMultipleItems.main.detail
-    );
+    newGenderTemplate.detail = { ...sectionStore.newMultipleItems.main.detail };
+
+    newGenderTemplate.detail.images = [
+      ...sectionStore.newMultipleItems.main.detail.images,
+    ];
+    newGenderTemplate.detail.availableIn = [
+      ...sectionStore.newMultipleItems.main.detail.availableIn,
+    ];
     sectionStore.newMultipleItems.genders.push(newGenderTemplate);
+    console.log(newGenderTemplate);
     templHolders.gender = {};
 
     if (selectedIndexes.genders === -1) {
@@ -898,12 +904,14 @@ function submit() {
  */
 function convertNewMultipleItemsToValidItemsArray(newMultipleItems) {
   let preparedItems = [];
+
+  //selecting last selected type
   let type =
     usedCharacteristics.value.length > 0
       ? usedCharacteristics.value.slice(-1)[0]
       : "main";
 
-  //creating copy of newMultipleItems for safety and possibility of making changes in it
+  //creating copy of newMultipleItems for safety and ability to change it
   let items = Object.assign({}, newMultipleItems);
   items.main = [items.main];
 
@@ -911,6 +919,10 @@ function convertNewMultipleItemsToValidItemsArray(newMultipleItems) {
     let relatedGender = null;
     let relatedColor = null;
     let preparedItem = {};
+
+    if (type === "genders") {
+      preparedItem.gender_id = item.id;
+    }
 
     if (type === "colors") {
       let genderIndex = item.connections.genderArrayIndex;
@@ -940,6 +952,8 @@ function convertNewMultipleItemsToValidItemsArray(newMultipleItems) {
     preparedItem.article =
       relatedGender != null
         ? relatedGender.detail.article
+        : type === "genders"
+        ? item.detail.article
         : newMultipleItems.main.detail.article;
     preparedItem.title = item.detail.title;
     preparedItem.model = item.detail.model;
@@ -1761,7 +1775,23 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
   selectedIndexes.colors = -1;
   selectedIndexes.sizes = -1;
 
-  sectionStore.newMultipleItems = cloneObject(newMultupleItemsDefaultState);
+  sectionStore.newMultipleItems = {};
+  sectionStore.newMultipleItems.main = { ...newMultupleItemsDefaultState.main };
+  sectionStore.newMultipleItems.main.detail.title = "";
+  sectionStore.newMultipleItems.main.detail.model = "";
+  sectionStore.newMultipleItems.main.detail.article = "";
+  sectionStore.newMultipleItems.main.detail.price = "";
+  sectionStore.newMultipleItems.main.detail.currency = "UAH";
+
+  let localStorageLack = localStorage.getItem("createItemLack");
+  sectionStore.newMultipleItems.main.detail.lack =
+    localStorageLack != null ? localStorageLack : 10;
+
+  sectionStore.newMultipleItems.main.detail.images = [];
+  sectionStore.newMultipleItems.main.detail.availableIn = [];
+  sectionStore.newMultipleItems.genders = [];
+  sectionStore.newMultipleItems.colors = [];
+  sectionStore.newMultipleItems.sizes = [];
 
   //write "isUsed" to sessionStorage
   let isUsedStringify = JSON.stringify(isUsed);
@@ -1777,10 +1807,17 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
 });
 
 watch(
+  () => sectionStore.newMultipleItems.main.detail.lack,
+  (newValue) => {
+    localStorage.setItem("createItemLack", newValue);
+  }
+);
+
+//When dialog opening
+watch(
   () => sectionStore.dialogs.createMultiple.isShown,
   (newValue) => {
     if (newValue == false) {
-      sectionStore.newMultipleItems = {};
       selectedIndexes.genders = -1;
       selectedIndexes.colors = -1;
       selectedIndexes.sizes = -1;
@@ -1798,7 +1835,25 @@ watch(
       isUsed.sizes = isUsedFromStorage.sizes;
     }
 
-    sectionStore.newMultipleItems = cloneObject(newMultupleItemsDefaultState);
+    sectionStore.newMultipleItems = {};
+    sectionStore.newMultipleItems.main = {
+      ...newMultupleItemsDefaultState.main,
+    };
+    sectionStore.newMultipleItems.main.detail.title = "";
+    sectionStore.newMultipleItems.main.detail.model = "";
+    sectionStore.newMultipleItems.main.detail.article = "";
+    sectionStore.newMultipleItems.main.detail.price = "";
+    sectionStore.newMultipleItems.main.detail.currency = "UAH";
+
+    let localStorageLack = localStorage.getItem("createItemLack");
+    sectionStore.newMultipleItems.main.detail.lack =
+      localStorageLack != null ? localStorageLack : 10;
+
+    sectionStore.newMultipleItems.main.detail.images = [];
+    sectionStore.newMultipleItems.main.detail.availableIn = [];
+    sectionStore.newMultipleItems.genders = [];
+    sectionStore.newMultipleItems.colors = [];
+    sectionStore.newMultipleItems.sizes = [];
   }
 );
 
@@ -1809,7 +1864,6 @@ let newMultipleItemTemplate2 = {
   main: {
     groupID: "1e5fcd32-e6f3-4fee-b086-8773a1ab30b3",
     type: { id: 54, name: "Кружки", number_in_row: 16 },
-    units: null,
     detail: {
       title: "Кружки",
       model: "Glass Rose",
@@ -1934,7 +1988,6 @@ let newMultipleItemTemplate = {
   main: {
     groupID: "1",
     type: { id: 29, name: "Старе Футболки", number_in_row: 1 },
-    units: "",
     detail: {
       title: "2",
       model: "4",
@@ -1945,6 +1998,7 @@ let newMultipleItemTemplate = {
       images: [],
       availableIn: [],
     },
+    unit: { id: 5, name: "шт", description: "штуки" },
   },
   genders: [
     {

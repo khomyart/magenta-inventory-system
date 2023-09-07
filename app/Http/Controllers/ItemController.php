@@ -27,6 +27,8 @@ class ItemController extends Controller
     //if 0 - unlimited
     public $defaultQueryResultLimit = 0;
 
+    private $nbuCurrencyExchangeResponse = null;
+
     /**
      * Templated access to section model
      *
@@ -862,14 +864,27 @@ class ItemController extends Controller
         return $equality[$operatorName];
     }
     /**
-     * @return array with currencies (EUR, USD)
+     * Returns nbu currency exchange currency rate
      *
-     * date - yyyymm
-     * currencyCode - USD|EUR|etc...
+     * @param $date - yyyymm
+     * @param $currencyCode - USD|EUR|etc...
+     *
+     * @return array with currencies (EUR, USD)
      */
     private function getNbuCurrencyExchangeCourse($date, $currencyCode) {
-        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={$currencyCode}&date={$date}&json");
-        return json_decode($response, true)[0]["rate"];
+        $neededCurrencyRate = null;
+
+        if (empty($this->nbuCurrencyExchangeResponse)) {
+            $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={$date}&json");
+            $this->nbuCurrencyExchangeResponse = json_decode($response, true);
+        }
+
+        for ($i = 0; $i < count($this->nbuCurrencyExchangeResponse); $i++) {
+            if (!in_array($currencyCode, $this->nbuCurrencyExchangeResponse[$i])) continue;
+            $neededCurrencyRate = $this->nbuCurrencyExchangeResponse[$i]["rate"];
+        }
+
+        return $neededCurrencyRate;
     }
 
     private function getUpdatedItem($id) {
@@ -959,11 +974,15 @@ class ItemController extends Controller
     }
 
     /**
-     * Checks if item with same characteristic does
-     * exist in "items" table. If passing ID - ignore its value while
+     * Checks if an item with same characteristic
+     * exists in the "items" table. If passing ID - ignore its value while
      * filtering (where id <> $ID) to avoid update item collision
      * (looks for similarity in items wich are different from item
      * with passed ID)
+     *
+     * Checks if an item with the same characteristics exists in the "items" table.
+     * When passing an ID, it ignores its value during filtering (where id <> $ID) to avoid updating a conflicting item.
+     * It looks for similarity in items that are different from the item with the passed ID.
      *
      * @param integer  $id        Item ID (for update case), null - default value
      * @param array    $itemData  Contains validated values from request

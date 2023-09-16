@@ -19,7 +19,7 @@
           </transition>
         </q-toolbar-title>
 
-        <q-separator vertical />
+        <!--<q-separator vertical />
         <q-btn
           color="positive"
           flat
@@ -84,7 +84,7 @@
             </div>
           </q-tooltip>
         </q-btn>
-        <q-separator vertical />
+        <q-separator vertical /> -->
         <q-space></q-space>
         <q-btn color="primary" icon="settings" flat round class="q-mr-sm">
           <q-menu :offset="[0, 12]" style="min-width: 200px; text-align: left">
@@ -95,8 +95,12 @@
                 </q-item-section>
               </q-item>
               <q-separator />
-              <q-item clickable v-close-popup>
-                <q-item-section>Налаштування</q-item-section>
+              <q-item clickable>
+                <q-item-section
+                  v-close-popup
+                  @click="store.app.dialogs.settings.isShown = true"
+                  >Налаштування</q-item-section
+                >
               </q-item>
               <q-item clickable v-close-popup>
                 <q-item-section @click="logout">Вихід</q-item-section>
@@ -104,6 +108,7 @@
             </q-list>
           </q-menu>
         </q-btn>
+        <SettingsComponent />
       </q-toolbar>
       <q-separator inset />
     </q-header>
@@ -312,11 +317,11 @@ import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
+import SettingsComponent from "src/components/main/SettingsComponent.vue";
 
-const enableRoleValidation = false;
+const enableRoleValidation = true;
 
 const router = useRouter();
-
 const store = {
   users: useUserStore(),
   app: useAppConfigStore(),
@@ -576,7 +581,7 @@ const secondsLabel = computed(() => {
 
 onBeforeMount(() => {
   store.app.setUIdependsOnLocalStorage();
-  console.log(store.app.filters.data.warehouses);
+  store.warehouses.getFavoriteWarehouses();
   let userData = JSON.parse(sessionStorage.getItem("data"));
 
   if (typeof userData === "object") {

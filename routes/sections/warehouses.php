@@ -4,6 +4,12 @@ use App\Http\Controllers\WarehouseController;
 Route::post('/warehouses', [WarehouseController::class,'create'])
 ->middleware('api.authorization:create,warehouses');
 
+Route::post('/warehouses/set_favorite', [WarehouseController::class,'setUserFavoriteWarehouses'])
+->middleware('api.authentication');
+
+Route::get('/warehouses/get_favorite', [WarehouseController::class,'getUserFavoriteWarehouses'])
+->middleware('api.authentication');
+
 Route::get('/warehouses', [WarehouseController::class,'read'])
 ->middleware('api.authorization:read,warehouses');
 

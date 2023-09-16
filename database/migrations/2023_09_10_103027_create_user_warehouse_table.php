@@ -13,25 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('outcome', function (Blueprint $table) {
+        Schema::create('user_warehouse', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId("item_id");
+            $table->timestamps();
+            $table->foreignId("user_id");
             $table
-                ->foreign("item_id")
-                ->references("id")->on("items")
+                ->foreign("user_id")
+                ->references("id")->on("users")
                 ->onUpdate("cascade")->onDelete("cascade");
             $table->foreignId("warehouse_id");
             $table
                 ->foreign("warehouse_id")
                 ->references("id")->on("warehouses")
                 ->onUpdate("cascade")->onDelete("cascade");
-            $table->unsignedInteger("amount");
-            $table->string("reason_name", 255);
-            $table->string("additional_reason_name", 255)->nullable();
-            $table->string("detail", 1000)->nullable();
-
-            $table->timestamps();
         });
     }
 
@@ -42,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('outcome');
+        Schema::dropIfExists('user_warehouses');
     }
 };

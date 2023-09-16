@@ -35,9 +35,9 @@
       <q-space></q-space>
       <FilterByWarehouseComponent />
       <q-separator vertical class="q-mx-sm"></q-separator>
-      <IncomeCreatorComponent />
-      <OutcomeCreatorComponent />
-      <q-btn
+      <IncomeCreatorComponent v-if="allowenses.income" />
+      <OutcomeCreatorComponent v-if="allowenses.outcome" />
+      <!-- <q-btn
         flat
         round
         color="black"
@@ -51,8 +51,8 @@
         >
           {{ groupedItemsButtonTooltip }}
         </q-tooltip>
-      </q-btn>
-      <q-btn flat round color="black" icon="add">
+      </q-btn> -->
+      <q-btn v-if="allowenses.create" flat round color="black" icon="add">
         <q-tooltip
           anchor="bottom left"
           :offset="[-20, 7]"
@@ -79,7 +79,7 @@
           </q-list>
         </q-menu>
       </q-btn>
-      <q-btn flat round color="black" icon="sync_alt">
+      <q-btn v-if="allowenses.move" flat round color="black" icon="sync_alt">
         <q-tooltip
           class="bg-black text-body2"
           anchor="bottom left"
@@ -456,6 +456,9 @@ const allowenses = {
   create: appStore.allowenses.isValidFor("create", currentSection),
   update: appStore.allowenses.isValidFor("update", currentSection),
   delete: appStore.allowenses.isValidFor("delete", currentSection),
+  income: appStore.allowenses.isValidFor("income", currentSection),
+  outcome: appStore.allowenses.isValidFor("outcome", currentSection),
+  move: appStore.allowenses.isValidFor("move", currentSection),
 };
 
 let deletedItem = reactive({

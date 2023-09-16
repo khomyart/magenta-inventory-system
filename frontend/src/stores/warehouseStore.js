@@ -9,6 +9,7 @@ export const useWarehouseStore = defineStore("warehouse", {
   state: () => ({
     items: [],
     simpleItems: [],
+    favoriteWarehouses: [],
     dialogs: {
       create: {
         isShown: false,
@@ -36,6 +37,40 @@ export const useWarehouseStore = defineStore("warehouse", {
   }),
   getters: {},
   actions: {
+    setFavoriteWarehouses() {
+      let warehousesIds = [];
+      this.favoriteWarehouses.forEach((warehouseInfo) => {
+        warehousesIds.push(warehouseInfo.warehouse.id);
+      });
+
+      if (warehousesIds.length === 0) warehousesIds = null;
+
+      api
+        .post(`/${sectionName}/set_favorite`, {
+          warehouses: warehousesIds != null ? [...warehousesIds] : null,
+        })
+        .then((res) => {
+          console.log("set favorites warehouses");
+          console.log(res);
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {});
+    },
+    getFavoriteWarehouses() {
+      api
+        .get(`/${sectionName}/get_favorite`)
+        .then((res) => {
+          this.favoriteWarehouses = [...res.data];
+          console.log("get favorites warehouses");
+          console.log(res.data);
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {});
+    },
     create(payload) {
       this.dialogs.create.isLoading = true;
       api

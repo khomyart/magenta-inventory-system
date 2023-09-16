@@ -5,6 +5,17 @@
     >
       Склад
     </div>
+    <div class="row q-gutter-md q-mb-md">
+      <div
+        class="favorite-warehouse-button q-pa-sm"
+        @click="fillWarehouseFromFavorite(index)"
+        v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
+        :key="index"
+      >
+        {{ warehouseInfo.warehouse.name }} ({{ warehouseInfo.city.name }},
+        {{ warehouseInfo.warehouse.address }} )
+      </div>
+    </div>
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
         autocomplete="false"
@@ -359,6 +370,14 @@ let reasons = [
 
 let tempItemHolder = reactive({});
 
+function fillWarehouseFromFavorite(index) {
+  sectionStore.outcome.country =
+    warehouseStore.favoriteWarehouses[index].country;
+  sectionStore.outcome.city = warehouseStore.favoriteWarehouses[index].city;
+  sectionStore.outcome.warehouse =
+    warehouseStore.favoriteWarehouses[index].warehouse;
+}
+
 function countryFilter(val, update, abort) {
   update(() => {
     loadingStates.country = true;
@@ -540,5 +559,16 @@ watch(
 .items-wrapper {
   border: 1px solid rgba(96, 0, 92, 0.18);
   border-radius: 4px;
+}
+
+.favorite-warehouse-button {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
 }
 </style>

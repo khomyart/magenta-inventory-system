@@ -1,5 +1,16 @@
 <template>
   <div class="col-12 warehouse-wrapper q-mb-md">
+    <div class="row q-gutter-md q-mb-md">
+      <div
+        class="favorite-warehouse-button q-pa-sm"
+        @click="fillWarehouseFromFavorite(index)"
+        v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
+        :key="index"
+      >
+        {{ warehouseInfo.warehouse.name }} ({{ warehouseInfo.city.name }},
+        {{ warehouseInfo.warehouse.address }} )
+      </div>
+    </div>
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
         autocomplete="false"
@@ -216,6 +227,15 @@ let batchTemplate = {
   currency: "UAH",
 };
 
+function fillWarehouseFromFavorite(index) {
+  target[props.warehouseIndex].country =
+    warehouseStore.favoriteWarehouses[index].country;
+  target[props.warehouseIndex].city =
+    warehouseStore.favoriteWarehouses[index].city;
+  target[props.warehouseIndex].warehouse =
+    warehouseStore.favoriteWarehouses[index].warehouse;
+}
+
 function removeWarehouse() {
   target.splice(props.warehouseIndex, 1);
 }
@@ -273,5 +293,17 @@ function addBatch() {
   border: 1px solid rgba(0, 0, 0, 0.185);
   border-radius: 4px;
   padding: 15px 15px 0px;
+}
+
+.favorite-warehouse-button {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
 }
 </style>

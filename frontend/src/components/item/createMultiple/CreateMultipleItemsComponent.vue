@@ -5,8 +5,8 @@
         <div class="text-h6 flex items-center">
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
           Група предметів
-          <q-btn class="q-mx-md" @click="fillSectionStoreWithTemplate()"
-            >fill</q-btn
+          <!-- <q-btn class="q-mx-md" @click="fillSectionStoreWithTemplate()"
+            >fill</q-btn -->
           >
         </div>
       </q-card-section>

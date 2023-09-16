@@ -1,5 +1,17 @@
 <template>
   <div class="col-12 warehouse-wrapper q-mb-md">
+    <div class="row q-gutter-md q-mb-md">
+      <div
+        class="favorite-warehouse-button q-pa-sm"
+        @click="fillWarehouseFromFavorite(index)"
+        v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
+        :key="index"
+      >
+        {{ warehouseInfo.warehouse.name }} ({{ warehouseInfo.city.name }},
+        {{ warehouseInfo.warehouse.address }} )
+      </div>
+    </div>
+
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
         autocomplete="false"
@@ -229,6 +241,15 @@ let batchTemplate = {
   currency: "UAH",
 };
 
+function fillWarehouseFromFavorite(index) {
+  sectionStore.newItem.availableIn[props.index].country =
+    warehouseStore.favoriteWarehouses[index].country;
+  sectionStore.newItem.availableIn[props.index].city =
+    warehouseStore.favoriteWarehouses[index].city;
+  sectionStore.newItem.availableIn[props.index].warehouse =
+    warehouseStore.favoriteWarehouses[index].warehouse;
+}
+
 function removeWarehouse() {
   sectionStore.newItem.availableIn.splice(props.index, 1);
 }
@@ -286,5 +307,17 @@ function addBatch() {
   border: 1px solid rgba(0, 0, 0, 0.185);
   border-radius: 4px;
   padding: 15px 15px 7px;
+}
+
+.favorite-warehouse-button {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
 }
 </style>

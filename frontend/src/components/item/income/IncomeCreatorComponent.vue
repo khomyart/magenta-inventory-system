@@ -32,48 +32,45 @@
       <q-form @submit.prevent="submit">
         <q-card-section
           style="max-height: 700px; height: 60vh"
-          class="scroll col-12 q-pt-lg"
+          class="scroll col-12 q-pt-md"
         >
           <div class="row q-mb-sm text-h6">
-            <div class="col-4"></div>
-            <div
-              class="col-4 flex items-center justify-center text-bold text-h6"
-            >
-              Склади:
-            </div>
-            <div class="col-4">
-              <q-btn
-                class="q-mr-sm"
-                round
-                flat
-                icon="add"
-                @click="addWarehouse"
-              >
-                <q-tooltip
-                  class="bg-black text-body2"
-                  anchor="bottom middle"
-                  self="top middle"
-                  :offset="[0, 5]"
+            <div class="col-12 flex items-center justify-between text-bold">
+              <span class="q-pl-md">Склади</span>
+              <div class="flex items-center">
+                <q-btn
+                  class="q-mr-sm"
+                  round
+                  flat
+                  icon="add"
+                  @click="addWarehouse"
                 >
-                  Додати склад
-                </q-tooltip>
-              </q-btn>
-              <q-btn
-                class="q-mr-sm"
-                round
-                flat
-                icon="delete"
-                @click="removeAllWarehouses"
-              >
-                <q-tooltip
-                  class="bg-black text-body2"
-                  anchor="bottom middle"
-                  self="top middle"
-                  :offset="[0, 5]"
+                  <q-tooltip
+                    class="bg-black text-body2"
+                    anchor="bottom middle"
+                    self="top middle"
+                    :offset="[0, 5]"
+                  >
+                    Додати склад
+                  </q-tooltip>
+                </q-btn>
+                <q-btn
+                  class="q-mr-sm"
+                  round
+                  flat
+                  icon="delete"
+                  @click="removeAllWarehouses"
                 >
-                  Видалити всі склади
-                </q-tooltip>
-              </q-btn>
+                  <q-tooltip
+                    class="bg-black text-body2"
+                    anchor="bottom middle"
+                    self="top middle"
+                    :offset="[0, 5]"
+                  >
+                    Видалити всі склади
+                  </q-tooltip>
+                </q-btn>
+              </div>
             </div>
           </div>
           <IncomeCreatorWarehouseComponent

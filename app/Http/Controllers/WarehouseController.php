@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Warehouse;
+use App\Models\UsersFavoriteWarehouses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ErrorHandler;
+use App\Helpers\AuthAPI;
 
 class WarehouseController extends Controller
 {
@@ -23,7 +25,6 @@ class WarehouseController extends Controller
 
     public $updateFieldsFromFrontend = ["country_id", "city_id", "address", "name", "description"];
     public $updateValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:1000"];
-
 
     /**
      * Templated access to section model
@@ -237,6 +238,62 @@ class WarehouseController extends Controller
         $section->delete();
 
         return response("OK", 200);
+    }
+
+    /**
+     * Set user favorite warehouses
+     *
+     * @param Request $request
+     */
+    public function setUserFavoriteWarehouses(Request $request) {
+        $userId = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip())->user->id;
+
+        $data = $request->validate([
+            "warehouses" => "nullable",
+            "warehouses.*" => "numeric|exists:warehouses,id",
+        ]);
+
+        UsersFavoriteWarehouses::where("user_id", $userId)->delete();
+
+        if ($data["warehouses"] === null) return [];
+
+        $warehousesIds = array_unique($data["warehouses"]);
+        foreach ($warehousesIds as $key => $warehouseId) {
+            UsersFavoriteWarehouses::create([
+                "user_id" => $userId,
+                "warehouse_id" => $warehouseId,
+            ]);
+        }
+
+        return response()->json(UsersFavoriteWarehouses::where("user_id", $userId)->get()->toArray());
+    }
+
+    /**
+     * Get user favorite warehouses
+     *
+     * @param Request $request
+     */
+    public function getUserFavoriteWarehouses(Request $request) {
+        $userId = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip())->user->id;
+
+        $warehousesInfo = [];
+        $userFavoriteWarehouses = UsersFavoriteWarehouses::where("user_id", $userId)->get()->toArray();
+
+        foreach ($userFavoriteWarehouses as $key => $userFavoriteWarehouse) {
+            $warehouse = Warehouse::find($userFavoriteWarehouse["warehouse_id"]);
+            $country = $warehouse->country;
+            $city = $warehouse->city;
+            unset($warehouse["country"]);
+            unset($warehouse["city"]);
+
+            $warehousesInfo[] = [
+                "country" => $country,
+                "city" => $city,
+                "warehouse" => $warehouse,
+            ];
+        }
+
+        return response()->json($warehousesInfo);
     }
 
     /**

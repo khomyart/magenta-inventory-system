@@ -1,5 +1,16 @@
 <template>
   <div class="col-12 warehouse-wrapper q-mb-md">
+    <div class="row q-gutter-md q-mb-md">
+      <div
+        class="favorite-warehouse-button q-pa-sm"
+        @click="fillWarehouseFromFavorite(index)"
+        v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
+        :key="index"
+      >
+        {{ warehouseInfo.warehouse.name }} ({{ warehouseInfo.city.name }},
+        {{ warehouseInfo.warehouse.address }} )
+      </div>
+    </div>
     <div class="row q-col-gutter-md q-mb-sm">
       <q-select
         autocomplete="false"
@@ -162,37 +173,36 @@
     </div>
     <q-separator class="q-mt-sm" />
     <div class="row q-my-sm">
-      <div class="col-4"></div>
-      <div class="col-4 flex items-center justify-center text-bold text-h6">
-        Предмети:
-      </div>
-      <div class="col-4">
-        <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
-          <q-tooltip
-            class="bg-black text-body2"
-            anchor="bottom middle"
-            self="top middle"
-            :offset="[0, 5]"
+      <div class="col-12 flex items-center justify-between text-bold text-h6">
+        <span class="q-pl-md">Предмети</span>
+        <div>
+          <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom middle"
+              self="top middle"
+              :offset="[0, 5]"
+            >
+              Додати партію
+            </q-tooltip>
+          </q-btn>
+          <q-btn
+            class="q-mr-sm"
+            round
+            flat
+            icon="delete"
+            @click="removeAllBatches"
           >
-            Додати партію
-          </q-tooltip>
-        </q-btn>
-        <q-btn
-          class="q-mr-sm"
-          round
-          flat
-          icon="delete"
-          @click="removeAllBatches"
-        >
-          <q-tooltip
-            class="bg-black text-body2"
-            anchor="bottom middle"
-            self="top middle"
-            :offset="[0, 5]"
-          >
-            Видалити всі партії
-          </q-tooltip>
-        </q-btn>
+            <q-tooltip
+              class="bg-black text-body2"
+              anchor="bottom middle"
+              self="top middle"
+              :offset="[0, 5]"
+            >
+              Видалити всі партії
+            </q-tooltip>
+          </q-btn>
+        </div>
       </div>
     </div>
     <template
@@ -237,6 +247,15 @@ let batchTemplate = {
   currency: "UAH",
   items: [],
 };
+
+function fillWarehouseFromFavorite(index) {
+  sectionStore.income[props.index].country =
+    warehouseStore.favoriteWarehouses[index].country;
+  sectionStore.income[props.index].city =
+    warehouseStore.favoriteWarehouses[index].city;
+  sectionStore.income[props.index].warehouse =
+    warehouseStore.favoriteWarehouses[index].warehouse;
+}
 
 function removeWarehouse() {
   sectionStore.income.splice(props.index, 1);
@@ -299,5 +318,17 @@ function cityUpdate() {
   border: 1px solid rgba(0, 0, 0, 0.185);
   border-radius: 4px;
   padding: 15px 15px 0px;
+}
+
+.favorite-warehouse-button {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
 }
 </style>

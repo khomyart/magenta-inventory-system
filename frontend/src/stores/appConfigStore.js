@@ -2,10 +2,17 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 6,
+    version: 7,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
+    webSocketUrl: "",
+    dialogs: {
+      settings: {
+        isShown: false,
+        isLoading: false,
+      },
+    },
     errors: {
       reauth: {
         notifications: {},

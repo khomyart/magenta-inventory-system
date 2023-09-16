@@ -590,7 +590,7 @@ class ItemController extends Controller
             "warehouse_id" => "integer"
         ]);
 
-        if ($filterData["value"] === null) return 0;
+        if ($filterData["value"] === null) return [];
 
         if ($filterData["mode"] == "id") {
             $item = Item::find($filterData["value"]);

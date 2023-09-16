@@ -25,7 +25,7 @@ class AuthAPI {
         $token = AccessToken::firstWhere('token', $bearerToken);
 
         if (isset($token)) {
-            return new self(user: $token->user, ip: $ip);
+            return new self($token->user, ip: $ip);
         }
 
         return false;

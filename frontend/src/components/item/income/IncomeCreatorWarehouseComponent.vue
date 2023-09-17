@@ -2,6 +2,12 @@
   <div class="col-12 warehouse-wrapper q-mb-md">
     <div class="row q-gutter-md q-mb-md">
       <div
+        :class="{
+          'favorite-warehouse-button-active':
+            sectionStore.income[props.index].warehouse != null &&
+            sectionStore.income[props.index].warehouse.id ===
+              warehouseInfo.warehouse.id,
+        }"
         class="favorite-warehouse-button q-pa-sm"
         @click="fillWarehouseFromFavorite(index)"
         v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
@@ -174,7 +180,12 @@
     <q-separator class="q-mt-sm" />
     <div class="row q-my-sm">
       <div class="col-12 flex items-center justify-between text-bold text-h6">
-        <span class="q-pl-md">Предмети</span>
+        <span class="q-pl-md text-weight-medium"
+          >Предмети
+          <HintComponent
+            :size="20"
+            text="Пошук за артиклем: -(артикль предмета) (артикль кольору) (розмір)-"
+        /></span>
         <div>
           <q-btn class="q-mr-sm" round flat icon="add" @click="createBatch">
             <q-tooltip
@@ -226,6 +237,7 @@ import { useItemStore } from "src/stores/itemStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import IncomeCreatorBatchComponent from "./IncomeCreatorBatchComponent.vue";
+import HintComponent from "src/components/helpers/HintComponent.vue";
 const sectionStore = useItemStore();
 const countryStore = useCountryStore();
 const cityStore = useCityStore();
@@ -328,6 +340,11 @@ function cityUpdate() {
 }
 
 .favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
+}
+
+.favorite-warehouse-button-active {
   background-color: #b53cda;
   color: white;
 }

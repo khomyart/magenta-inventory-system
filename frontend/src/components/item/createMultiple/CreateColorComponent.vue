@@ -11,7 +11,12 @@
         <q-icon class="q-mx-sm" size="25px" name="chevron_right"></q-icon>
         кольори</span
       >
-      <span v-else>Кольори</span>
+      <span v-else
+        >Кольори
+        <HintComponent
+          :size="20"
+          text="Пошук кольору можливий за: назвою, артиклем (почати зі !), або значенням (почати з #)"
+      /></span>
     </div>
     <div class="row q-col-gutter-md">
       <q-select
@@ -103,6 +108,7 @@ import { computed } from "vue";
 import { useItemStore } from "src/stores/itemStore";
 import { useColorStore } from "src/stores/colorStore";
 import SelectedColorFormComponent from "./SelectedColorFormComponent.vue";
+import HintComponent from "src/components/helpers/HintComponent.vue";
 const sectionStore = useItemStore();
 const colorStore = useColorStore();
 const props = defineProps([

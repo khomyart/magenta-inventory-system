@@ -396,6 +396,11 @@ watch(
 );
 
 onMounted(() => {
+  if (appStore.errors.reauth.data.isLogoutThroughtLogoutMethod === true) {
+    appStore.errors.reauth.data.isLogoutThroughtLogoutMethod = false;
+    sectionStore.receive();
+  }
+
   // sectionStore.items = [];
   appStore.currentPages[currentSection] = Number(
     router.currentRoute.value.params.page

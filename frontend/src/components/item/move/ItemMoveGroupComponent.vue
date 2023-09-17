@@ -1,161 +1,15 @@
 <template>
   <div class="col-12">
-    <div
-      class="text-h6 q-mb-md q-mb-sm-sm text-weight-medium text-left q-pl-md"
-    >
-      Склад
-    </div>
-    <div class="row q-gutter-md q-mb-md">
-      <div
-        :class="{
-          'favorite-warehouse-button-active':
-            sectionStore.outcome.warehouse != null &&
-            sectionStore.outcome.warehouse.id === warehouseInfo.warehouse.id,
-        }"
-        class="favorite-warehouse-button q-pa-sm"
-        @click="fillWarehouseFromFavorite(index)"
-        v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
-        :key="index"
-      >
-        {{ warehouseInfo.warehouse.name }} ({{ warehouseInfo.city.name }},
-        {{ warehouseInfo.warehouse.address }} )
-      </div>
-    </div>
-    <div class="row q-col-gutter-md q-mb-sm">
-      <q-select
-        autocomplete="false"
-        :hide-dropdown-icon="sectionStore.outcome.country != null"
-        outlined
-        v-model="sectionStore.outcome.country"
-        use-input
-        hide-selected
-        fill-input
-        label="Країна"
-        input-debounce="400"
-        :options="countryStore.items"
-        option-value="id"
-        option-label="name"
-        @update:model-value="countryUpdate"
-        @filter="countryFilter"
-        :loading="loadingStates.country"
-        class="col-12 col-sm-4 q-pt-sm q-pt-sm-md"
-        :rules="[
-          () =>
-            (sectionStore.outcome.country != null &&
-              sectionStore.outcome.country.id != undefined) ||
-            'Оберіть країну',
-        ]"
-      >
-        <template
-          v-if="sectionStore.outcome.country && !loadingStates.country"
-          v-slot:append
-        >
-          <q-icon
-            name="cancel"
-            @click.stop.prevent="
-              sectionStore.outcome.country = null;
-              countryUpdate();
-            "
-            class="cursor-pointer"
-          />
-        </template>
-      </q-select>
-      <q-select
-        autocomplete="false"
-        :hide-dropdown-icon="
-          sectionStore.outcome.country == null ||
-          sectionStore.outcome.country.id == undefined ||
-          sectionStore.outcome.city != null
-        "
-        outlined
-        v-model="sectionStore.outcome.city"
-        label="Місто"
-        use-input
-        hide-selected
-        fill-input
-        input-debounce="400"
-        :options="cityStore.items"
-        option-value="id"
-        option-label="name"
-        @update:model-value="cityUpdate"
-        @filter="cityFilter"
-        :loading="loadingStates.city"
-        class="col-12 col-sm-4 q-pt-sm q-pt-sm-md"
-        :disable="
-          sectionStore.outcome.country == null ||
-          sectionStore.outcome.country.id == undefined
-        "
-        :rules="[
-          () =>
-            (sectionStore.outcome.city != null &&
-              sectionStore.outcome.city.id != undefined) ||
-            'Оберіть місто',
-        ]"
-      >
-        <template
-          v-if="sectionStore.outcome.city && !loadingStates.city"
-          v-slot:append
-        >
-          <q-icon
-            name="cancel"
-            @click.stop.prevent="
-              sectionStore.outcome.city = null;
-              cityUpdate();
-            "
-            class="cursor-pointer"
-          />
-        </template>
-      </q-select>
-      <q-select
-        autocomplete="false"
-        :hide-dropdown-icon="
-          sectionStore.outcome.city == null ||
-          sectionStore.outcome.city.id == undefined ||
-          sectionStore.outcome.warehouse != null
-        "
-        outlined
-        v-model="sectionStore.outcome.warehouse"
-        label="Склад"
-        use-input
-        hide-selected
-        fill-input
-        input-debounce="400"
-        :options="warehouseStore.simpleItems"
-        option-value="id"
-        option-label="name"
-        @filter="warehouseFilter"
-        :loading="loadingStates.warehouse"
-        class="col-12 col-sm-4 q-pt-sm q-pt-sm-md"
-        :disable="
-          sectionStore.outcome.city == null ||
-          sectionStore.outcome.city.id == undefined
-        "
-        :rules="[
-          () =>
-            (sectionStore.outcome.warehouse != null &&
-              sectionStore.outcome.warehouse.id != undefined) ||
-            'Оберіть склад',
-        ]"
-      >
-        <template v-slot:option="scope">
-          <q-item v-bind="scope.itemProps" class="flex items-center">
-            {{ scope.opt.name }} ({{ scope.opt.address }})
-          </q-item>
-        </template>
-        <template
-          v-if="sectionStore.outcome.warehouse && !loadingStates.warehouse"
-          v-slot:append
-        >
-          <q-icon
-            name="cancel"
-            @click.stop.prevent="sectionStore.outcome.warehouse = null"
-            class="cursor-pointer"
-          />
-        </template>
-      </q-select>
-    </div>
+    <ItemMoveWarehouseComponent target="from" />
+    <ItemMoveWarehouseComponent target="to" />
 
-    <div class="q-mt-sm" v-if="sectionStore.outcome.warehouse != null">
+    <div
+      class="q-mt-sm"
+      v-if="
+        sectionStore.itemMove.from.warehouse != null &&
+        sectionStore.itemMove.to.warehouse != null
+      "
+    >
       <q-separator class="q-mb-md" />
       <div
         class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md"
@@ -164,7 +18,7 @@
       </div>
       <div class="row q-col-gutter-md">
         <q-select
-          v-model="sectionStore.outcome.reasonName"
+          v-model="sectionStore.itemMove.reasonName"
           :options="reasons"
           label="Оберіть причину"
           emit-value
@@ -176,8 +30,8 @@
           outlined
           class="col-12 col-sm-6"
           label="Назва причини"
-          v-model="sectionStore.outcome.additionalReasonName"
-          v-if="sectionStore.outcome.reasonName === 'other'"
+          v-model="sectionStore.itemMove.additionalReasonName"
+          v-if="sectionStore.itemMove.reasonName === 'other'"
           :reactive-rules="true"
           :rules="
             isAllItemsLockedToCustomValues().reason
@@ -191,17 +45,23 @@
         <q-input
           outlined
           label="Деталі"
-          v-model="sectionStore.outcome.reasonDetail"
+          v-model="sectionStore.itemMove.reasonDetail"
           :class="{
-            'col-12 col-sm-6': sectionStore.outcome.reasonName != 'other',
+            'col-12 col-sm-6': sectionStore.itemMove.reasonName != 'other',
             'col-12 q-pt-xs col-sm-12 q-pt-sm-sm':
-              sectionStore.outcome.reasonName === 'other',
+              sectionStore.itemMove.reasonName === 'other',
           }"
         />
       </div>
     </div>
 
-    <div class="q-mt-lg" v-if="sectionStore.outcome.warehouse != null">
+    <div
+      class="q-mt-lg"
+      v-if="
+        sectionStore.itemMove.from.warehouse != null &&
+        sectionStore.itemMove.to.warehouse != null
+      "
+    >
       <q-separator class="q-mb-md" />
       <div
         class="text-h6 q-mb-sm q-mb-sm-sm text-weight-medium text-left q-pl-md"
@@ -229,7 +89,7 @@
           class="col-12 col-sm-7"
           :rules="[
             () =>
-              sectionStore.outcome.items.length >= 1 ||
+              sectionStore.itemMove.items.length >= 1 ||
               'Оберіть хоча б один предмет',
           ]"
         >
@@ -297,7 +157,7 @@
           class="col-12 col-sm-5 q-pt-sm q-pt-sm-md"
           label="Кількість"
           step="1"
-          v-model="sectionStore.outcome.outcomeAmount"
+          v-model="sectionStore.itemMove.itemMoveAmount"
           :reactive-rules="true"
           :rules="
             isAllItemsLockedToCustomValues().amount
@@ -310,13 +170,13 @@
           mask="######"
         />
       </div>
-      <div class="row col-12" v-if="sectionStore.outcome.items.length > 0">
+      <div class="row col-12" v-if="sectionStore.itemMove.items.length > 0">
         <div
           class="col-12 items-wrapper q-px-md q-pt-lg q-pb-md q-mb-sm q-mt-sm q-mt-sm-sm"
         >
           <div class="q-gutter-md">
-            <OutcomeCreatorGroupItemComponent
-              v-for="(item, itemIndex) in sectionStore.outcome.items"
+            <ItemMoveGroupItemComponent
+              v-for="(item, itemIndex) in sectionStore.itemMove.items"
               :key="item.id"
               :itemDetail="item"
               :itemIndex="itemIndex"
@@ -330,13 +190,14 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onBeforeUnmount, reactive } from "vue";
+import { watch, reactive } from "vue";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useItemStore } from "src/stores/itemStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
-import OutcomeCreatorGroupItemComponent from "./OutcomeCreatorGroupItemComponent.vue";
+import ItemMoveGroupItemComponent from "./ItemMoveGroupItemComponent.vue";
+import ItemMoveWarehouseComponent from "./ItemMoveWarehouseComponent.vue";
 import HintComponent from "src/components/helpers/HintComponent.vue";
 const appConfigStore = useAppConfigStore();
 const sectionStore = useItemStore();
@@ -345,12 +206,12 @@ const cityStore = useCityStore();
 const warehouseStore = useWarehouseStore();
 
 const props = defineProps(["index"]);
-const additionalOutcomeInfoTemplate = {
-  reasonName: "sell",
+const additionalItemMoveInfoTemplate = {
+  reasonName: "moving",
   additionalReasonName: "",
   reasonDetail: "",
-  outcomeAmount: "",
-  outcomeAmountCustomMode: false,
+  itemMoveAmount: "",
+  itemMoveAmountCustomMode: false,
   reasonCustomMode: false,
 };
 //makes possible to do loading animation for every individual
@@ -364,12 +225,12 @@ let loadingStates = reactive({
 
 let reasons = [
   {
-    label: "Продаж",
-    value: "sell",
+    label: "Перестановка",
+    value: "moving",
   },
   {
-    label: "Утилізація",
-    value: "recycle",
+    label: "Тимчасово",
+    value: "temporarily",
   },
   {
     label: "Інша",
@@ -379,58 +240,6 @@ let reasons = [
 
 let tempItemHolder = reactive({});
 
-function fillWarehouseFromFavorite(index) {
-  sectionStore.outcome.country =
-    warehouseStore.favoriteWarehouses[index].country;
-  sectionStore.outcome.city = warehouseStore.favoriteWarehouses[index].city;
-  sectionStore.outcome.warehouse =
-    warehouseStore.favoriteWarehouses[index].warehouse;
-}
-
-function countryFilter(val, update, abort) {
-  update(() => {
-    loadingStates.country = true;
-    countryStore.items = [];
-    countryStore.receive(val, loadingStates);
-  });
-}
-
-function cityFilter(val, update, abort) {
-  update(() => {
-    loadingStates.city = true;
-    cityStore.items = [];
-    cityStore.receive(sectionStore.outcome.country.id, val, loadingStates);
-  });
-}
-
-function warehouseFilter(val, update, abort) {
-  update(() => {
-    loadingStates.warehouse = true;
-    warehouseStore.simpleItems = [];
-    warehouseStore.simpleReceive(
-      val,
-      sectionStore.outcome.city.id,
-      loadingStates
-    );
-  });
-}
-
-//if changing country - clear city and warehouse
-function countryUpdate() {
-  sectionStore.outcome.city = null;
-  sectionStore.outcome.warehouse = null;
-}
-
-//if changing city - clear warehouse
-function cityUpdate() {
-  sectionStore.outcome.warehouse = null;
-}
-
-//if changing warehouse - clear items
-function warehouseUpdate() {
-  sectionStore.outcome.items = [];
-}
-
 function itemArticleFilter(val, update, abort) {
   sectionStore.itemsFoundByArticle.data = [];
   update(() => {
@@ -438,14 +247,14 @@ function itemArticleFilter(val, update, abort) {
       sectionStore.receiveItemsByArticle(
         val,
         loadingStates,
-        sectionStore.outcome.warehouse.id
+        sectionStore.itemMove.from.warehouse.id
       );
     }
   });
 }
 
 function isItemExistInList(itemId) {
-  let items = sectionStore.outcome.items;
+  let items = sectionStore.itemMove.items;
 
   return items.filter((item) => item.id === itemId).length > 0 ? true : false;
 }
@@ -454,12 +263,12 @@ function addSelectedItemToStore(val) {
   let isValueExist = isItemExistInList(val.id);
 
   if (!isValueExist) {
-    let additionalInfoInjectionTargetIndex = sectionStore.outcome.items.length;
-    sectionStore.outcome.items.push(val);
+    let additionalInfoInjectionTargetIndex = sectionStore.itemMove.items.length;
+    sectionStore.itemMove.items.push(val);
 
-    Object.keys(additionalOutcomeInfoTemplate).forEach((key) => {
-      sectionStore.outcome.items[additionalInfoInjectionTargetIndex][key] =
-        sectionStore.outcome[key];
+    Object.keys(additionalItemMoveInfoTemplate).forEach((key) => {
+      sectionStore.itemMove.items[additionalInfoInjectionTargetIndex][key] =
+        sectionStore.itemMove[key];
     });
   }
 
@@ -471,20 +280,20 @@ function addSelectedItemToStore(val) {
  * general, top-level value of group, like general "amount", or "reason"
  */
 function isAllItemsLockedToCustomValues() {
-  let amountOfCustomAmountElements = sectionStore.outcome.items.filter(
-    (el) => el.outcomeAmountCustomMode === true
+  let amountOfCustomAmountElements = sectionStore.itemMove.items.filter(
+    (el) => el.itemMoveAmountCustomMode === true
   );
-  let amountOfCustomReasonElements = sectionStore.outcome.items.filter(
+  let amountOfCustomReasonElements = sectionStore.itemMove.items.filter(
     (el) => el.reasonCustomMode === true
   );
 
   return {
     amount:
-      amountOfCustomAmountElements.length === sectionStore.outcome.items.length
+      amountOfCustomAmountElements.length === sectionStore.itemMove.items.length
         ? true
         : false,
     reason:
-      amountOfCustomReasonElements.length === sectionStore.outcome.items.length
+      amountOfCustomReasonElements.length === sectionStore.itemMove.items.length
         ? true
         : false,
   };
@@ -503,13 +312,6 @@ watch(
         listMenu.style.width = `${articleSelectInput.offsetWidth - 16}px`;
       }
     }
-  }
-);
-
-watch(
-  () => sectionStore.outcome.warehouse,
-  () => {
-    warehouseUpdate();
   }
 );
 </script>

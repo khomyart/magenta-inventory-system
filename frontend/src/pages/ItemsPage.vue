@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-mt-md q-pr-sm">
+    <div class="toolbar row q-mt-md q-pr-md">
       <q-input
         v-model="
           appStore.filters.data[currentSection].selectedParams.title.value
@@ -79,15 +79,7 @@
           </q-list>
         </q-menu>
       </q-btn>
-      <q-btn v-if="allowenses.move" flat round color="black" icon="sync_alt">
-        <q-tooltip
-          class="bg-black text-body2"
-          anchor="bottom left"
-          :offset="[0, 7]"
-        >
-          Перемістити
-        </q-tooltip>
-      </q-btn>
+      <ItemMoveComponent v-if="allowenses.move" />
     </div>
 
     <div class="content">
@@ -314,7 +306,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed, ref } from "vue";
+import { reactive, onMounted, watch, computed, ref, onUpdated } from "vue";
 import { useRouter } from "vue-router";
 import { useItemStore } from "src/stores/itemStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
@@ -330,6 +322,7 @@ import PriceButtonComponent from "src/components/filter_bar/PriceButtonComponent
 import FilterByWarehouseComponent from "src/components/item/FilterByWarehouseComponent.vue";
 import IncomeCreatorComponent from "src/components/item/income/IncomeCreatorComponent.vue";
 import OutcomeCreatorComponent from "src/components/item/outcome/OutcomeCreatorComponent.vue";
+import ItemMoveComponent from "src/components/item/move/ItemMoveComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();
@@ -659,6 +652,11 @@ watch(
 );
 
 onMounted(() => {
+  if (appStore.errors.reauth.data.isLogoutThroughtLogoutMethod === true) {
+    appStore.errors.reauth.data.isLogoutThroughtLogoutMethod = false;
+    sectionStore.receive();
+  }
+
   // sectionStore.items = [];
   appStore.currentPages[currentSection] = Number(
     router.currentRoute.value.params.page

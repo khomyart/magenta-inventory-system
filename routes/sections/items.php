@@ -23,4 +23,7 @@ Route::post('/items/income', [ItemController::class,'setIncome'])
 ->middleware('api.authorization:income,items');
 
 Route::post('/items/outcome', [ItemController::class,'setOutcome'])
-->middleware('api.authorization:income,items');
+->middleware('api.authorization:outcome,items');
+
+Route::post('/items/move', [ItemController::class,'move'])
+->middleware('api.authorization:move,items');

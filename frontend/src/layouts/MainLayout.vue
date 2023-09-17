@@ -6,7 +6,7 @@
           stretch
           flat
           style="margin-right: -5px"
-          @click="router.push({ name: 'dashboard' })"
+          @click="router.push({ name: 'items' })"
         >
           <img src="../assets/magenta-menu-logo.png" style="height: 35px" />
         </q-btn>
@@ -259,6 +259,7 @@
         <q-separator></q-separator>
         <q-card-actions align="right">
           <q-btn
+            @click="clearLogoutInterval"
             flat
             color="primary"
             type="submit"
@@ -504,6 +505,7 @@ function logout() {
     store.app.errors.reauth.dialogs.renewPassword.isShown = false;
     store.app.errors.reauth.dialogs.unauthenticated.isLoading = false;
     store.app.errors.reauth.dialogs.unauthenticated.isShown = false;
+    store.app.errors.reauth.data.isLogoutThroughtLogoutMethod = true;
     router.push("/login");
   });
 }
@@ -544,6 +546,10 @@ watch(
 );
 
 let logoutInterval;
+function clearLogoutInterval() {
+  clearInterval(logoutInterval);
+}
+
 watch(
   () => store.app.errors.reauth.dialogs.unauthenticated.isShown,
   (isShown) => {

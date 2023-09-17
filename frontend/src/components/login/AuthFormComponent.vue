@@ -38,7 +38,7 @@
   </q-form>
 
   <q-dialog
-    v-model="appConfigStore.errors.responses[422].isShown"
+    v-model="appConfigStore.errors.display.isShown"
     transition-show="scale"
     transition-hide="scale"
   >
@@ -51,8 +51,17 @@
       </q-card-section>
       <q-separator></q-separator>
 
-      <q-card-section class="q-pt-md">
-        {{ appConfigStore.errors.responses[422].text }}
+      <q-card-section
+        class="q-pt-md"
+        v-if="appConfigStore.errors.display.isHTML === false"
+      >
+        {{ appConfigStore.errors.display.text }}
+      </q-card-section>
+      <q-card-section class="q-pt-md" v-else>
+        <div
+          style="width: 100%; height: 100%"
+          v-html="appConfigStore.errors.display.text"
+        ></div>
       </q-card-section>
 
       <q-separator></q-separator>
@@ -63,7 +72,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, onBeforeMount } from "vue";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useUserStore } from "src/stores/userStore";
 import { useRouter } from "vue-router";
@@ -86,10 +95,14 @@ watch(
   () => store.data.isLoginSuccesed,
   (newValue) => {
     if (newValue == true) {
-      router.push("/dashboard");
+      router.push("/items");
       store.data.isLoginSuccesed = false;
     }
   }
 );
+
+onBeforeMount(() => {
+  store.data.isLoading = false;
+});
 </script>
 <style scoped></style>

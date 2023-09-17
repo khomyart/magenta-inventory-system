@@ -32,6 +32,7 @@ export const useItemStore = defineStore("item", {
     },
     income: [],
     outcome: {},
+    itemMove: {},
     selectedItemForUpdating: {},
     bufferedItems: [],
     //includes items themself, amount of found items, show limitation info
@@ -67,6 +68,10 @@ export const useItemStore = defineStore("item", {
         isLoading: false,
       },
       outcomeCreator: {
+        isShown: false,
+        isLoading: false,
+      },
+      itemMove: {
         isShown: false,
         isLoading: false,
       },
@@ -329,6 +334,7 @@ export const useItemStore = defineStore("item", {
         });
     },
     receive() {
+      this.data.isReceiveSended = true;
       appConfigStore.updateLocalStorageConfig();
       this.items = [];
       this.data.isItemsLoading = true;
@@ -604,6 +610,33 @@ export const useItemStore = defineStore("item", {
         })
         .finally(() => {
           this.dialogs.outcomeCreator.isLoading = false;
+        });
+    },
+    sendItemMoveData() {
+      let preparedItemMove = {
+        fromWarehouseId: this.itemMove.from.warehouse.id,
+        toWarehouseId: this.itemMove.to.warehouse.id,
+        items: this.itemMove.items.map((item) => ({
+          id: item.id,
+          reason: item.reasonName,
+          additionalReason: item.additionalReasonName,
+          reasonDetail: item.reasonDetail,
+          amount: item.itemMoveAmount,
+        })),
+      };
+
+      this.dialogs.itemMove.isLoading = true;
+      api
+        .post(`/${sectionName}/move`, preparedItemMove)
+        .then((res) => {
+          this.dialogs.itemMove.isShown = false;
+          this.receive();
+        })
+        .catch((err) => {
+          appConfigStore.catchRequestError(err);
+        })
+        .finally(() => {
+          this.dialogs.itemMove.isLoading = false;
         });
     },
   },

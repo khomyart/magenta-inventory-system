@@ -2,6 +2,12 @@
   <div class="col-12 warehouse-wrapper q-mb-md">
     <div class="row q-gutter-md q-mb-md">
       <div
+        :class="{
+          'favorite-warehouse-button-active':
+            target[props.warehouseIndex].warehouse != null &&
+            target[props.warehouseIndex].warehouse.id ===
+              warehouseInfo.warehouse.id,
+        }"
         class="favorite-warehouse-button q-pa-sm"
         @click="fillWarehouseFromFavorite(index)"
         v-for="(warehouseInfo, index) in warehouseStore.favoriteWarehouses"
@@ -303,6 +309,11 @@ function addBatch() {
 }
 
 .favorite-warehouse-button:hover {
+  background-color: #b53cda;
+  color: white;
+}
+
+.favorite-warehouse-button-active {
   background-color: #b53cda;
   color: white;
 }

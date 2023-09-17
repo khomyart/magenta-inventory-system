@@ -7,7 +7,6 @@
           Група предметів
           <!-- <q-btn class="q-mx-md" @click="fillSectionStoreWithTemplate()"
             >fill</q-btn -->
-          >
         </div>
       </q-card-section>
       <q-separator></q-separator>

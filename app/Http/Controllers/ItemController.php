@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Image;
 use App\Models\Income;
 use App\Models\Outcome;
+use App\Models\Move;
 use App\Models\Type;
 use App\Models\Gender;
 use App\Models\ItemWarehouseAmount;
@@ -314,7 +315,6 @@ class ItemController extends Controller
         if ($this->isItemExists($itemData))
             return ErrorHandler::responseWith("Такий предмет вже існує");
 
-
         /**
          * Create an item
          */
@@ -566,6 +566,97 @@ class ItemController extends Controller
             } else {
                 $currentItem->amount = $differenceBetweenAmounts;
                 $currentItem->save();
+            }
+        }
+
+        return response("OK", 200);
+    }
+
+    /**
+     * Register moving of the items between warehouses
+     *
+     * @param Request $request
+     */
+    public function move(Request $request) {
+        $data = $request->validate([
+            "fromWarehouseId" => "required|integer|numeric|exists:warehouses,id",
+            "toWarehouseId" => "required|integer|numeric|exists:warehouses,id",
+            "items" => "required",
+            "items.*.id" => "required|integer|numeric|exists:items,id",
+            "items.*.additionalReason" => "nullable|string|max:255",
+            "items.*.reason" => "required|string|max:255",
+            "items.*.reasonDetail" => "nullable|string|max:1000",
+            "items.*.amount" => "required|numeric|gte:1|max:999999",
+        ]);
+
+        if ($data["fromWarehouseId"] == $data["toWarehouseId"]) {
+            return ErrorHandler::responseWith(
+                "Склад \"звідки\" і склад \"куди\" не можуть бути однаковими"
+            );
+        }
+
+        $isItemsExistsInWarehouse = true;
+        $isOutcomeAmountOfItemIsLessThanActualAmount = true;
+
+        foreach ($data["items"] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
+                ->where("warehouse_id", $data["fromWarehouseId"])->first();
+
+            if ($currentItem == null || $currentItem->amount == 0) {
+                $isItemsExistsInWarehouse = false;
+                break;
+            }
+
+            if ($item["amount"] > $currentItem->amount) {
+                $isOutcomeAmountOfItemIsLessThanActualAmount = false;
+                break;
+            }
+        }
+
+        if ($isItemsExistsInWarehouse === false) {
+            return ErrorHandler::responseWith("Предмета не існує на складах", 404);
+        }
+        if ($isOutcomeAmountOfItemIsLessThanActualAmount === false) {
+            return ErrorHandler::responseWith("Списання перевищує наявність");
+        }
+
+        foreach ($data["items"] as $key => $item) {
+            //create move
+            Move::create([
+                "item_id" => $item["id"],
+                "from_warehouse_id" => $data["fromWarehouseId"],
+                "to_warehouse_id" => $data["toWarehouseId"],
+                "amount" => $item["amount"],
+                "reason_name" => $item["reason"],
+                "additional_reason_name" =>
+                    $item["reason"] === "other" ? $item["additionalReason"] : null,
+                "detail" => $item["reasonDetail"],
+            ]);
+
+            $fromWarehouseItem = ItemWarehouseAmount::where("item_id", $item["id"])
+                ->where("warehouse_id", $data["fromWarehouseId"])->first();
+            $toWarehouseItem = ItemWarehouseAmount::where("item_id", $item["id"])
+                ->where("warehouse_id", $data["toWarehouseId"])->first();
+
+            //subtract item amount of fromWarehouseItem
+            $differenceBetweenAmounts = $fromWarehouseItem->amount - $item["amount"];
+            if ($differenceBetweenAmounts == 0) {
+                $fromWarehouseItem->delete();
+            } else {
+                $fromWarehouseItem->amount = $differenceBetweenAmounts;
+                $fromWarehouseItem->save();
+            }
+
+            //adding item amount for toWarehouseItem
+            if ($toWarehouseItem != null) {
+                $toWarehouseItem->amount += $item["amount"];
+                $toWarehouseItem->save();
+            } else {
+                ItemWarehouseAmount::create([
+                    "item_id" => $item["id"],
+                    "warehouse_id" => $data["toWarehouseId"],
+                    "amount" => $item["amount"],
+                ]);
             }
         }
 
@@ -979,10 +1070,6 @@ class ItemController extends Controller
      * filtering (where id <> $ID) to avoid update item collision
      * (looks for similarity in items wich are different from item
      * with passed ID)
-     *
-     * Checks if an item with the same characteristics exists in the "items" table.
-     * When passing an ID, it ignores its value during filtering (where id <> $ID) to avoid updating a conflicting item.
-     * It looks for similarity in items that are different from the item with the passed ID.
      *
      * @param integer  $id        Item ID (for update case), null - default value
      * @param array    $itemData  Contains validated values from request

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 7,
+    version: 9,
     //axios has its own config
     backendUrl: "http://localhost",
     imagesStoreUrl: "http://localhost/images",
@@ -27,6 +27,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           },
         },
         data: {
+          isLogoutThroughtLogoutMethod: false,
           attempt: 0,
           attemptsAllowed: 3,
           //seconds to logout while unauthenticated dialog is active

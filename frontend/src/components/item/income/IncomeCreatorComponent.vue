@@ -36,7 +36,7 @@
         >
           <div class="row q-mb-sm text-h6">
             <div class="col-12 flex items-center justify-between text-bold">
-              <span class="q-pl-md">Склади</span>
+              <span class="q-pl-md text-weight-medium">Склади</span>
               <div class="flex items-center">
                 <q-btn
                   class="q-mr-sm"

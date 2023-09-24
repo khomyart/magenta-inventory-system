@@ -13,13 +13,18 @@ use App\Models\AccessToken;
 
 class UserController extends Controller
 {
-    public function create($data, $name) {
+    public function create(Request $request) {
+        $data = $request->validate([
+            "name" => "required|max:255|string",
+            "email" => "required|max:255|string",
+            "password" => "required|max:255|string",
+        ]);
+
         $user = User::create([
-            "name" => $name,
+            "name" => $data["name"],
             "email" => $data["email"],
             "password" => Hash::make($data["password"]),
         ]);
-
     }
 
     //login

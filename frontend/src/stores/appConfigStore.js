@@ -4,8 +4,8 @@ export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
     version: 9,
     //axios has its own config
-    backendUrl: "http://localhost",
-    imagesStoreUrl: "http://localhost/images",
+    backendUrl: "https://api.inventory.magenta.net.ua/",
+    imagesStoreUrl: "https://api.inventory.magenta.net.ua/images",
     webSocketUrl: "",
     dialogs: {
       settings: {

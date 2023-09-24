@@ -9,6 +9,8 @@ use App\Models\Outcome;
 use App\Models\Move;
 use App\Models\Type;
 use App\Models\Gender;
+use App\Models\Color;
+use App\Models\Size;
 use App\Models\ItemWarehouseAmount;
 use App\Helpers\ErrorHandler;
 use Illuminate\Http\Request;
@@ -284,10 +286,17 @@ class ItemController extends Controller
             "lack" => "required|numeric|integer|gte:1",
             "type_id" => ["required", "exists:types,id"],
             "unit_id" => ["required", "exists:units,id"],
-            "gender_id" => ["nullable", "exists:genders,id"],
-            "size_id" => ["nullable", "exists:sizes,id"],
-            "color_id" => ["nullable", "exists:colors,id"],
+            "gender_id" => "nullable",
+            "size_id" => "nullable",
+            "color_id" => "nullable",
         ]);
+        //additional validation for gender_id, size_id, color_id
+        if (!empty($itemData["gender_id"]) && Gender::find($itemData["gender_id"]) == null)
+            return ErrorHandler::responseWith("Такого гендеру не існує");
+        if (!empty($itemData["size_id"]) && Size::find($itemData["size_id"]) == null)
+            return ErrorHandler::responseWith("Такого розміру не існує");
+        if (!empty($itemData["color_id"]) && Color::find($itemData["color_id"]) == null)
+            return ErrorHandler::responseWith("Такого кольору не існує");
 
         $warehousesData = $request->validate([
             "warehouses" => "nullable",
@@ -863,10 +872,19 @@ class ItemController extends Controller
             "price" => "required|numeric|gte:1",
             "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
             "lack" => "required|numeric|integer|gte:1",
-            "gender_id" => ["nullable", "exists:genders,id"],
-            "size_id" => ["nullable", "exists:sizes,id"],
-            "color_id" => ["nullable", "exists:colors,id"],
+            "gender_id" => "nullable",
+            "size_id" => "nullable",
+            "color_id" => "nullable",
         ]);
+
+        //additional validation for gender_id, size_id, color_id
+        if (!empty($itemData["gender_id"]) && Gender::find($itemData["gender_id"]) == null)
+            return ErrorHandler::responseWith("Такого гендеру не існує");
+        if (!empty($itemData["size_id"]) && Size::find($itemData["size_id"]) == null)
+            return ErrorHandler::responseWith("Такого розміру не існує");
+        if (!empty($itemData["color_id"]) && Color::find($itemData["color_id"]) == null)
+            return ErrorHandler::responseWith("Такого кольору не існує");
+
         $imagesData = $request->validate([
             "images" => "nullable",
             "images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
@@ -1175,6 +1193,7 @@ class ItemController extends Controller
         if (count($validationItem) > 0) {
 
             foreach ($validationItem as $key => $row) {
+                $itemData["gender_id"] = $itemData["gender_id"] ?? null;
 
                 if ($row["gender_id"] == $itemData["gender_id"]
                     && $row["article"] != $itemData["article"])

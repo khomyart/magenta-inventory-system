@@ -90,8 +90,8 @@ export const useItemStore = defineStore("item", {
   actions: {
     create() {
       let preparedItem = {
-        group_id: this.newItem.group_id,
         article: this.newItem.article,
+        group_id: this.newItem.group_id,
         title: this.newItem.title,
         model: this.newItem.model,
         price: this.newItem.price,
@@ -99,6 +99,10 @@ export const useItemStore = defineStore("item", {
         lack: this.newItem.lack,
         type_id: this.newItem.type.id,
         unit_id: this.newItem.unit.id,
+
+        // gender_id: null,
+        // size_id: null,
+        // color_id: null,
       };
 
       if (this.newItem.gender != null)
@@ -250,6 +254,10 @@ export const useItemStore = defineStore("item", {
         price: this.selectedItemForUpdating.price,
         currency: this.selectedItemForUpdating.currency,
         lack: this.selectedItemForUpdating.lack,
+
+        // gender_id: null,
+        // size_id: null,
+        // color_id: null,
       };
 
       if (this.selectedItemForUpdating.gender != null)

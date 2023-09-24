@@ -9,8 +9,11 @@
       >
         {{ genderName }}
         <q-icon class="q-mx-sm" size="25px" name="chevron_right"></q-icon>
-        кольори</span
-      >
+        кольори&nbsp;
+        <HintComponent
+          :size="20"
+          text="Пошук кольору можливий за: назвою, артиклем (почати зі !), або значенням (почати з #)"
+      /></span>
       <span v-else
         >Кольори
         <HintComponent

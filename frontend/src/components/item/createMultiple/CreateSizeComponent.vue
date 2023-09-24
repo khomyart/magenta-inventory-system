@@ -265,9 +265,7 @@ let colorName = computed(() => {
         capitalizedColorName.charAt(0).toUpperCase() +
         capitalizedColorName.slice(1);
     } else {
-      capitalizedColorName =
-        capitalizedColorName.charAt(0).toLowerCase() +
-        capitalizedColorName.slice(1);
+      capitalizedColorName = capitalizedColorName.toLowerCase();
     }
   }
 

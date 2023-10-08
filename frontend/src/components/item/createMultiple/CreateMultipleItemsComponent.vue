@@ -1,6 +1,6 @@
 <template>
-  <q-dialog v-model="sectionStore.dialogs.createMultiple.isShown">
-    <q-card style="width: 95vw; max-width: 600px">
+  <q-dialog v-model="sectionStore.dialogs.createMultiple.isShown" persistent>
+    <q-card style="width: 95vw; max-width: 800px">
       <q-card-section>
         <div class="text-h6 flex items-center">
           <q-icon name="apps" color="black" size="md" class="q-mr-sm" />
@@ -303,15 +303,25 @@
                   </div>
                 </template>
               </div>
-              <q-separator class="q-mt-md" />
-              <SelectedGenderFormComponent
-                v-if="selectedIndexes.genders != -1"
-                :genderArrayIndex="selectedIndexes.genders"
-                :rules="genderFieldsRules"
-                :lastUsedCharacteristic="
-                  usedCharacteristics[usedCharacteristics.length - 1]
-                "
-              />
+              <q-separator class="q-mt-md q-mb-sm" />
+              <q-expansion-item
+                default-opened
+                dense-toggle
+                class="q-mb-sm"
+                :label="'Форма для гендеру'"
+                :header-style="{
+                  borderRadius: '5px',
+                }"
+              >
+                <SelectedGenderFormComponent
+                  v-if="selectedIndexes.genders != -1"
+                  :genderArrayIndex="selectedIndexes.genders"
+                  :rules="genderFieldsRules"
+                  :lastUsedCharacteristic="
+                    usedCharacteristics[usedCharacteristics.length - 1]
+                  "
+                />
+              </q-expansion-item>
             </div>
           </div>
           <div id="bottom_of_genders_container"></div>

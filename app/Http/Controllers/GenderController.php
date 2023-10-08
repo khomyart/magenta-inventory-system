@@ -14,6 +14,7 @@ class GenderController extends Controller
     public $section = "genders";
     public $fields = ["name"];
     public $fieldsValidationRules = ["required|string|max:150"];
+    public $queryResultLimiter = 15;
 
     //templated access to section model
     public function getSectionModel() {
@@ -100,7 +101,9 @@ class GenderController extends Controller
             $query = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc');
         }
 
-        $items = $query->limit(5)->get();
+        $items = $this->queryResultLimiter != 0
+            ? $query->limit($this->queryResultLimiter)->get()
+            : $query->get();
 
         return response($items);
     }

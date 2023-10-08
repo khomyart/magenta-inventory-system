@@ -89,13 +89,23 @@
           </div>
         </template>
       </div>
-      <q-separator class="q-mt-md" />
-      <SelectedSizeFormComponent
-        :sizeArrayIndex="props.selectedSizeIndex"
-        :lastUsedCharacteristic="props.lastUsedCharacteristic"
-        v-if="props.selectedSizeIndex != -1"
-        :rules="props.rules"
-      />
+      <q-separator class="q-mt-md q-mb-sm" />
+      <q-expansion-item
+        default-opened
+        dense-toggle
+        class="q-mb-sm"
+        :label="'Форма для розміру'"
+        :header-style="{
+          borderRadius: '5px',
+        }"
+      >
+        <SelectedSizeFormComponent
+          :sizeArrayIndex="props.selectedSizeIndex"
+          :lastUsedCharacteristic="props.lastUsedCharacteristic"
+          v-if="props.selectedSizeIndex != -1"
+          :rules="props.rules"
+        />
+      </q-expansion-item>
     </div>
   </div>
   <div id="bottom_of_sizes_container"></div>

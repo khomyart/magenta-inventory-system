@@ -241,12 +241,16 @@
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
+        :style="{
+          cursor: props.itemInfo.gender != null ? 'pointer' : 'default',
+        }"
+        @click="
+          if (props.itemInfo.gender != null) {
+            $emit('copyValue', props.itemInfo.gender, 'Гендер');
+          }
+        "
       >
-        <div
-          v-if="props.itemInfo.gender != null"
-          style="cursor: pointer"
-          @click="$emit('copyValue', props.itemInfo.gender, 'Гендер')"
-        >
+        <div v-if="props.itemInfo.gender != null">
           <div class="item-text">
             {{ props.itemInfo.gender }}
           </div>
@@ -266,18 +270,22 @@
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
-      >
-        <div
-          v-if="props.itemInfo.size_name != null"
-          :id="`size-of-item-${props.itemInfo.id}`"
-          style="cursor: pointer"
-          @click="
+        :style="{
+          cursor: props.itemInfo.size_name != null ? 'pointer' : 'default',
+        }"
+        @click="
+          if (props.itemInfo.size_name != null) {
             $emit(
               'copyValue',
               `${props.itemInfo.size_name} - ${props.itemInfo.size_description}`,
               'Розмір'
-            )
-          "
+            );
+          }
+        "
+      >
+        <div
+          v-if="props.itemInfo.size_name != null"
+          :id="`size-of-item-${props.itemInfo.id}`"
         >
           <div class="item-text">
             {{ props.itemInfo.size_name }}
@@ -349,12 +357,23 @@
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
+        :style="{
+          cursor:
+            props.itemInfo.amount != null && props.itemInfo.amount != 0
+              ? 'pointer'
+              : 'default',
+        }"
+        @click="
+          if (props.itemInfo.amount != null && props.itemInfo.amount != 0) {
+            $emit(
+              'showAmountsInWarehousesDialog',
+              props.itemInfo.amountsInWarehouses,
+              props.itemInfo.title
+            );
+          }
+        "
       >
-        <div
-          v-if="props.itemInfo.amount != null && props.itemInfo.amount != 0"
-          style="cursor: pointer"
-          @click="$emit('copyValue', props.itemInfo.amount, 'Кількість')"
-        >
+        <div v-if="props.itemInfo.amount != null && props.itemInfo.amount != 0">
           <div class="item-text">
             {{ props.itemInfo.amount }}
           </div>
@@ -394,7 +413,7 @@
     </td>
   </tr>
 
-  <q-dialog v-model="showImage" seamless>
+  <q-dialog v-model="showImage">
     <q-card>
       <q-card-section class="row items-center q-pb-md">
         <div class="text-h6 images-dialog-header">
@@ -480,6 +499,7 @@ const $q = useQuasar();
 const emit = defineEmits([
   "fillCreateWindowWithItemData",
   "fillUpdateWindowWithItemData",
+  "showAmountsInWarehousesDialog",
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",
@@ -585,21 +605,32 @@ async function downloadImage(imageSrc) {
 
 async function copyImage(imageSrc) {
   try {
+    // Read the file as a Blob
     const response = await fetch(imageSrc);
-    const blob = await response.blob();
+    let IMG_TYPE = "image/png";
+    const blob = new Blob([await response.blob()], { type: IMG_TYPE });
+
     await navigator.clipboard.write([
       new ClipboardItem({
         [blob.type]: blob,
       }),
     ]);
+
     $q.notify({
       position: "top",
       color: "primary",
       message: `Зображення зкопійовано`,
-      group: false,
+      actions: [
+        {
+          icon: "close",
+          color: "white",
+          round: true,
+          handler: () => {},
+        },
+      ],
     });
-  } catch (err) {
-    console.error(err.name, err.message);
+  } catch (error) {
+    console.error("Error copying image to clipboard:", error);
   }
 }
 

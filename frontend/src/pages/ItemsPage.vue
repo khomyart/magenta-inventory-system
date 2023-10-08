@@ -146,6 +146,7 @@
             @fill-create-window-with-item-data="fillCreateWindowWithItemData"
             @fill-update-window-with-item-data="fillUpdateWindowWithItemData"
             @clear-updated-item-id="clearUpdatedItemId"
+            @show-amounts-in-warehouses-dialog="showAmountsInWarehousesDialog"
             @copy-value="copyValue"
             :allowenses="{
               create: allowenses.create,
@@ -294,6 +295,108 @@
               appStore.filters.data.items.selectedParams.warehouse.description
             }}
           </p>
+        </q-card-section>
+
+        <q-separator></q-separator>
+        <q-card-actions align="right">
+          <q-btn flat color="black" v-close-popup>Гаразд</q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <!-- AMOUNTS WAREHOUSES DIALOG -->
+    <q-dialog
+      v-model="sectionStore.dialogs.amountsWarehouses.isShown"
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card style="width: 350px">
+        <q-card-section>
+          <div class="text-h6 flex items-center">
+            <q-icon
+              size="md"
+              class="q-mr-sm"
+              name="apps"
+              color="black"
+            ></q-icon>
+            <div class="q-ml-sm text-header">
+              {{ sectionStore.dialogs.amountsWarehouses.itemTitle }}
+            </div>
+          </div>
+        </q-card-section>
+        <q-separator></q-separator>
+
+        <q-card-section class="q-pt-md">
+          <table style="width: 100%; border-collapse: collapse">
+            <template
+              v-for="(warehouseAmounts, index) in sectionStore.dialogs
+                .amountsWarehouses.content"
+              :key="warehouseAmounts.id"
+            >
+              <tr>
+                <td>
+                  <span
+                    :style="{
+                      cursor:
+                        appStore.filters.data.items.selectedParams.warehouse ==
+                          null ||
+                        warehouseAmounts.warehouse_id !=
+                          appStore.filters.data.items.selectedParams.warehouse
+                            .id
+                          ? 'pointer'
+                          : 'default',
+                    }"
+                    :class="{
+                      'text-primary':
+                        appStore.filters.data.items.selectedParams.warehouse ==
+                          null ||
+                        warehouseAmounts.warehouse_id !=
+                          appStore.filters.data.items.selectedParams.warehouse
+                            .id,
+                    }"
+                    @click="
+                      if (
+                        appStore.filters.data.items.selectedParams.warehouse ==
+                          null ||
+                        warehouseAmounts.warehouse_id !=
+                          appStore.filters.data.items.selectedParams.warehouse
+                            .id
+                      ) {
+                        sectionStore.dialogs.amountsWarehouses.isShown = false;
+                        appStore.filters.data.items.selectedParams.warehouse = {
+                          id: warehouseAmounts.warehouse_id,
+                          name: warehouseAmounts.warehouse_name,
+                          address: warehouseAmounts.warehouse_address,
+                          city_name: warehouseAmounts.city_name,
+                          country_name: warehouseAmounts.country_name,
+                          description: warehouseAmounts.warehouse_description,
+                        };
+                      }
+                    "
+                  >
+                    ({{ warehouseAmounts.country_name }},
+                    {{ warehouseAmounts.city_name }})
+                    {{ warehouseAmounts.warehouse_name }}
+                  </span>
+                </td>
+                <td align="right">
+                  {{ warehouseAmounts.amount }} {{ warehouseAmounts.unit }}
+                </td>
+              </tr>
+              <tr
+                v-if="
+                  sectionStore.dialogs.amountsWarehouses.content.length - 1 !=
+                  index
+                "
+              >
+                <td style="padding: 5px 0px">
+                  <q-separator></q-separator>
+                </td>
+                <td style="padding: 5px 0px">
+                  <q-separator></q-separator>
+                </td>
+              </tr>
+            </template>
+          </table>
         </q-card-section>
 
         <q-separator></q-separator>
@@ -494,7 +597,15 @@ function copyValue(value, paramName) {
     position: "top",
     color: "primary",
     message: `${paramName} зкопійовано: "${value}"`,
-    group: false,
+    // group: false,
+    actions: [
+      {
+        icon: "close",
+        color: "white",
+        round: true,
+        handler: () => {},
+      },
+    ],
   });
 }
 
@@ -504,6 +615,11 @@ function showRemoveDialog(id, title) {
   sectionStore.dialogs.delete.isShown = true;
 }
 
+function showAmountsInWarehousesDialog(warehousesAmounts, itemTitle) {
+  sectionStore.dialogs.amountsWarehouses.isShown = true;
+  sectionStore.dialogs.amountsWarehouses.content = warehousesAmounts;
+  sectionStore.dialogs.amountsWarehouses.itemTitle = itemTitle;
+}
 /**
  * button events
  */

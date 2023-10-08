@@ -26,6 +26,7 @@ class WarehouseController extends Controller
     public $updateFieldsFromFrontend = ["country_id", "city_id", "address", "name", "description"];
     public $updateValidationRulesForFields = ["required|numeric|exists:countries,id", "required|numeric|exists:cities,id", "required|string|max:250", "required|string|max:100", "required|string|max:1000"];
 
+    public $queryResultLimiter = 15;
     /**
      * Templated access to section model
      *
@@ -168,7 +169,9 @@ class WarehouseController extends Controller
             ->orderBy("warehouses.description", "asc");
         }
 
-        $warehouses = $query->limit(5)->get();
+        $warehouses = $this->queryResultLimiter != 0
+            ? $query->limit($this->queryResultLimiter)->get()
+            : $query->get();
 
         return response($warehouses);
     }

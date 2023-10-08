@@ -8,8 +8,8 @@ use Carbon\Carbon;
 
 class AuthAPI {
     //minutes
-    const TOKEN_LIFE_TIME = 20;
-    const AWAY_FROM_KEYBOARD_TIME = 10;
+    const TOKEN_LIFE_TIME = 180;
+    const AWAY_FROM_KEYBOARD_TIME = 160;
 
     public $user;
     public $tokenTime;

@@ -12,6 +12,7 @@ class SizeController extends Controller
     public $section = "sizes";
     public $fields = ["value", "description"];
     public $fieldsValidationRules = ["required|string|max:8", "required|string|max:250"];
+    public $queryResultLimiter = 15;
 
     //templated access to section model
     public function getSectionModel() {
@@ -98,7 +99,9 @@ class SizeController extends Controller
             $query = $sectionModel::where('value', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc');
         }
 
-        $items = $query->limit(5)->get();
+        $items = $this->queryResultLimiter != 0
+            ? $query->limit($this->queryResultLimiter)->get()
+            : $query->get();
 
         return response($items);
     }

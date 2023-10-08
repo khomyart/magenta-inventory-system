@@ -13,6 +13,8 @@ class ColorController extends Controller
     public $section = "colors";
     public $fields = ["value", "article", "description", "text_color_value"];
     public $fieldsValidationRules = ["required|string|max:10", "required|string|max:10", "required|string|max:128", "required|string|max:10"];
+    //if 0 - unlimited
+    public $queryResultLimiter = 15;
 
     //templated access to section model
     public function getSectionModel() {
@@ -102,7 +104,9 @@ class ColorController extends Controller
             }
         }
 
-        $items = $query->limit(5)->get();
+        $items = $this->queryResultLimiter != 0
+            ? $query->limit($this->queryResultLimiter)->get()
+            : $query->get();
 
         return response($items);
     }

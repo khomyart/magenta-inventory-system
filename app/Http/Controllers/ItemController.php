@@ -96,8 +96,10 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                $this->getNbuCurrencyExchangeCourse($today, "USD"),
-                $this->getNbuCurrencyExchangeCourse($today, "EUR")
+                // $this->getNbuCurrencyExchangeCourse($today, "USD"),
+                // $this->getNbuCurrencyExchangeCourse($today, "EUR")
+                1,
+                1
             ]
         )
         ->addSelect(
@@ -270,6 +272,11 @@ class ItemController extends Controller
             $item["images"] = Image::where("item_id", $item["id"])->orderBy("number_in_row", "asc")->get();
         }
 
+        //binding additional data (amounts in warehouses) to paginated and transformed query result
+        foreach ($items["data"] as $key => &$item) {
+            $item["amountsInWarehouses"] = $this->getAmountOfItemInEachWarehouse($item["id"]);
+        }
+
         return response($items);
     }
 
@@ -321,9 +328,10 @@ class ItemController extends Controller
         $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
         if ($specialValidationResult != null)
             return ErrorHandler::responseWith($specialValidationResult);
-        if ($this->isItemExists($itemData))
-            return ErrorHandler::responseWith("Такий предмет вже існує");
-
+        if ($this->isItemExists($itemData)) {
+            $errorMessage = $this->itemExistenceErrorForming($itemData);
+            return ErrorHandler::responseWith($errorMessage);
+        }
         /**
          * Create an item
          */
@@ -405,6 +413,25 @@ class ItemController extends Controller
             "items.*.images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
         ]);
 
+        /**
+         * Firstly check each element separatly
+         */
+        foreach ($itemsData["items"] as $itemIndex => $itemData) {
+            /**
+             * Is item creation allowed:
+             */
+            $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
+            if ($specialValidationResult != null)
+                return ErrorHandler::responseWith($specialValidationResult);
+            if ($this->isItemExists($itemData)) {
+                $errorMessage = $this->itemExistenceErrorForming($itemData);
+                return ErrorHandler::responseWith($errorMessage);
+            }
+        }
+
+        /**
+         * Then, if all is good, create each element
+         */
         foreach ($itemsData["items"] as $itemIndex => $itemData) {
             $warehousesData =
                 isset($itemsWarehousesData["items"][$itemIndex]) ?
@@ -413,15 +440,6 @@ class ItemController extends Controller
             $imagesData =
                 isset($itemsImagesData["items"][$itemIndex]) ?
                     $itemsImagesData["items"][$itemIndex]["images"] : [];
-
-            /**
-             * Is item creation allowed:
-             */
-            $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
-            if ($specialValidationResult != null)
-                return ErrorHandler::responseWith($specialValidationResult);
-            if ($this->isItemExists($itemData))
-                return ErrorHandler::responseWith("Такий предмет вже існує");
 
             $item = Item::create($itemData);
 
@@ -902,8 +920,10 @@ class ItemController extends Controller
         $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData, $id);
         if ($specialValidationResult != null)
             return ErrorHandler::responseWith($specialValidationResult);
-        if ($this->isItemExists($itemData, $id))
-            return ErrorHandler::responseWith("Такий предмет вже існує");
+        if ($this->isItemExists($itemData, $id)) {
+            $errorMessage = $this->itemExistenceErrorForming($itemData);
+            return ErrorHandler::responseWith($errorMessage);
+        }
 
         $item->article = $itemData["article"];
         $item->title = $itemData["title"];
@@ -1017,8 +1037,10 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                $this->getNbuCurrencyExchangeCourse($today, "USD"),
-                $this->getNbuCurrencyExchangeCourse($today, "EUR")
+                // $this->getNbuCurrencyExchangeCourse($today, "USD"),
+                // $this->getNbuCurrencyExchangeCourse($today, "EUR")
+                1,
+                1
             ]
         )
         ->addSelect(
@@ -1083,6 +1105,36 @@ class ItemController extends Controller
     }
 
     /**
+     * Returns warehouses detail and amount of item in there.
+     *
+     * @param integer $id item id
+     */
+    private function getAmountOfItemInEachWarehouse($id) {
+        $table = DB::table("item_warehouse_amounts");
+        $warehousesAmounts = $table
+        ->select(
+            "item_warehouse_amounts.id AS id",
+            "countries.name AS country_name",
+            "cities.name AS city_name",
+            "warehouses.id AS warehouse_id",
+            "warehouses.description AS warehouse_description",
+            "warehouses.address AS warehouse_address",
+            "warehouses.name AS warehouse_name",
+            "item_warehouse_amounts.amount AS amount",
+            "units.name AS unit"
+        )
+        ->join("items", "item_warehouse_amounts.item_id", "=", "items.id")
+        ->join("units", "items.unit_id", "=", "units.id")
+        ->join("warehouses", "item_warehouse_amounts.warehouse_id", "=", "warehouses.id")
+        ->join("countries", "countries.id", "=", "warehouses.country_id")
+        ->join("cities", "cities.id", "=", "warehouses.city_id")
+        ->where("item_warehouse_amounts.item_id", $id)
+        ->get();
+
+        return $warehousesAmounts;
+    }
+
+    /**
      * Checks if an item with same characteristic
      * exists in the "items" table. If passing ID - ignore its value while
      * filtering (where id <> $ID) to avoid update item collision
@@ -1119,6 +1171,68 @@ class ItemController extends Controller
         $matchingItems = $matchingItems->get();
 
         return count($matchingItems) > 0 ? true : false;
+    }
+
+    /**
+     * Return html string with text for "item exists" error message
+     *
+     * @param array  $itemData  Contains validated values from request
+     *
+     * @return string html formatted string
+     */
+    private function itemExistenceErrorForming($itemData) {
+        $title = "<p class='error-row'>Назва: {$itemData['title']}</p>";
+        $article = "<p class='error-row'>Артикль: {$itemData['article']}</p>";
+
+        $genderPart = "";
+        if (isset($itemData["gender_id"])) {
+            $gender = Gender::find($itemData["gender_id"]);
+            $genderPart = $gender != null ? "<p class='error-row'>Гендер: {$gender->name}</p>" : "";
+        }
+
+        $colorPart = "";
+        if (isset($itemData["color_id"])) {
+            $color = Color::find($itemData["color_id"]);
+            if ($color != null) {
+                $colorPart = "
+                    <p class='error-row'>
+                        Колір: {$color->description}&nbsp;
+                        <span style='
+                                width: fit-content;
+                                height: fit-content;
+                                padding: 5px 10px;
+                                border-radius: 3px;
+                                background: {$color->value};
+                                color: {$color->text_color_value};'
+                        >
+                            {$color->article}
+                        </span>&nbsp;
+                        ($color->value)
+                    </p>
+                ";
+            }
+        }
+
+        $sizePart = "";
+        if (isset($itemData["size_id"])) {
+            $size = Size::find($itemData["size_id"]);
+            $sizePart = $size != null ? "<p class='error-row'>Розмір: {$size->value}</p>" : "";
+        }
+
+        $responseMessage = "
+            <style>
+                .error-row {
+                    margin-bottom: 5px;
+                }
+            </style>
+
+            <p style='text-align: center;'>
+                <b>Предмет з такими характеристиками вже існує!</b>
+            </p>
+            {$title}{$genderPart}{$article}{$colorPart}{$sizePart}
+        ";
+
+        return $responseMessage;
     }
 
     /**

@@ -4,8 +4,10 @@ export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
     version: 9,
     //axios has its own config
-    backendUrl: "https://api.inventory.magenta.net.ua/",
-    imagesStoreUrl: "https://api.inventory.magenta.net.ua/images",
+    // backendUrl: "https://api.inventory.magenta.net.ua",
+    // imagesStoreUrl: "https://api.inventory.magenta.net.ua/images",
+    backendUrl: "http://localhost/",
+    imagesStoreUrl: "http://localhost/images",
     webSocketUrl: "",
     dialogs: {
       settings: {
@@ -603,7 +605,7 @@ export const useAppConfigStore = defineStore("appConfig", {
        * interactive errors (calls dialog window)
        */
       if (err.response.status === 422 || err.response.status === 403) {
-        this.showErrorMessage(err.response.data.message, false);
+        this.showErrorMessage(err.response.data.message, true);
         return;
       }
     },

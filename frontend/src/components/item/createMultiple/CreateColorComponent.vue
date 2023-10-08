@@ -77,12 +77,15 @@
             @click="selectItem(itemIndex)"
             class="item-chip q-py-xs q-pl-md q-pr-sm row d-flex items-center"
           >
+            <q-tooltip class="bg-black text-body2">
+              {{ item.description }}
+            </q-tooltip>
             <div
               class="item-chip-color q-mr-sm"
               :style="{ backgroundColor: item.value }"
             ></div>
             <div class="item-chip-article q-mr-sm">
-              {{ item.description }}
+              {{ colorDescription(item.description) }}
             </div>
             <q-btn
               round
@@ -95,13 +98,37 @@
           </div>
         </template>
       </div>
-      <q-separator class="q-mt-md" />
-      <SelectedColorFormComponent
-        :colorArrayIndex="props.selectedColorIndex"
-        :lastUsedCharacteristic="props.lastUsedCharacteristic"
-        v-if="props.selectedColorIndex != -1"
-        :rules="props.rules"
-      />
+      <q-separator class="q-mt-md q-mb-sm" />
+      <q-expansion-item
+        default-opened
+        :expand-icon-class="{
+          'text-black':
+            sectionStore.newMultipleItems.colors[props.selectedColorIndex]
+              .text_color_value === '#000000',
+          'text-white':
+            sectionStore.newMultipleItems.colors[props.selectedColorIndex]
+              .text_color_value === '#ffffff',
+        }"
+        dense-toggle
+        class="q-mb-sm"
+        :label="'Форма для кольору'"
+        :header-style="{
+          borderRadius: '5px',
+          backgroundColor:
+            sectionStore.newMultipleItems.colors[props.selectedColorIndex]
+              .value,
+          color:
+            sectionStore.newMultipleItems.colors[props.selectedColorIndex]
+              .text_color_value,
+        }"
+      >
+        <SelectedColorFormComponent
+          :colorArrayIndex="props.selectedColorIndex"
+          :lastUsedCharacteristic="props.lastUsedCharacteristic"
+          v-if="props.selectedColorIndex != -1"
+          :rules="props.rules"
+        />
+      </q-expansion-item>
     </div>
   </div>
   <div id="bottom_of_colors_container"></div>
@@ -240,6 +267,13 @@ let genderName = computed(() => {
     capitalizedGenderName.slice(1);
   return capitalizedGenderName;
 });
+let colorDescription = function (colorDescription) {
+  let newColorDescription =
+    colorDescription.length > 5
+      ? `${colorDescription.slice(0, 5)}...`
+      : colorDescription;
+  return newColorDescription;
+};
 </script>
 <style scoped>
 .active-item-component {

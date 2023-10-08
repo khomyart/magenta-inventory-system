@@ -75,6 +75,11 @@ export const useItemStore = defineStore("item", {
         isShown: false,
         isLoading: false,
       },
+      amountsWarehouses: {
+        isShown: false,
+        content: [],
+        itemTitle: "",
+      },
     },
     data: {
       isItemsLoading: false,
@@ -381,7 +386,7 @@ export const useItemStore = defineStore("item", {
         typeFilterMode:
           appConfigStore.filters.data[sectionName].selectedParams.type
             .filterMode.value,
-        //type
+        //price
         priceFilterValue:
           appConfigStore.filters.data[sectionName].selectedParams.price.value,
         priceFilterMode:

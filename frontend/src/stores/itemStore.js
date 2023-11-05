@@ -11,7 +11,7 @@ export const useItemStore = defineStore("item", {
       group_id: "",
       article: "",
       title: "",
-      model: "",
+      description: "",
       price: "",
       lack: 0,
       currency: "UAH",
@@ -80,6 +80,11 @@ export const useItemStore = defineStore("item", {
         content: [],
         itemTitle: "",
       },
+      itemDescription: {
+        isShown: false,
+        content: "",
+        title: "",
+      },
     },
     data: {
       isItemsLoading: false,
@@ -98,7 +103,7 @@ export const useItemStore = defineStore("item", {
         article: this.newItem.article,
         group_id: this.newItem.group_id,
         title: this.newItem.title,
-        model: this.newItem.model,
+        description: this.newItem.description,
         price: this.newItem.price,
         currency: this.newItem.currency,
         lack: this.newItem.lack,
@@ -255,7 +260,7 @@ export const useItemStore = defineStore("item", {
       let preparedItem = {
         article: this.selectedItemForUpdating.article,
         title: this.selectedItemForUpdating.title,
-        model: this.selectedItemForUpdating.model,
+        description: this.selectedItemForUpdating.description,
         price: this.selectedItemForUpdating.price,
         currency: this.selectedItemForUpdating.currency,
         lack: this.selectedItemForUpdating.lack,
@@ -374,11 +379,12 @@ export const useItemStore = defineStore("item", {
         titleFilterMode:
           appConfigStore.filters.data[sectionName].selectedParams.title
             .filterMode.value,
-        //model
-        modelFilterValue:
-          appConfigStore.filters.data[sectionName].selectedParams.model.value,
-        modelFilterMode:
-          appConfigStore.filters.data[sectionName].selectedParams.model
+        //description
+        descriptionFilterValue:
+          appConfigStore.filters.data[sectionName].selectedParams.description
+            .value,
+        descriptionFilterMode:
+          appConfigStore.filters.data[sectionName].selectedParams.description
             .filterMode.value,
         //type
         typeFilterValue:

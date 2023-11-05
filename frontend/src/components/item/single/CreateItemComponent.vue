@@ -21,7 +21,7 @@
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
-                (val) => val.length <= 10 || 'Не більше 10 символів',
+                (val) => val.length <= 100 || 'Не більше 100 символів',
               ]"
             />
             <q-input
@@ -35,17 +35,7 @@
               ]"
             />
             <q-input
-              class="col-5 q-pt-sm"
-              outlined
-              v-model="sectionStore.newItem.model"
-              label="Модель"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть модель',
-                (val) => val.length <= 255 || 'Не більше 255 символів',
-              ]"
-            />
-            <q-input
-              class="col-7 q-pt-sm"
+              class="col-12 q-pt-sm"
               outlined
               v-model="sectionStore.newItem.group_id"
               :debounce="700"
@@ -88,6 +78,55 @@
                 Знайдено відповідність у базі даних
               </span>
             </q-input>
+
+            <div class="col-12 q-pt-sm q-mb-md q-wysiwyg">
+              <q-editor
+                ref="editorRef"
+                @paste="onPaste"
+                :toolbar="[
+                  [
+                    {
+                      label: 'Вирівнювання',
+                      icon: $q.iconSet.editor.align,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['left', 'center', 'right', 'justify'],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Текст',
+                      icon: $q.iconSet.editor.bold,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: [
+                        'bold',
+                        'italic',
+                        'strike',
+                        'underline',
+                        'subscript',
+                        'superscript',
+                      ],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Список',
+                      icon: $q.iconSet.editor.orderedList,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['unordered', 'ordered'],
+                    },
+                  ],
+
+                  ['removeFormat', 'viewsource'],
+                ]"
+                outlined
+                v-model="sectionStore.newItem.description"
+                placeholder="Опис"
+              />
+            </div>
+
             <q-select
               :hide-dropdown-icon="
                 sectionStore.newItem.type != null &&
@@ -456,6 +495,7 @@ import { useGenderStore } from "src/stores/genderStore";
 import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
+import { ref } from "vue";
 
 import DataReplacementDialogComponent from "./DataReplacementDialogComponent.vue";
 import WarehouseFormComponent from "src/components/item/single/WarehouseFormComponent.vue";
@@ -485,6 +525,27 @@ const warehouseTemplate = {
   ],
 };
 
+const editorRef = ref(null);
+function onPaste(evt) {
+  if (evt.target.nodeName === "INPUT") return;
+  let text, onPasteStripFormattingIEPaste;
+  evt.preventDefault();
+  evt.stopPropagation();
+  if (evt.originalEvent && evt.originalEvent.clipboardData.getData) {
+    text = evt.originalEvent.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (evt.clipboardData && evt.clipboardData.getData) {
+    text = evt.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (window.clipboardData && window.clipboardData.getData) {
+    if (!onPasteStripFormattingIEPaste) {
+      onPasteStripFormattingIEPaste = true;
+      editorRef.value.runCmd("ms-pasteTextOnly", text);
+    }
+    onPasteStripFormattingIEPaste = false;
+  }
+}
+
 function submit() {
   sectionStore.create();
 }
@@ -497,7 +558,7 @@ function clearCreateItemDialogData() {
   sectionStore.newItem.group_id = "";
   sectionStore.newItem.article = "";
   sectionStore.newItem.title = "";
-  sectionStore.newItem.model = "";
+  sectionStore.newItem.description = "";
   sectionStore.newItem.price = "";
   sectionStore.newItem.lack = 10;
   sectionStore.newItem.currency = "UAH";

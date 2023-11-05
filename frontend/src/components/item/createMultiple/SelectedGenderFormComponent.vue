@@ -1,7 +1,7 @@
 <template>
   <div class="row q-col-gutter-md q-mt-sm">
     <q-input
-      class="col-5 q-pt-sm q-mb-md"
+      class="col-12 q-pt-sm q-mb-md"
       outlined
       v-model="
         sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
@@ -9,15 +9,58 @@
       "
       label="Артикль"
     />
-    <q-input
-      class="col-7 q-pt-sm q-mb-md"
-      outlined
-      v-model="
-        sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
-          .model
-      "
-      label="Модель"
-    />
+
+    <div class="col-12 q-pt-sm q-mb-md q-wysiwyg">
+      <q-editor
+        ref="editorRef"
+        @paste="onPaste"
+        :toolbar="[
+          [
+            {
+              label: 'Вирівнювання',
+              icon: $q.iconSet.editor.align,
+              fixedLabel: true,
+              list: 'only-icons',
+              options: ['left', 'center', 'right', 'justify'],
+            },
+          ],
+          [
+            {
+              label: 'Текст',
+              icon: $q.iconSet.editor.bold,
+              fixedLabel: true,
+              list: 'only-icons',
+              options: [
+                'bold',
+                'italic',
+                'strike',
+                'underline',
+                'subscript',
+                'superscript',
+              ],
+            },
+          ],
+          [
+            {
+              label: 'Список',
+              icon: $q.iconSet.editor.orderedList,
+              fixedLabel: true,
+              list: 'only-icons',
+              options: ['unordered', 'ordered'],
+            },
+          ],
+
+          ['removeFormat', 'viewsource'],
+        ]"
+        outlined
+        v-model="
+          sectionStore.newMultipleItems.genders[props.genderArrayIndex].detail
+            .description
+        "
+        placeholder="Опис"
+      />
+    </div>
+
     <q-input
       class="col-12 q-pt-sm q-mb-md"
       outlined
@@ -69,6 +112,7 @@
   />
 </template>
 <script setup>
+import { ref } from "vue";
 import { useItemStore } from "src/stores/itemStore";
 import AddImagesComponent from "./AddImagesComponent.vue";
 import AddAvailableInComponent from "./AddAvailableInComponent.vue";
@@ -78,4 +122,25 @@ const props = defineProps([
   "rules",
   "lastUsedCharacteristic",
 ]);
+
+const editorRef = ref(null);
+function onPaste(evt) {
+  if (evt.target.nodeName === "INPUT") return;
+  let text, onPasteStripFormattingIEPaste;
+  evt.preventDefault();
+  evt.stopPropagation();
+  if (evt.originalEvent && evt.originalEvent.clipboardData.getData) {
+    text = evt.originalEvent.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (evt.clipboardData && evt.clipboardData.getData) {
+    text = evt.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (window.clipboardData && window.clipboardData.getData) {
+    if (!onPasteStripFormattingIEPaste) {
+      onPasteStripFormattingIEPaste = true;
+      editorRef.value.runCmd("ms-pasteTextOnly", text);
+    }
+    onPasteStripFormattingIEPaste = false;
+  }
+}
 </script>

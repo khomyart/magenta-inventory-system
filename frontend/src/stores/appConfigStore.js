@@ -2,12 +2,12 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 9,
+    version: 10,
     //axios has its own config
-    // backendUrl: "https://api.inventory.magenta.net.ua",
-    // imagesStoreUrl: "https://api.inventory.magenta.net.ua/images",
-    backendUrl: "http://localhost/",
-    imagesStoreUrl: "http://localhost/images",
+    backendUrl: "https://api.inventory.magenta.net.ua",
+    imagesStoreUrl: "https://api.inventory.magenta.net.ua/images",
+    // backendUrl: "http://localhost/",
+    // imagesStoreUrl: "http://localhost/images",
     webSocketUrl: "",
     dialogs: {
       settings: {
@@ -359,7 +359,7 @@ export const useAppConfigStore = defineStore("appConfig", {
               group_id: 150,
               article: 150,
               title: 150,
-              model: 150,
+              description: 150,
               price: 150,
               type: 150,
               gender: 150,
@@ -372,7 +372,7 @@ export const useAppConfigStore = defineStore("appConfig", {
               group_id: 0,
               article: 0,
               title: 0,
-              model: 0,
+              description: 0,
               price: 0,
               type: 0,
               gender: 0,
@@ -414,7 +414,7 @@ export const useAppConfigStore = defineStore("appConfig", {
                 shortName: "LIKE",
               },
             },
-            model: {
+            description: {
               value: "",
               filterMode: {
                 label: "Містить",

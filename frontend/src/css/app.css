@@ -80,6 +80,24 @@ div[name] {
   border-left: 1px solid rgba(0, 0, 0, 0.12);
   width: 1px;
 }
+
+.q-wysiwyg .q-icon,
+span.q-btn__content.text-center.col.items-center.q-anchor--skip.justify-center.row.no-wrap.text-no-wrap
+  > i {
+  width: 30px;
+  height: 30px;
+  font-size: 2em !important;
+}
+
+.q-btn__content > span.block {
+  font-size: 1.2em !important;
+}
+
+.q-wysiwyg .q-editor__content {
+  min-height: 5rem !important;
+  max-height: 15rem !important;
+}
+
 .content {
   width: fit-content;
   overflow: auto;

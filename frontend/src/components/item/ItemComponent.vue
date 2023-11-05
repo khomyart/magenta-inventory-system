@@ -179,10 +179,35 @@
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
         style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.model, 'Модель')"
+        @click="
+          $emit(
+            'showItemDescriptionDialog',
+            props.itemInfo.title,
+            props.itemInfo.description
+          )
+        "
+        :id="`description-of-item-${props.itemInfo.id}`"
       >
-        <div class="item-text">
-          {{ props.itemInfo.model }}
+        <q-tooltip
+          v-if="
+            props.itemInfo.description != null &&
+            props.itemInfo.description != ''
+          "
+          :offset="[8, 5]"
+          :target="`#description-of-item-${props.itemInfo.id}`"
+          class="bg-black text-body2"
+          anchor="center left"
+          self="center right"
+          >Натисніть, щоб <br />ознайомитись з описом</q-tooltip
+        >
+        <div
+          class="item-text"
+          v-if="
+            props.itemInfo.description != null &&
+            props.itemInfo.description != ''
+          "
+        >
+          ...
         </div>
       </div>
     </td>
@@ -503,6 +528,7 @@ const emit = defineEmits([
   "showRemoveDialog",
   "clearUpdatedItemId",
   "copyValue",
+  "showItemDescriptionDialog",
 ]);
 const props = defineProps([
   "itemInfo",

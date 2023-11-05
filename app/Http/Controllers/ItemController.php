@@ -24,9 +24,9 @@ class ItemController extends Controller
     public $section = "items";
     public $currencyForSearching = null;
     //field names are used for accepting filters while searching in db
-    public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "model", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "income.amount_of_items", "units.name"];
+    public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "items.description", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "income.amount_of_items", "units.name"];
     //field names are used for validating incoming data
-    public $readFieldsFromFrontend = ["group_id", "article", "title", "model", "price", "type", "gender", "size", "color", "amount", "units"];
+    public $readFieldsFromFrontend = ["group_id", "article", "title", "description", "price", "type", "gender", "size", "color", "amount", "units"];
     //if 0 - unlimited
     public $defaultQueryResultLimit = 0;
 
@@ -83,9 +83,9 @@ class ItemController extends Controller
             "items.group_id AS group_id",
             "items.article AS article",
             "items.title AS title",
-            "items.model AS model",
+            "items.description AS description",
             "items.price AS unconverted_price",
-            "items.currency AS currency",
+            "items.currency AS currency"
         )
         ->selectRaw('
             IF(items.currency = "USD", items.price * ?,
@@ -284,10 +284,10 @@ class ItemController extends Controller
         $sectionModel = $this->getSectionModel();
 
         $itemData = $request->validate([
-            "article" => "required|string|max:10",
+            "article" => "required|string|max:100",
             "group_id" => "required|string|max:36",
             "title" => "required|string|max:255",
-            "model" => "required|string|max:255",
+            "description" => "nullable|string|max:5000",
             "price" => "required|numeric|gte:1",
             "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
             "lack" => "required|numeric|integer|gte:1",
@@ -385,10 +385,10 @@ class ItemController extends Controller
         $sectionModel = $this->getSectionModel();
 
         $itemsData = $request->validate([
-            "items.*.article" => "required|string|max:10",
+            "items.*.article" => "required|string|max:100",
             "items.*.group_id" => "required|string|max:36",
             "items.*.title" => "required|string|max:255",
-            "items.*.model" => "required|string|max:255",
+            "items.*.description" => "nullable|string|max:5000",
             "items.*.price" => "required|numeric|gte:1",
             "items.*.currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
             "items.*.lack" => "required|numeric|integer|gte:1",
@@ -884,9 +884,9 @@ class ItemController extends Controller
         if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено");
 
         $itemData = $request->validate([
-            "article" => "required|string|max:10",
+            "article" => "required|string|max:100",
             "title" => "required|string|max:255",
-            "model" => "required|string|max:255",
+            "description" => "nullable|string|max:5000",
             "price" => "required|numeric|gte:1",
             "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
             "lack" => "required|numeric|integer|gte:1",
@@ -927,7 +927,7 @@ class ItemController extends Controller
 
         $item->article = $itemData["article"];
         $item->title = $itemData["title"];
-        $item->model = $itemData["model"];
+        $item->description = $itemData["description"];
         $item->price = $itemData["price"];
         $item->currency = $itemData["currency"];
         $item->lack = $itemData["lack"];
@@ -1024,7 +1024,7 @@ class ItemController extends Controller
             "items.group_id AS group_id",
             "items.article AS article",
             "items.title AS title",
-            "items.model AS model",
+            "items.description AS description",
             "items.price AS unconverted_price",
             "items.currency AS currency",
         )

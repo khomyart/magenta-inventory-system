@@ -57,7 +57,7 @@
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
-                (val) => val.length <= 10 || 'Не більше 10 символів',
+                (val) => val.length <= 100 || 'Не більше 100 символів',
               ]"
             />
             <q-input
@@ -73,16 +73,53 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-            <q-input
-              class="col-12 q-pt-sm"
-              outlined
-              v-model="sectionStore.newMultipleItems.main.detail.model"
-              label="Модель"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть модель',
-                (val) => val.length <= 255 || 'Не більше 255 символів',
-              ]"
-            />
+
+            <div class="col-12 q-pt-sm q-mb-md q-wysiwyg">
+              <q-editor
+                ref="editorRef"
+                @paste="onPaste"
+                :toolbar="[
+                  [
+                    {
+                      label: 'Вирівнювання',
+                      icon: $q.iconSet.editor.align,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['left', 'center', 'right', 'justify'],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Текст',
+                      icon: $q.iconSet.editor.bold,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: [
+                        'bold',
+                        'italic',
+                        'strike',
+                        'underline',
+                        'subscript',
+                        'superscript',
+                      ],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Список',
+                      icon: $q.iconSet.editor.orderedList,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['unordered', 'ordered'],
+                    },
+                  ],
+                  ['removeFormat', 'viewsource'],
+                ]"
+                outlined
+                v-model="sectionStore.newMultipleItems.main.detail.description"
+                placeholder="Опис"
+              />
+            </div>
 
             <q-select
               :hide-dropdown-icon="
@@ -428,7 +465,7 @@ const newMultupleItemsDefaultState = {
     unit: null,
     detail: {
       title: "",
-      model: "",
+      description: "",
       article: "",
       price: "",
       currency: "UAH",
@@ -464,7 +501,7 @@ let selectedIndexes = reactive({
 let genderFieldsRules = {
   article: [
     (val) => (val !== null && val !== "") || "Введіть артикль",
-    (val) => val.length <= 10 || "Не більше 10 символів",
+    (val) => val.length <= 100 || "Артикль не більше 100 символів",
     (val) => {
       let articleMatches = sectionStore.newMultipleItems.genders.filter(
         (gender) => {
@@ -475,17 +512,14 @@ let genderFieldsRules = {
       return articleMatches.length <= 1 || "Артиклі не можуть повторюватися";
     },
   ],
-  model: [
-    (val) => (val !== null && val !== "") || "Введіть модель",
-    (val) => val.length <= 255 || "Не більше 255 символів",
-  ],
+  description: [(val) => val.length <= 5000 || "Опис не більше 5000 символів"],
   title: [
     (val) => (val !== null && val !== "") || "Введіть назву",
-    (val) => val.length <= 255 || "Не більше 255 символів",
+    (val) => val.length <= 255 || "Назва не довша 255 символів",
   ],
   price: [
     (val) => (val !== null && val !== "") || "Вкажіть ціну",
-    (val) => val.length <= 13 || "Не більше 13 символів",
+    (val) => val.length <= 13 || "Ціна не довша 13 символів",
     (val) => val >= 1 || "Ціна не менше 1",
   ],
   lack: [
@@ -495,10 +529,7 @@ let genderFieldsRules = {
 };
 
 let colorFieldsRules = {
-  model: [
-    (val) => (val !== null && val !== "") || "Введіть модель",
-    (val) => val.length <= 255 || "Не більше 255 символів",
-  ],
+  description: [(val) => val.length <= 5000 || "Не більше 5000 символів"],
   title: [
     (val) => (val !== null && val !== "") || "Введіть назву",
     (val) => val.length <= 255 || "Не більше 255 символів",
@@ -515,10 +546,7 @@ let colorFieldsRules = {
 };
 
 let sizeFieldsRules = {
-  model: [
-    (val) => (val !== null && val !== "") || "Введіть модель",
-    (val) => val.length <= 255 || "Не більше 255 символів",
-  ],
+  description: [(val) => val.length <= 5000 || "Не більше 5000 символів"],
   title: [
     (val) => (val !== null && val !== "") || "Введіть назву",
     (val) => val.length <= 255 || "Не більше 255 символів",
@@ -559,6 +587,27 @@ function unitFilter(val, update, abort) {
     unitStore.simpleItems = [];
     unitStore.simpleReceive(val);
   });
+}
+
+const editorRef = ref(null);
+function onPaste(evt) {
+  if (evt.target.nodeName === "INPUT") return;
+  let text, onPasteStripFormattingIEPaste;
+  evt.preventDefault();
+  evt.stopPropagation();
+  if (evt.originalEvent && evt.originalEvent.clipboardData.getData) {
+    text = evt.originalEvent.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (evt.clipboardData && evt.clipboardData.getData) {
+    text = evt.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (window.clipboardData && window.clipboardData.getData) {
+    if (!onPasteStripFormattingIEPaste) {
+      onPasteStripFormattingIEPaste = true;
+      editorRef.value.runCmd("ms-pasteTextOnly", text);
+    }
+    onPasteStripFormattingIEPaste = false;
+  }
 }
 
 /**
@@ -659,7 +708,7 @@ function validator(type, restricted = false) {
       fieldsValues.availableIn
     );
     let errorsFor = {
-      model: {
+      description: {
         list: [],
         display: "",
       },
@@ -965,7 +1014,7 @@ function convertNewMultipleItemsToValidItemsArray(newMultipleItems) {
         ? item.detail.article
         : newMultipleItems.main.detail.article;
     preparedItem.title = item.detail.title;
-    preparedItem.model = item.detail.model;
+    preparedItem.description = item.detail.description;
     preparedItem.price = item.detail.price;
     preparedItem.currency = item.detail.currency;
     preparedItem.lack = item.detail.lack;
@@ -1787,7 +1836,7 @@ watch([() => isUsed.genders, () => isUsed.colors, () => isUsed.sizes], () => {
   sectionStore.newMultipleItems = {};
   sectionStore.newMultipleItems.main = { ...newMultupleItemsDefaultState.main };
   sectionStore.newMultipleItems.main.detail.title = "";
-  sectionStore.newMultipleItems.main.detail.model = "";
+  sectionStore.newMultipleItems.main.detail.description = "";
   sectionStore.newMultipleItems.main.detail.article = "";
   sectionStore.newMultipleItems.main.detail.price = "";
   sectionStore.newMultipleItems.main.detail.currency = "UAH";
@@ -1849,7 +1898,7 @@ watch(
       ...newMultupleItemsDefaultState.main,
     };
     sectionStore.newMultipleItems.main.detail.title = "";
-    sectionStore.newMultipleItems.main.detail.model = "";
+    sectionStore.newMultipleItems.main.detail.description = "";
     sectionStore.newMultipleItems.main.detail.article = "";
     sectionStore.newMultipleItems.main.detail.price = "";
     sectionStore.newMultipleItems.main.detail.currency = "UAH";
@@ -1875,7 +1924,7 @@ let newMultipleItemTemplate2 = {
     type: { id: 54, name: "Кружки", number_in_row: 16 },
     detail: {
       title: "Кружки",
-      model: "Glass Rose",
+      description: "Glass Rose",
       article: "56-7126527",
       price: "350",
       currency: "UAH",
@@ -1895,7 +1944,7 @@ let newMultipleItemTemplate2 = {
       text_color_value: "#ffffff",
       detail: {
         title: "Кружки врушна",
-        model: "Glass Rose",
+        description: "Glass Rose",
         article: "56-7126527",
         price: "350",
         currency: "UAH",
@@ -1929,7 +1978,7 @@ let newMultipleItemTemplate2 = {
       text_color_value: "#000000",
       detail: {
         title: "Кружки кремі",
-        model: "Glass Rose",
+        description: "Glass Rose",
         article: "56-7126527",
         price: "350",
         currency: "UAH",
@@ -1979,7 +2028,7 @@ let newMultipleItemTemplate2 = {
       text_color_value: "#000000",
       detail: {
         title: "Кружки каралоуна",
-        model: "Glass Rose",
+        descrition: "Glass Rose",
         article: "56-7126527",
         price: "450",
         currency: "UAH",
@@ -1999,7 +2048,7 @@ let newMultipleItemTemplate = {
     type: { id: 29, name: "Старе Футболки", number_in_row: 1 },
     detail: {
       title: "2",
-      model: "4",
+      description: "4",
       article: "",
       price: "5",
       currency: "UAH",
@@ -2016,7 +2065,7 @@ let newMultipleItemTemplate = {
       number_in_row: 1,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "1",
         price: "5",
         currency: "UAH",
@@ -2031,7 +2080,7 @@ let newMultipleItemTemplate = {
       number_in_row: 3,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "2",
         price: "5",
         currency: "UAH",
@@ -2046,7 +2095,7 @@ let newMultipleItemTemplate = {
       number_in_row: 6,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "3",
         price: "5",
         currency: "UAH",
@@ -2065,7 +2114,7 @@ let newMultipleItemTemplate = {
       text_color_value: "#ffffff",
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2084,7 +2133,7 @@ let newMultipleItemTemplate = {
       text_color_value: "#ffffff",
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2103,7 +2152,7 @@ let newMultipleItemTemplate = {
       text_color_value: "#000000",
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2122,7 +2171,7 @@ let newMultipleItemTemplate = {
       text_color_value: "#000000",
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2141,7 +2190,7 @@ let newMultipleItemTemplate = {
       text_color_value: "#ffffff",
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "3",
         price: "5",
         currency: "UAH",
@@ -2161,7 +2210,7 @@ let newMultipleItemTemplate = {
       number_in_row: 1,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2179,7 +2228,7 @@ let newMultipleItemTemplate = {
       number_in_row: 2,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2212,7 +2261,7 @@ let newMultipleItemTemplate = {
       number_in_row: 3,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2230,7 +2279,7 @@ let newMultipleItemTemplate = {
       number_in_row: 5,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2248,7 +2297,7 @@ let newMultipleItemTemplate = {
       number_in_row: 4,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2266,7 +2315,7 @@ let newMultipleItemTemplate = {
       number_in_row: 2,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2299,7 +2348,7 @@ let newMultipleItemTemplate = {
       number_in_row: 3,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2317,7 +2366,7 @@ let newMultipleItemTemplate = {
       number_in_row: 4,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2335,7 +2384,7 @@ let newMultipleItemTemplate = {
       number_in_row: 4,
       detail: {
         title: "2",
-        model: "4",
+        description: "4",
         article: "",
         price: "5",
         currency: "UAH",
@@ -2367,7 +2416,7 @@ let newMultipleItemTemplate = {
       number_in_row: 1,
       detail: {
         title: "Назвуська",
-        model: "4",
+        description: "4",
         article: "3",
         price: "5",
         currency: "UAH",

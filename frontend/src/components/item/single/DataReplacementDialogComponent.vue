@@ -31,8 +31,10 @@
             {{ sectionStore.bufferedItems[dataReplacementDialogPage].title }}
           </p>
           <p>
-            - Модель:
-            {{ sectionStore.bufferedItems[dataReplacementDialogPage].model }}
+            - Опис:
+            {{
+              sectionStore.bufferedItems[dataReplacementDialogPage].description
+            }}
           </p>
           <p>
             - Вид:
@@ -184,7 +186,7 @@ function fillFormWithReplacementData() {
   console.log(selectedItem.images);
   sectionStore.newItem.article = selectedItem.article;
   sectionStore.newItem.title = selectedItem.title;
-  sectionStore.newItem.model = selectedItem.model;
+  sectionStore.newItem.description = selectedItem.description;
   sectionStore.newItem.price = selectedItem.price;
   sectionStore.newItem.lack = selectedItem.lack;
   sectionStore.newItem.currency = selectedItem.currency;

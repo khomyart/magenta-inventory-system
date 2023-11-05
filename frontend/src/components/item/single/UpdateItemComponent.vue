@@ -21,7 +21,7 @@
               label="Артикль"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть артикль',
-                (val) => val.length <= 10 || 'Не більше 10 символів',
+                (val) => val.length <= 100 || 'Не більше 100 символів',
               ]"
             />
             <q-input
@@ -34,23 +34,62 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-            <q-input
-              class="col-5 q-pt-sm"
-              outlined
-              v-model="sectionStore.selectedItemForUpdating.model"
-              label="Модель"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть модель',
-                (val) => val.length <= 255 || 'Не більше 255 символів',
-              ]"
-            />
+
             <q-input
               outlined
               v-model="sectionStore.selectedItemForUpdating.group_id"
               label="ID групи"
               readonly
-              class="col-7 q-pt-sm"
+              class="col-12 q-pt-sm"
             />
+
+            <div class="col-12 q-mt-sm q-mb-md q-wysiwyg">
+              <q-editor
+                ref="editorRef"
+                @paste="onPaste"
+                :toolbar="[
+                  [
+                    {
+                      label: 'Вирівнювання',
+                      icon: $q.iconSet.editor.align,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['left', 'center', 'right', 'justify'],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Текст',
+                      icon: $q.iconSet.editor.bold,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: [
+                        'bold',
+                        'italic',
+                        'strike',
+                        'underline',
+                        'subscript',
+                        'superscript',
+                      ],
+                    },
+                  ],
+                  [
+                    {
+                      label: 'Список',
+                      icon: $q.iconSet.editor.orderedList,
+                      fixedLabel: true,
+                      list: 'only-icons',
+                      options: ['unordered', 'ordered'],
+                    },
+                  ],
+
+                  ['removeFormat', 'viewsource'],
+                ]"
+                outlined
+                v-model="sectionStore.selectedItemForUpdating.description"
+                placeholder="Опис"
+              />
+            </div>
 
             <q-input
               outlined
@@ -310,7 +349,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { onMounted, watch } from "vue";
+import { onMounted, watch, ref } from "vue";
 import { useCountryStore } from "src/stores/helpers/countryStore";
 import { useCityStore } from "src/stores/helpers/cityStore";
 import { useItemStore } from "src/stores/itemStore";
@@ -329,6 +368,27 @@ const sizeStore = useSizeStore();
 const genderStore = useGenderStore();
 const colorStore = useColorStore();
 const unitStore = useUnitStore();
+
+const editorRef = ref(null);
+function onPaste(evt) {
+  if (evt.target.nodeName === "INPUT") return;
+  let text, onPasteStripFormattingIEPaste;
+  evt.preventDefault();
+  evt.stopPropagation();
+  if (evt.originalEvent && evt.originalEvent.clipboardData.getData) {
+    text = evt.originalEvent.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (evt.clipboardData && evt.clipboardData.getData) {
+    text = evt.clipboardData.getData("text/plain");
+    editorRef.value.runCmd("insertText", text);
+  } else if (window.clipboardData && window.clipboardData.getData) {
+    if (!onPasteStripFormattingIEPaste) {
+      onPasteStripFormattingIEPaste = true;
+      editorRef.value.runCmd("ms-pasteTextOnly", text);
+    }
+    onPasteStripFormattingIEPaste = false;
+  }
+}
 
 function moveImage(imageIndex, direction) {
   let currentImage = sectionStore.selectedItemForUpdating.images[imageIndex];

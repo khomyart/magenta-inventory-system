@@ -148,6 +148,7 @@
             @clear-updated-item-id="clearUpdatedItemId"
             @show-amounts-in-warehouses-dialog="showAmountsInWarehousesDialog"
             @copy-value="copyValue"
+            @show-item-description-dialog="showItemDescriptionDialog"
             :allowenses="{
               create: allowenses.create,
               update: allowenses.update,
@@ -304,107 +305,9 @@
       </q-card>
     </q-dialog>
     <!-- AMOUNTS WAREHOUSES DIALOG -->
-    <q-dialog
-      v-model="sectionStore.dialogs.amountsWarehouses.isShown"
-      transition-show="scale"
-      transition-hide="scale"
-    >
-      <q-card style="width: 350px">
-        <q-card-section>
-          <div class="text-h6 flex items-center">
-            <q-icon
-              size="md"
-              class="q-mr-sm"
-              name="apps"
-              color="black"
-            ></q-icon>
-            <div class="q-ml-sm text-header">
-              {{ sectionStore.dialogs.amountsWarehouses.itemTitle }}
-            </div>
-          </div>
-        </q-card-section>
-        <q-separator></q-separator>
-
-        <q-card-section class="q-pt-md">
-          <table style="width: 100%; border-collapse: collapse">
-            <template
-              v-for="(warehouseAmounts, index) in sectionStore.dialogs
-                .amountsWarehouses.content"
-              :key="warehouseAmounts.id"
-            >
-              <tr>
-                <td>
-                  <span
-                    :style="{
-                      cursor:
-                        appStore.filters.data.items.selectedParams.warehouse ==
-                          null ||
-                        warehouseAmounts.warehouse_id !=
-                          appStore.filters.data.items.selectedParams.warehouse
-                            .id
-                          ? 'pointer'
-                          : 'default',
-                    }"
-                    :class="{
-                      'text-primary':
-                        appStore.filters.data.items.selectedParams.warehouse ==
-                          null ||
-                        warehouseAmounts.warehouse_id !=
-                          appStore.filters.data.items.selectedParams.warehouse
-                            .id,
-                    }"
-                    @click="
-                      if (
-                        appStore.filters.data.items.selectedParams.warehouse ==
-                          null ||
-                        warehouseAmounts.warehouse_id !=
-                          appStore.filters.data.items.selectedParams.warehouse
-                            .id
-                      ) {
-                        sectionStore.dialogs.amountsWarehouses.isShown = false;
-                        appStore.filters.data.items.selectedParams.warehouse = {
-                          id: warehouseAmounts.warehouse_id,
-                          name: warehouseAmounts.warehouse_name,
-                          address: warehouseAmounts.warehouse_address,
-                          city_name: warehouseAmounts.city_name,
-                          country_name: warehouseAmounts.country_name,
-                          description: warehouseAmounts.warehouse_description,
-                        };
-                      }
-                    "
-                  >
-                    ({{ warehouseAmounts.country_name }},
-                    {{ warehouseAmounts.city_name }})
-                    {{ warehouseAmounts.warehouse_name }}
-                  </span>
-                </td>
-                <td align="right">
-                  {{ warehouseAmounts.amount }} {{ warehouseAmounts.unit }}
-                </td>
-              </tr>
-              <tr
-                v-if="
-                  sectionStore.dialogs.amountsWarehouses.content.length - 1 !=
-                  index
-                "
-              >
-                <td style="padding: 5px 0px">
-                  <q-separator></q-separator>
-                </td>
-                <td style="padding: 5px 0px">
-                  <q-separator></q-separator>
-                </td>
-              </tr>
-            </template>
-          </table>
-        </q-card-section>
-
-        <q-separator></q-separator>
-        <q-card-actions align="right">
-          <q-btn flat color="black" v-close-popup>Гаразд</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <AmountWarehousesDialogComponent />
+    <!-- SHOW DESCRIPTION DIALOG -->
+    <ShowDescriptionDialogComponent />
   </div>
 </template>
 
@@ -426,6 +329,8 @@ import FilterByWarehouseComponent from "src/components/item/FilterByWarehouseCom
 import IncomeCreatorComponent from "src/components/item/income/IncomeCreatorComponent.vue";
 import OutcomeCreatorComponent from "src/components/item/outcome/OutcomeCreatorComponent.vue";
 import ItemMoveComponent from "src/components/item/move/ItemMoveComponent.vue";
+import ShowDescriptionDialogComponent from "src/components/item/single/ShowDescriptionDialogComponent.vue";
+import AmountWarehousesDialogComponent from "src/components/item/single/AmountWarehousesDialogComponent.vue";
 
 const currentSection = "items";
 const appStore = useAppConfigStore();
@@ -437,7 +342,7 @@ const fieldsSequance = [
   "group_id",
   "article",
   "title",
-  "model",
+  "description",
   "price",
   "type",
   "gender",
@@ -475,8 +380,8 @@ const fieldsDetails = [
     },
   },
   {
-    label: "Модель",
-    searchBarLabel: "Модель",
+    label: "Опис",
+    searchBarLabel: "Опис",
     type: "universal",
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
@@ -609,6 +514,12 @@ function copyValue(value, paramName) {
   });
 }
 
+function showItemDescriptionDialog(title, description) {
+  sectionStore.dialogs.itemDescription.isShown = true;
+  sectionStore.dialogs.itemDescription.title = title;
+  sectionStore.dialogs.itemDescription.content = description;
+}
+
 function showRemoveDialog(id, title) {
   deletedItem.id = id;
   deletedItem.title = title;
@@ -686,8 +597,8 @@ const computedFilterWidth = computed(() => {
       title:
         appStore.filters.data[currentSection].width.dynamic.title -
         appStore.filters.availableParams.filterButtonXPadding,
-      model:
-        appStore.filters.data[currentSection].width.dynamic.model -
+      description:
+        appStore.filters.data[currentSection].width.dynamic.description -
         appStore.filters.availableParams.filterButtonXPadding,
       type:
         appStore.filters.data[currentSection].width.dynamic.type -
@@ -715,7 +626,8 @@ const computedFilterWidth = computed(() => {
       group_id: appStore.filters.data[currentSection].width.dynamic.group_id,
       article: appStore.filters.data[currentSection].width.dynamic.article,
       title: appStore.filters.data[currentSection].width.dynamic.title,
-      model: appStore.filters.data[currentSection].width.dynamic.model,
+      description:
+        appStore.filters.data[currentSection].width.dynamic.description,
       type: appStore.filters.data[currentSection].width.dynamic.type,
       price: appStore.filters.data[currentSection].width.dynamic.price,
       gender: appStore.filters.data[currentSection].width.dynamic.gender,
@@ -752,7 +664,8 @@ watch(
     () => appStore.filters.data[currentSection].selectedParams.group_id.value,
     () => appStore.filters.data[currentSection].selectedParams.article.value,
     () => appStore.filters.data[currentSection].selectedParams.title.value,
-    () => appStore.filters.data[currentSection].selectedParams.model.value,
+    () =>
+      appStore.filters.data[currentSection].selectedParams.description.value,
     () => appStore.filters.data[currentSection].selectedParams.type.value,
     () => appStore.filters.data[currentSection].selectedParams.price.value,
     () => appStore.filters.data[currentSection].selectedParams.gender.value,

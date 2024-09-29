@@ -358,6 +358,8 @@ export const useItemStore = defineStore("item", {
       this.data.isItemsLoading = true;
       console.log("received items");
       let preparedParams = {
+        extendedArticle: appConfigStore.filters.data[sectionName].selectedParams.extended_article
+          .value,
         itemsPerPage: appConfigStore.amountOfItemsPerPages[sectionName],
         page: appConfigStore.currentPages[sectionName],
         //group_id

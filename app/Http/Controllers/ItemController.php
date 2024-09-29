@@ -14,10 +14,12 @@ use App\Models\Size;
 use App\Models\ItemWarehouseAmount;
 use App\Helpers\ErrorHandler;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Query\Builder;
+use Symfony\Component\HttpFoundation\Response;
 
 class ItemController extends Controller
 {
@@ -29,8 +31,6 @@ class ItemController extends Controller
     public $readFieldsFromFrontend = ["group_id", "article", "title", "description", "price", "type", "gender", "size", "color", "amount", "units"];
     //if 0 - unlimited
     public $defaultQueryResultLimit = 0;
-
-    private $nbuCurrencyExchangeResponse = null;
 
     /**
      * Templated access to section model
@@ -54,10 +54,10 @@ class ItemController extends Controller
         $validationRules = [
             "itemsPerPage" => "required|numeric",
             "page" => "required|numeric",
+            "extendedArticle" => "nullable|string|max:255", // (article) (color_article) (size)
             "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
             "warehouseId" => "nullable|numeric|gte:0",
         ];
-
         foreach ($this->readFieldsFromFrontend as $key => $field) {
             /**
              * forming regular exp. for validation of ordering, depending on fields name
@@ -96,10 +96,8 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                // $this->getNbuCurrencyExchangeCourse($today, "USD"),
-                // $this->getNbuCurrencyExchangeCourse($today, "EUR")
-                1,
-                1
+                 $this->getNbuCurrencyExchangeCourses($today, "USD"),
+                 $this->getNbuCurrencyExchangeCourses($today, "EUR")
             ]
         )
         ->addSelect(
@@ -219,6 +217,39 @@ class ItemController extends Controller
                     }
                 }
             }
+        }
+
+        //parsing extended article "WHERE" statement
+        $params = explode(" ",  trim($data["extendedArticle"]));
+        if (count($params) == 1) {
+            $section->where(function (Builder $query) use ($params) {
+                $query->where("items.article", "LIKE", "%{$params[0]}%")
+                    ->orWhere("colors.article", "LIKE", "%{$params[0]}%")
+                    ->orWhere("sizes.value", "LIKE", "%{$params[0]}%");
+            });
+        }
+
+        if (count($params) == 2) {
+            $section->where(function (Builder $query) use ($params) {
+                $query->where(function (Builder $query) use ($params) {
+                    $query->where("items.article", "LIKE", "%{$params[0]}%")
+                        ->where("colors.article", "LIKE", "%{$params[1]}%");
+                })
+                ->orWhere(function (Builder $query) use ($params) {
+                    $query->where("items.article", "LIKE", "%{$params[0]}%")
+                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                })
+                ->orWhere(function (Builder $query) use ($params) {
+                    $query->where("colors.article", "LIKE", "%{$params[0]}%")
+                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                });
+            });
+        }
+
+        if (count($params) == 3) {
+            $section->where("items.article", "LIKE", "%{$params[0]}%")
+                ->where("colors.article", "LIKE", "%{$params[1]}%")
+                ->where("sizes.value", "LIKE", "%{$params[2]}%");
         }
 
         /**
@@ -699,7 +730,7 @@ class ItemController extends Controller
      * value -          value, which is used for query forming
      * warehouse_id -   id of warehouse where searching need to be done (works in pair with article mode)
      *
-     * @return array of items, or a single item as array
+     * @return Response of items, or a single item as array
      */
     public function getItemsWithPreparedData(Request $request) {
         $filterData = $request->validate([
@@ -714,14 +745,6 @@ class ItemController extends Controller
             $item = Item::find($filterData["value"]);
 
             if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
-
-            $item->type;
-            $item->gender;
-            $item->size;
-            $item->color;
-            $item->unit;
-            $item->images;
-
             $item = json_decode(json_encode($item), true);
 
             foreach ($item["images"] as $key => $image) {
@@ -859,7 +882,6 @@ class ItemController extends Controller
                         $section->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
             }
 
-
             //additional query tweaks
             $amountOfItems = $section->count();
             if ($this->defaultQueryResultLimit != 0)
@@ -993,27 +1015,34 @@ class ItemController extends Controller
         return $equality[$operatorName];
     }
     /**
-     * Returns nbu currency exchange currency rate
+     * Returns nbu currency exchange currency rate for today
      *
      * @param $date - yyyymm
      * @param $currencyCode - USD|EUR|etc...
+     * @param
      *
-     * @return array with currencies (EUR, USD)
+     * @return float currency exchange index
      */
-    private function getNbuCurrencyExchangeCourse($date, $currencyCode) {
-        $neededCurrencyRate = null;
+    private function getNbuCurrencyExchangeCourses($date, $currencyCode): float {
+        $cachedCurrencies = Cache::get("nbuCurrencyExchangeCourses");
+        if ($cachedCurrencies != null) {
+            return (float)$cachedCurrencies[$currencyCode] ?? 1;
+        }
+        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={$date}&json");
+        if ($response) {
+            $currencies = json_decode($response, true);
+            $currenciesAssoc = [];
+            foreach ($currencies as $currency) {
+                if ($currency['cc'] && $currency['rate']) {
+                    $currenciesAssoc[$currency['cc']] = $currency['rate'];
+                }
+            }
 
-        if (empty($this->nbuCurrencyExchangeResponse)) {
-            $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={$date}&json");
-            $this->nbuCurrencyExchangeResponse = json_decode($response, true);
+            Cache::put("nbuCurrencyExchangeCourses", $currenciesAssoc, now()->setTime(23,59,59));
+            return (float)$currenciesAssoc[$currencyCode] ?? 1;
         }
 
-        for ($i = 0; $i < count($this->nbuCurrencyExchangeResponse); $i++) {
-            if (!in_array($currencyCode, $this->nbuCurrencyExchangeResponse[$i])) continue;
-            $neededCurrencyRate = $this->nbuCurrencyExchangeResponse[$i]["rate"];
-        }
-
-        return $neededCurrencyRate;
+        return 1;
     }
 
     private function getUpdatedItem($id) {

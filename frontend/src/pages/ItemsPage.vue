@@ -2,12 +2,10 @@
   <div class="page">
     <div class="toolbar row q-mt-md q-pr-md">
       <q-input
-        v-model="
-          appStore.filters.data[currentSection].selectedParams.title.value
-        "
+        v-model="appStore.filters.data[currentSection].selectedParams.extended_article.value"
         debounce="700"
         outlined
-        placeholder="Введіть назву предмету"
+        placeholder="Введіть розширений артикль"
         dense
         class="q-mr-md"
         style="width: 300px"
@@ -662,6 +660,7 @@ watch(
   [
     () => appStore.filters.data[currentSection].selectedParams.order.combined,
     () => appStore.filters.data[currentSection].selectedParams.group_id.value,
+    () => appStore.filters.data[currentSection].selectedParams.extended_article.value,
     () => appStore.filters.data[currentSection].selectedParams.article.value,
     () => appStore.filters.data[currentSection].selectedParams.title.value,
     () =>

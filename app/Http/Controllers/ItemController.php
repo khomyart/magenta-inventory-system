@@ -35,9 +35,10 @@ class ItemController extends Controller
     /**
      * Templated access to section model
      *
-     * @return \App\Models\Item
+     * @return Item
      */
-    public function getSectionModel() {
+    public function getSectionModel(): Item
+    {
         return new Item;
     }
 
@@ -742,9 +743,16 @@ class ItemController extends Controller
         if ($filterData["value"] === null) return [];
 
         if ($filterData["mode"] == "id") {
-            $item = Item::find($filterData["value"]);
-
+            $item = Item::query()->find($filterData["value"]);
             if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
+
+            $item->type;
+            $item->gender;
+            $item->size;
+            $item->color;
+            $item->unit;
+            $item->images;
+
             $item = json_decode(json_encode($item), true);
 
             foreach ($item["images"] as $key => $image) {

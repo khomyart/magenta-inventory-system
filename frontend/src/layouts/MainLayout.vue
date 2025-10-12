@@ -319,6 +319,7 @@ import { useColorStore } from "src/stores/colorStore";
 import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
 import SettingsComponent from "src/components/main/SettingsComponent.vue";
+import {useSpendStore} from "stores/spendStore";
 
 const enableRoleValidation = true;
 
@@ -327,6 +328,7 @@ const store = {
   users: useUserStore(),
   app: useAppConfigStore(),
   items: useItemStore(),
+  spends: useSpendStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -339,6 +341,33 @@ let sessionRenewPassword = ref("");
 let showSessionRenewPassword = ref(false);
 
 const menuItems = [
+  {
+    name: "Бізнес",
+    type: "header",
+    isAllowed:
+      store.app.allowenses.renewAndCheckIsValidFor("read", "spends")
+  },
+  {
+    name: "Витрати",
+    icon: "recycling",
+    to: { name: "spends" },
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "spends"),
+  },
+  {
+    type: "separator",
+    isAllowed:
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "items") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "logs")) &&
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses")),
+  },
   {
     name: "Предмети",
     type: "header",
@@ -495,6 +524,7 @@ function logout() {
   store.app.errors.reauth.dialogs.unauthenticated.isLoading = true;
   store.users.logout().finally(() => {
     sessionStorage.removeItem("data");
+    store.users.data.id = "";
     store.users.data.email = "";
     store.users.data.name = "";
     store.users.data.token.value = null;
@@ -591,6 +621,7 @@ onBeforeMount(() => {
   let userData = JSON.parse(sessionStorage.getItem("data"));
 
   if (typeof userData === "object") {
+    store.users.data.id = userData.id;
     store.users.data.email = userData.email;
     store.users.data.name = userData.name;
     store.users.data.token.expiredAt = userData.expired_at;

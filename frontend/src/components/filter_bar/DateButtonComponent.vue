@@ -1,3 +1,81 @@
+<script setup>
+/**
+ * This component requires three params:
+ *
+ * Actual field in db label as a string (like "happened_at") passed via props.name,
+ * and filtering field names, like: "happened_at_from", "happened_at_to" passed as an array via props.targetFields
+ *
+ * Also, they need to be set up in appConfigStore (all these three fields) to be able to manipulate with proper
+ * filtering and ordering correctly.
+ */
+
+
+import { computed } from "vue";
+import DateTimeInputComponent from "components/input/DateTimeInputComponent.vue";
+
+const appStore = props.appStore;
+const sectionStore = props.sectionStore;
+
+const props = defineProps([
+  "appStore",
+  "sectionName",
+  "sectionStore",
+  "name",
+  "label",
+  "searchBarLabel",
+  "orderButtonLabels",
+  "width",
+  "justOrder",
+  //universal|text|number
+  "mode",
+  // In case if we need to pass two filtering fields for a date button component
+  "targetFields"
+]);
+
+const emits = defineEmits([
+  "clearFilter",
+  "changeFilterMode",
+  "setFilterOrder",
+]);
+
+const filterOrder = computed(() => {
+  return {
+    field: appStore.filters.data[props.sectionName].selectedParams.order.field,
+    value: appStore.filters.data[props.sectionName].selectedParams.order.value,
+  };
+});
+
+const filterBadgeLabel = computed(() => {
+  let filterFrom = appStore.filters.data[props.sectionName].selectedParams[props.targetFields[0]];
+  let filterTo = appStore.filters.data[props.sectionName].selectedParams[props.targetFields[1]];
+
+  return {
+    value: filterFrom.value !== "" || filterTo.value !== "" ? "V" : "",
+    mode: "DATE",
+    order:
+      appStore.filters.data[props.sectionName].selectedParams.order.field ===
+      props.name
+        ? appStore.filters.data[props.sectionName].selectedParams.order.value ===
+          "asc"
+          ? "asc"
+          : "desc"
+        : "",
+  };
+});
+
+const filterModes = computed(() => {
+  let modes = appStore.filters.availableParams.items;
+
+  if (props.mode != "universal") {
+    modes = appStore.filters.availableParams.items.filter(
+      (item) => item.type === props.mode
+    );
+  }
+
+  return modes;
+});
+</script>
+
 <template>
   <div class="filter-button">
     <q-badge
@@ -6,7 +84,7 @@
       class="q-mr-sm"
       style="height: 19px; position: absolute; top: -10px; left: 0px"
       align="middle"
-      ><span v-if="filterBadgeLabel.value != ''">
+    ><span v-if="filterBadgeLabel.value != ''">
         {{ filterBadgeLabel.mode }}
       </span>
       <span
@@ -17,7 +95,7 @@
         v-if="filterBadgeLabel.order != ''"
         size="14px"
         :name="filterBadgeLabel.order == 'asc' ? 'expand_less' : 'expand_more'"
-    /></q-badge>
+      /></q-badge>
     <div class="filter-button-text" :style="`width: ${props.width}px;`">
       {{ props.label }}
     </div>
@@ -32,34 +110,21 @@
         </div>
         <div class="row">
           <div class="filter-body col-12 q-px-md">
-            <q-input
-              autofocus
-              v-if="props.justOrder != true"
-              class="col-12 q-mb-md"
-              outlined
-              v-model="
+
+            <DateTimeInputComponent :label="searchBarLabel[0] ?? ''" dense class="q-mb-md" v-model="
                 appStore.filters.data[props.sectionName].selectedParams[
-                  props.name
+                  props.targetFields[0]
                 ].value
-              "
-              :placeholder="props.searchBarLabel"
-              dense
-              debounce="700"
-            />
-            <q-select
-              v-if="props.justOrder != true"
-              class="col-12 q-mb-md"
-              dense
-              outlined
-              v-model="
+              ">
+            </DateTimeInputComponent>
+            <DateTimeInputComponent :label="searchBarLabel[1] ?? ''" dense class="q-mb-md" v-model="
                 appStore.filters.data[props.sectionName].selectedParams[
-                  props.name
-                ].filterMode
-              "
-              :options="filterModes"
-              @update:model-value="$emit('changeFilterMode', props.name)"
-            >
-            </q-select>
+                  props.targetFields[1]
+                ].value
+              ">
+            </DateTimeInputComponent>
+
+
             <div class="row justify-between q-mb-md">
               <q-btn
                 class="q-px-md"
@@ -77,7 +142,7 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'asc')"
-                ><q-icon name="arrow_upward" />
+              ><q-icon name="arrow_upward" />
                 <q-tooltip
                   class="bg-black text-body2"
                   anchor="bottom middle"
@@ -103,7 +168,7 @@
                     : 'black'
                 "
                 @click="$emit('setFilterOrder', props.name, 'desc')"
-                ><q-icon name="arrow_downward" />
+              ><q-icon name="arrow_downward" />
                 <q-tooltip
                   class="bg-black text-body2"
                   anchor="bottom middle"
@@ -118,8 +183,8 @@
               <q-btn
                 v-close-popup
                 class="col-12"
-                @click="$emit('clearFilter', props.name, props.mode)"
-                >Скинути</q-btn
+                @click="$emit('clearFilter', [props.name, ...props.targetFields], props.mode)"
+              >Скинути</q-btn
               >
             </div>
           </div>
@@ -131,69 +196,7 @@
     <div class="vertical-line"></div>
   </div>
 </template>
-<script setup>
-import { computed } from "vue";
 
-const appStore = props.appStore;
-const sectionStore = props.sectionStore;
-
-const props = defineProps([
-  "appStore",
-  "sectionName",
-  "sectionStore",
-  "name",
-  "label",
-  "searchBarLabel",
-  "orderButtonLabels",
-  "width",
-  "justOrder",
-  "targetFields",
-  //universal|text|number
-  "mode",
-]);
-const emits = defineEmits([
-  "clearFilter",
-  "changeFilterMode",
-  "setFilterOrder",
-]);
-
-const filterOrder = computed(() => {
-  return {
-    field: appStore.filters.data[props.sectionName].selectedParams.order.field,
-    value: appStore.filters.data[props.sectionName].selectedParams.order.value,
-  };
-});
-
-const filterBadgeLabel = computed(() => {
-  let filter =
-    appStore.filters.data[props.sectionName].selectedParams[props.name];
-
-  return {
-    value: filter.value != "" ? "V" : "",
-    mode: filter.filterMode.shortName,
-    order:
-      appStore.filters.data[props.sectionName].selectedParams.order.field ==
-      props.name
-        ? appStore.filters.data[props.sectionName].selectedParams.order.value ==
-          "asc"
-          ? "asc"
-          : "desc"
-        : "",
-  };
-});
-
-const filterModes = computed(() => {
-  let modes = appStore.filters.availableParams.items;
-
-  if (props.mode != "universal") {
-    modes = appStore.filters.availableParams.items.filter(
-      (item) => item.type === props.mode
-    );
-  }
-
-  return modes;
-});
-</script>
 <style scoped>
 .filter-button {
   position: relative;

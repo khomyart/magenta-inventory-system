@@ -18,6 +18,17 @@ const routes = [
         component: () => import("pages/DashboardPage.vue"),
       },
       {
+        path: "/spends",
+        name: "spends",
+        redirect: "/spends/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/SpendsPage.vue"),
+          },
+        ],
+      },
+      {
         path: "/items",
         name: "items",
         redirect: "/items/1",

@@ -8,6 +8,7 @@ const appConfigStore = useAppConfigStore();
 export const useUserStore = defineStore("user", {
   state: () => ({
     data: {
+      id: "",
       name: "",
       email: "",
       token: {
@@ -26,6 +27,7 @@ export const useUserStore = defineStore("user", {
         .post("/login", userData)
         .then((res) => {
           userData = {
+            id: res.data.user.id,
             email: res.data.user.email,
             name: res.data.user.name,
             token: res.data.auth.token,

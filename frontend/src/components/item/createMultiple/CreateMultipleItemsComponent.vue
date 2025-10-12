@@ -651,7 +651,6 @@ function addSelectedGenderToStore(val) {
       ...sectionStore.newMultipleItems.main.detail.availableIn,
     ];
     sectionStore.newMultipleItems.genders.push(newGenderTemplate);
-    console.log(newGenderTemplate);
     templHolders.gender = {};
 
     if (selectedIndexes.genders === -1) {

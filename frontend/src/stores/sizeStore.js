@@ -39,8 +39,6 @@ export const useSizeStore = defineStore("size", {
           ...payload,
         })
         .then((res) => {
-          console.log("sizes");
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -129,8 +127,6 @@ export const useSizeStore = defineStore("size", {
           },
         })
         .then((res) => {
-          console.log("sizes");
-          console.log(res);
           this.data.firstItemNumberInRow = res.data.first_item_number_in_row;
           this.data.lastItemNumberInRow = res.data.last_item_number_in_row;
 

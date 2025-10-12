@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Allowense extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'section', 'action'
+    ];
+
+    public $timestamps = false;
 }

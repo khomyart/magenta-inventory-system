@@ -180,8 +180,6 @@ export const useItemStore = defineStore("item", {
       api
         .post(`/${sectionName}`, form)
         .then((res) => {
-          console.log(sectionName);
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -356,7 +354,6 @@ export const useItemStore = defineStore("item", {
       appConfigStore.updateLocalStorageConfig();
       this.items = [];
       this.data.isItemsLoading = true;
-      console.log("received items");
       let preparedParams = {
         extendedArticle: appConfigStore.filters.data[sectionName].selectedParams.extended_article
           .value,
@@ -450,7 +447,6 @@ export const useItemStore = defineStore("item", {
           params: { ...preparedParams },
         })
         .then((res) => {
-          console.log(res);
           this.items = res.data.data;
           this.data.amountOfItems = res.data.total;
           this.data.lastPage = res.data.last_page;

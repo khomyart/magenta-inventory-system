@@ -76,7 +76,6 @@ export default route(function (/* { store, ssrContext } */) {
       !isValidFor("read", to.name) &&
       to.name != "dashboard"
     ) {
-      console.log("myamma");
       next({ name: "dashboard" });
       return;
     }

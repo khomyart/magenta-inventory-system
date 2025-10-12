@@ -41,8 +41,6 @@ export const useGenderStore = defineStore("gender", {
           ...payload,
         })
         .then((res) => {
-          console.log(sectionName);
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -60,7 +58,6 @@ export const useGenderStore = defineStore("gender", {
         .then((res) => {
           this.data.updatedItemId = res.data.id;
           let updatedItemIndex;
-          console.log(typeof this.items);
           this.items.every((item, index) => {
             if (item.id == res.data.id) {
               updatedItemIndex = index;
@@ -129,7 +126,6 @@ export const useGenderStore = defineStore("gender", {
           },
         })
         .then((res) => {
-          console.log(res);
           this.data.firstItemNumberInRow = res.data.first_item_number_in_row;
           this.data.lastItemNumberInRow = res.data.last_item_number_in_row;
 

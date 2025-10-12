@@ -37,8 +37,6 @@ export const useUnitStore = defineStore("unit", {
           ...payload,
         })
         .then((res) => {
-          console.log("units");
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -127,8 +125,6 @@ export const useUnitStore = defineStore("unit", {
           },
         })
         .then((res) => {
-          console.log("units");
-          console.log(res);
           this.items = res.data.data;
           this.data.amountOfItems = res.data.total;
           this.data.lastPage = res.data.last_page;

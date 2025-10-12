@@ -182,6 +182,7 @@ const props = defineProps([
   "orderButtonLabels",
   "width",
   "justOrder",
+  "targetFields",
   //universal|text|number
   "mode",
 ]);

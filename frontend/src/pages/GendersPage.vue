@@ -371,7 +371,6 @@ watch(
     router.push(`/${currentSection}/${appStore.currentPages[currentSection]}`);
   }
 );
-console.log(appStore.filters.data);
 //filter watcher
 watch(
   [

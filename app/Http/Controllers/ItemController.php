@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NbuCurrencyExchangeCoursesService;
 use App\Models\Item;
 use App\Models\Image;
 use App\Models\Income;
@@ -138,10 +139,6 @@ class ItemController extends Controller
 
             //skip general WHERE condition cycle for "price" param, HAVING will be used later
             if ($this->readFieldsFromFrontend[$key] === "price") {
-                if ($data["orderField"] === "price") {
-                    $data["orderField"] = "converted_price_to_uah";
-                }
-
                 if (strlen($searchValue) === 0) {
                     continue;
                 }
@@ -285,7 +282,7 @@ class ItemController extends Controller
             && $priceSearchOperator !== "notLike"
             && $this->currencyForSearching === null
         ) {
-            $section->havingRaw("converted_price_to_uah {$priceSearchOperator} ?", [$priceFilterValue]);
+            $section->havingRaw("price {$priceSearchOperator} ?", [$priceFilterValue]);
         }
 
         //ordering query
@@ -1022,6 +1019,7 @@ class ItemController extends Controller
 
         return $equality[$operatorName];
     }
+
     /**
      * Returns nbu currency exchange currency rate for today
      *
@@ -1032,25 +1030,8 @@ class ItemController extends Controller
      * @return float currency exchange index
      */
     private function getNbuCurrencyExchangeCourses($date, $currencyCode): float {
-        $cachedCurrencies = Cache::get("nbuCurrencyExchangeCourses");
-        if ($cachedCurrencies != null) {
-            return (float)$cachedCurrencies[$currencyCode] ?? 1;
-        }
-        $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={$date}&json");
-        if ($response) {
-            $currencies = json_decode($response, true);
-            $currenciesAssoc = [];
-            foreach ($currencies as $currency) {
-                if ($currency['cc'] && $currency['rate']) {
-                    $currenciesAssoc[$currency['cc']] = $currency['rate'];
-                }
-            }
-
-            Cache::put("nbuCurrencyExchangeCourses", $currenciesAssoc, now()->setTime(23,59,59));
-            return (float)$currenciesAssoc[$currencyCode] ?? 1;
-        }
-
-        return 1;
+        $nbuService = new NbuCurrencyExchangeCoursesService();
+        return $nbuService->getCourses($date, $currencyCode);
     }
 
     private function getUpdatedItem($id) {
@@ -1074,10 +1055,8 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                // $this->getNbuCurrencyExchangeCourse($today, "USD"),
-                // $this->getNbuCurrencyExchangeCourse($today, "EUR")
-                1,
-                1
+                 $this->getNbuCurrencyExchangeCourses($today, "USD"),
+                 $this->getNbuCurrencyExchangeCourses($today, "EUR")
             ]
         )
         ->addSelect(

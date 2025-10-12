@@ -418,13 +418,11 @@ function triggerFileInput() {
 
 function onImageInput(ev) {
   const files = ev.target.files;
-  console.log(files);
 
   Object.keys(files).forEach((i) => {
     const reader = new FileReader();
 
     reader.onload = () => {
-      console.log(reader);
       sectionStore.selectedItemForUpdating.images.push({
         url: reader.result,
         file: files[i],

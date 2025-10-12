@@ -50,8 +50,6 @@ export const useWarehouseStore = defineStore("warehouse", {
           warehouses: warehousesIds != null ? [...warehousesIds] : null,
         })
         .then((res) => {
-          console.log("set favorites warehouses");
-          console.log(res);
         })
         .catch((err) => {
           appConfigStore.catchRequestError(err);
@@ -63,8 +61,6 @@ export const useWarehouseStore = defineStore("warehouse", {
         .get(`/${sectionName}/get_favorite`)
         .then((res) => {
           this.favoriteWarehouses = [...res.data];
-          console.log("get favorites warehouses");
-          console.log(res.data);
         })
         .catch((err) => {
           appConfigStore.catchRequestError(err);
@@ -82,8 +78,6 @@ export const useWarehouseStore = defineStore("warehouse", {
           description: payload.description,
         })
         .then((res) => {
-          console.log(sectionName);
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -158,7 +152,6 @@ export const useWarehouseStore = defineStore("warehouse", {
       appConfigStore.updateLocalStorageConfig();
       this.items = [];
       this.data.isItemsLoading = true;
-      console.log("received warehouse");
       api
         .get(`/${sectionName}`, {
           params: {
@@ -213,7 +206,6 @@ export const useWarehouseStore = defineStore("warehouse", {
           },
         })
         .then((res) => {
-          console.log(res);
           this.items = res.data.data;
           this.data.amountOfItems = res.data.total;
           this.data.lastPage = res.data.last_page;

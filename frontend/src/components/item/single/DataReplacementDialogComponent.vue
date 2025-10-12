@@ -183,7 +183,6 @@ function fillFormWithReplacementData() {
   let selectedItem = {
     ...sectionStore.bufferedItems[dataReplacementDialogPage.value],
   };
-  console.log(selectedItem.images);
   sectionStore.newItem.article = selectedItem.article;
   sectionStore.newItem.title = selectedItem.title;
   sectionStore.newItem.description = selectedItem.description;

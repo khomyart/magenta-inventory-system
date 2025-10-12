@@ -39,7 +39,6 @@ export const useTypeStore = defineStore("type", {
           ...payload,
         })
         .then((res) => {
-          console.log(res);
           this.dialogs.create.isShown = false;
           this.receive();
         })
@@ -122,7 +121,6 @@ export const useTypeStore = defineStore("type", {
           },
         })
         .then((res) => {
-          console.log(res);
           this.data.firstItemNumberInRow = res.data.first_item_number_in_row;
           this.data.lastItemNumberInRow = res.data.last_item_number_in_row;
 

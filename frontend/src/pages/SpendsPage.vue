@@ -3,21 +3,21 @@
     <div class="toolbar row q-px-md q-mt-md">
       <q-input
         v-model="
-          appStore.filters.data[currentSection].selectedParams.name.value
+          appStore.filters.data[currentSection].selectedParams.title.value
         "
         debounce="700"
         outlined
-        placeholder="Введіть назву одиниці"
+        placeholder="Введіть назву витрати"
         dense
         class="q-mr-md"
         style="width: 300px"
         :loading="sectionStore.data.isItemsLoading"
       >
         <template v-slot:append v-if="!sectionStore.data.isItemsLoading">
-          <q-icon name="search" />
+          <q-icon name="search"/>
         </template>
       </q-input>
-      <CreateUnitComponent v-if="allowenses.create" />
+      <CreateSpendComponent v-if="allowenses.create" />
       <q-btn
         flat
         round
@@ -37,7 +37,7 @@
 
     <div class="content">
       <q-inner-loading :showing="sectionStore.data.isItemsLoading">
-        <q-spinner-puff size="50px" color="primary" />
+        <q-spinner-puff size="50px" color="primary"/>
       </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
         <SortingComponent
@@ -48,11 +48,19 @@
           <div class="vertical-line"></div>
         </div>
         <template v-for="(item, index) in fieldsSequance" :key="index">
-          <ButtonComponent
+          <component
+            :is="
+                item === 'price'
+                ? PriceButtonComponent
+                : item === 'happened_at' || item === 'created_at'
+                ? DateButtonComponent
+                : ButtonComponent
+            "
             :appStore="appStore"
             :sectionName="currentSection"
             :sectionStore="sectionStore"
             :name="fieldsSequance[index]"
+            :targetFields="fieldsDetails[index].additionalFieldsForFiltering ?? []"
             :label="fieldsDetails[index].label"
             :searchBarLabel="fieldsDetails[index].searchBarLabel"
             :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
@@ -87,18 +95,19 @@
           </template>
         </tr>
         <template v-for="(item, index) in sectionStore.items" :key="index">
-          <UnitComponent
+          <SpendComponent
             @show-remove-dialog="showRemoveDialog"
             @show-edit-dialog="showUpdateDialog"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
             :allowenses="{
-              update: allowenses.update,
-              delete: allowenses.delete,
+              update: allowenses.update(userStore.data.id, item.created_by_user.id),
+              delete: allowenses.delete(userStore.data.id, item.created_by_user.id),
             }"
             :itemInfo="item"
             :gap="appStore.other.visualTheme.gapsBetweenItems[currentSection]"
             :updated="item.id == sectionStore.data.updatedItemId"
+            :sectionStore="sectionStore"
             :isFirst="index == 0"
             :isLast="index == sectionStore.items.length - 1"
             :itemsBorderRadius="
@@ -139,39 +148,56 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="dataset" color="black" size="md" class="q-mr-sm" />
-            Одиниці
+            <q-icon name="recycling" color="black" size="md" class="q-mr-sm"/>
+            Витрата
           </div>
         </q-card-section>
         <q-separator></q-separator>
         <q-form @submit="sectionStore.update(updatedItem)">
           <q-card-section
-            style="max-height: 50vh; width: 300px"
-            class="scroll q-pt-md"
+            style="max-height: 50vh; width: 400px"
+            class="scroll q-pt-md row q-col-gutter-sm"
           >
             <q-input
-              class="q-mb-sm"
+              class="col-12"
               outlined
-              v-model="updatedItem.name"
+              v-model="updatedItem.title"
               autofocus
               label="Назва"
               :rules="[
                 (val) => (val !== null && val !== '') || 'Введіть назву',
-                (val) => val.length <= 20 || 'Не більше 20 символів',
+                (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
             <q-input
               outlined
-              v-model="updatedItem.description"
-              label="Опис"
+              class="col-6"
+              v-model="updatedItem.price"
+              label="Ціна"
+              type="number"
+              step="0.01"
               :rules="[
-                (val) => (val !== null && val !== '') || 'Введіть опис',
-                (val) => val.length <= 50 || 'Не більше 50 символів',
+                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
+                (val) => val >= 0.1 || 'Не менше 0.1',
               ]"
+            />
+            <q-select
+              hide-dropdown-icon
+              outlined
+              v-model="updatedItem.currency"
+              label="Валюта"
+              :options="['UAH', 'USD', 'EUR']"
+              class="col-6"
+            />
+            <DateTimeInputComponent label="Дата витрати" class="full-width" v-model="updatedItem.happened_at" use-rules>
+            </DateTimeInputComponent>
+            <q-checkbox v-if="appStore.allowenses.isValidFor('hide', currentSection)"
+                        v-model="updatedItem.is_hidden"
+                        label="Приховано"
             />
           </q-card-section>
 
-          <q-separator />
+          <q-separator/>
 
           <q-card-actions align="right">
             <q-btn flat color="black" v-close-popup><b>Відміна</b></q-btn>
@@ -180,7 +206,7 @@
               color="primary"
               type="submit"
               :loading="sectionStore.dialogs.update.isLoading"
-              ><b>Оновити</b></q-btn
+            ><b>Оновити</b></q-btn
             >
           </q-card-actions>
         </q-form>
@@ -192,13 +218,13 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="warning" color="red" size="md" class="q-mr-sm" />
+            <q-icon name="warning" color="red" size="md" class="q-mr-sm"/>
             Видалення
           </div>
         </q-card-section>
         <q-separator></q-separator>
         <q-card-section style="width: 350px">
-          Ви справді бажаєте знищити одиницю: "{{ deletedItem.name }}"?
+          Ви справді бажаєте видалити витрату: "{{ deletedItem.title }}"?
         </q-card-section>
         <q-separator></q-separator>
         <q-card-actions align="right">
@@ -209,7 +235,7 @@
             type="submit"
             color="negative"
             :loading="sectionStore.dialogs.delete.isLoading"
-            ><b>Так</b></q-btn
+          ><b>Так</b></q-btn
           >
         </q-card-actions>
       </q-card>
@@ -218,27 +244,33 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed } from "vue";
-import { useRouter } from "vue-router";
-import { useUnitStore } from "src/stores/unitStore";
-import { useAppConfigStore } from "src/stores/appConfigStore";
-import { useQuasar } from "quasar";
-import CreateUnitComponent from "src/components/units/CreateUnitComponent.vue";
-import UnitComponent from "src/components/units/UnitComponent.vue";
+import {reactive, onMounted, watch, computed} from "vue";
+import {useRouter} from "vue-router";
+import {useAppConfigStore} from "src/stores/appConfigStore";
+import {useSpendStore} from "stores/spendStore";
+import {useUserStore} from "stores/userStore";
+import {useQuasar} from "quasar";
+import CreateSpendComponent from "components/spends/CreateSpendComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
+import SpendComponent from "components/spends/SpendComponent.vue";
+import PriceButtonComponent from "components/filter_bar/PriceButtonComponent.vue";
+import DateButtonComponent from "components/filter_bar/DateButtonComponent.vue";
+import DateTimeInputComponent from "components/input/DateTimeInputComponent.vue";
+import {getClientTime} from "app/helpers/GeneralPurposeFunctions";
 
-const currentSection = "units";
+const currentSection = "spends";
 const appStore = useAppConfigStore();
-const sectionStore = useUnitStore();
+const sectionStore = useSpendStore();
+const userStore = useUserStore();
 const router = useRouter();
 const $q = useQuasar();
 
-const fieldsSequance = ["name", "description"];
+const fieldsSequance = ["title", "price", "happened_at", "created_at", "created_by_user"];
 const fieldsDetails = [
   {
     label: "Назва",
-    searchBarLabel: "Назва одиниці",
+    searchBarLabel: "Назва витрати",
     type: "universal",
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
@@ -246,8 +278,37 @@ const fieldsDetails = [
     },
   },
   {
-    label: "Опис",
-    searchBarLabel: "Значення опису",
+    label: "Вартість",
+    searchBarLabel: "Вартість (грн.)",
+    type: "number",
+    orderButtonLabels: {
+      up: "Від дешевшого до дорожчого",
+      down: "Від дорожчого до дешевшого",
+    },
+  },
+  {
+    label: "Дата витрати",
+    searchBarLabel: ["Від", "До"],
+    additionalFieldsForFiltering: ["happened_at_from", "happened_at_to"],
+    type: "date",
+    orderButtonLabels: {
+      up: "Від старішої до новішої",
+      down: "Від новішої до старішої",
+    },
+  },
+  {
+    label: "Дата створення",
+    searchBarLabel: ["Від", "До"],
+    additionalFieldsForFiltering: ["created_at_from", "created_at_to"],
+    type: "date",
+    orderButtonLabels: {
+      up: "Від старішої до новішої",
+      down: "Від новішої до старішої",
+    },
+  },
+  {
+    label: "Автор",
+    searchBarLabel: "Ім'я",
     type: "universal",
     orderButtonLabels: {
       up: "Від 0 до 9, від A до Z, від А до Я",
@@ -258,25 +319,54 @@ const fieldsDetails = [
 
 const allowenses = {
   create: appStore.allowenses.isValidFor("create", currentSection),
-  update: appStore.allowenses.isValidFor("update", currentSection),
-  delete: appStore.allowenses.isValidFor("delete", currentSection),
+  update: (currentUserId, spendOwnerId) => {
+    let isAllowedToUpdate = appStore.allowenses.isValidFor("update", currentSection);
+    if (!isAllowedToUpdate) {
+      return false;
+    }
+
+    let isAllowedToUpdateNotOwned = appStore.allowenses.isValidFor("update_not_owned", currentSection);
+    if (currentUserId !== spendOwnerId && !isAllowedToUpdateNotOwned) {
+      return false;
+    }
+
+    return true;
+  },
+  delete: (currentUserId, spendOwnerId) => {
+    let isAllowedToDelete = appStore.allowenses.isValidFor("delete", currentSection);
+    if (!isAllowedToDelete) {
+      return false;
+    }
+
+    let isAllowedToDeleteNotOwned = appStore.allowenses.isValidFor("delete_not_owned", currentSection);
+    if (currentUserId !== spendOwnerId && !isAllowedToDeleteNotOwned) {
+      return false;
+    }
+
+    return true;
+  },
+  hide: appStore.allowenses.isValidFor("hide", currentSection),
+  see_hidden: appStore.allowenses.isValidFor("see_hidden", currentSection),
 };
 
 let updatedItem = reactive({
   id: "",
-  name: "",
-  description: "",
+  title: "",
+  price: "",
+  currency: "",
+  happened_at: "",
+  is_hidden: false
 });
 
 let deletedItem = reactive({
   id: "",
-  name: "",
+  title: "",
 });
 
 let tempFieldWidths = reactive({
   //px
-  name: 0,
-  description: 0,
+  title: 0,
+  price: 0,
 });
 
 function clearUpdatedItemId() {
@@ -298,36 +388,66 @@ function copyValue(value, paramName) {
 
 function showUpdateDialog(item) {
   updatedItem.id = item.id;
-  updatedItem.name = item.name;
-  updatedItem.description = item.description;
+  updatedItem.title = item.title;
+  updatedItem.currency = item.currency;
+  updatedItem.price = item.unconverted_price;
+  updatedItem.happened_at = getClientTime(item.happened_at, "ua", true);
+  if (allowenses.hide) {
+    updatedItem.is_hidden = !!item.is_hidden;
+  }
   sectionStore.dialogs.update.isShown = true;
 }
 
 function showRemoveDialog(id, name) {
   deletedItem.id = id;
-  deletedItem.name = name;
+  deletedItem.title = name;
   sectionStore.dialogs.delete.isShown = true;
 }
 
 /**
- * button events
+ *
+ * @param fields could be string or array
+ * @param filterType
  */
-function clearFilter(field) {
+function clearFilter(fields, filterType = "all") {
   let filters = appStore.filters;
-
-  filters.data[currentSection].selectedParams[field].value = "";
-  filters.data[currentSection].selectedParams[field].filterMode =
-    filters.availableParams.items[0];
-
-  if (filters.data[currentSection].selectedParams.order.field === field) {
-    filters.data[currentSection].selectedParams.order.field = "";
-    filters.data[currentSection].selectedParams.order.value = "";
-    filters.data[currentSection].selectedParams.order.combined = "";
+  if (!Array.isArray(fields)) {
+    fields = [fields];
   }
+
+  fields.forEach((field, index) => {
+    filters.data[currentSection].selectedParams[field].value = "";
+    filters.data[currentSection].selectedParams[field].filterMode =
+      filters.availableParams.items[0];
+
+    if (filterType === "number") {
+      filters.data[currentSection].selectedParams[field].filterMode =
+        filters.availableParams.items[2];
+    }
+
+    if (filterType === "date") {
+      switch (index) {
+        case 1: // happened_at_from
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[2];
+          break;
+        case 2: // happened_at_to
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[3];
+          break;
+      }
+    }
+
+    if (filters.data[currentSection].selectedParams.order.field === field) {
+      filters.data[currentSection].selectedParams.order.field = "";
+      filters.data[currentSection].selectedParams.order.value = "";
+      filters.data[currentSection].selectedParams.order.combined = "";
+    }
+  })
 }
 
 function onChangedFieldFilterMode(field) {
-  if (appStore.filters.data[currentSection].selectedParams[field].value != "") {
+  if (appStore.filters.data[currentSection].selectedParams[field].value !== "") {
     sectionStore.receive();
   }
 }
@@ -348,17 +468,28 @@ function setFilterOrder(field, fieldOrder) {
 const computedFilterWidth = computed(() => {
   return {
     buttons: {
-      name:
-        appStore.filters.data[currentSection].width.dynamic.name -
+      title:
+        appStore.filters.data[currentSection].width.dynamic.title -
         appStore.filters.availableParams.filterButtonXPadding,
-      description:
-        appStore.filters.data[currentSection].width.dynamic.description -
+      price:
+        appStore.filters.data[currentSection].width.dynamic.price -
+        appStore.filters.availableParams.filterButtonXPadding,
+      happened_at:
+        appStore.filters.data[currentSection].width.dynamic.happened_at -
+        appStore.filters.availableParams.filterButtonXPadding,
+      created_at:
+        appStore.filters.data[currentSection].width.dynamic.created_at -
+        appStore.filters.availableParams.filterButtonXPadding,
+      created_by_user:
+        appStore.filters.data[currentSection].width.dynamic.created_by_user -
         appStore.filters.availableParams.filterButtonXPadding,
     },
     fields: {
-      name: appStore.filters.data[currentSection].width.dynamic.name,
-      description:
-        appStore.filters.data[currentSection].width.dynamic.description,
+      title: appStore.filters.data[currentSection].width.dynamic.title,
+      price: appStore.filters.data[currentSection].width.dynamic.price,
+      happened_at: appStore.filters.data[currentSection].width.dynamic.happened_at,
+      created_at: appStore.filters.data[currentSection].width.dynamic.created_at,
+      created_by_user: appStore.filters.data[currentSection].width.dynamic.created_by_user,
       separator: appStore.filters.availableParams.separatorWidth,
       lastSeparator: appStore.filters.availableParams.separatorWidth / 2 - 2,
     },
@@ -373,7 +504,7 @@ watch([() => appStore.currentPages[currentSection]], ([currentPage]) => {
 watch(
   [() => appStore.amountOfItemsPerPages[currentSection]],
   ([amountPerPage]) => {
-    if (appStore.currentPages[currentSection] != 1) {
+    if (appStore.currentPages[currentSection] !== 1) {
       appStore.currentPages[currentSection] = 1;
     } else {
       sectionStore.receive();
@@ -381,13 +512,19 @@ watch(
     router.push(`/${currentSection}/${appStore.currentPages[currentSection]}`);
   }
 );
+
 //filter watcher
 watch(
   [
     () => appStore.filters.data[currentSection].selectedParams.order.combined,
-    () => appStore.filters.data[currentSection].selectedParams.name.value,
-    () =>
-      appStore.filters.data[currentSection].selectedParams.description.value,
+    () => appStore.filters.data[currentSection].selectedParams.title.value,
+    () => appStore.filters.data[currentSection].selectedParams.price.value,
+    () => appStore.filters.data[currentSection].selectedParams.currency.value,
+    () => appStore.filters.data[currentSection].selectedParams.happened_at_from.value,
+    () => appStore.filters.data[currentSection].selectedParams.happened_at_to.value,
+    () => appStore.filters.data[currentSection].selectedParams.created_at_from.value,
+    () => appStore.filters.data[currentSection].selectedParams.created_at_to.value,
+    () => appStore.filters.data[currentSection].selectedParams.created_by_user.value,
   ],
   () => {
     sectionStore.receive();
@@ -481,7 +618,7 @@ onMounted(() => {
         affectedFieldName == null
           ? null
           : appStore.filters.data[currentSection].width.dynamic[
-              affectedFieldName
+            affectedFieldName
             ];
 
       let minFilterWidth = appStore.filters.availableParams.minFilterWidth;
@@ -512,7 +649,7 @@ onMounted(() => {
             tempFieldWidths[fieldName];
           appStore.filters.data[currentSection].width.dynamic[
             affectedFieldName
-          ] = tempFieldWidths[affectedFieldName];
+            ] = tempFieldWidths[affectedFieldName];
         } else {
           if (tempFieldWidths[fieldName] < minFilterWidth) {
             tempFieldWidths[fieldName] = minFilterWidth;
@@ -546,11 +683,11 @@ onMounted(() => {
       `.filter-separator[name='${fieldsSequance[i]}']`
     );
 
-    if (appStore.filters.availableParams.resizeMode == "straight") {
+    if (appStore.filters.availableParams.resizeMode === "straight") {
       addEventToSeparator(currentItem, fieldsSequance[i]);
     }
 
-    if (appStore.filters.availableParams.resizeMode == "affected") {
+    if (appStore.filters.availableParams.resizeMode === "affected") {
       if (i > fieldsSequance.length - 2) {
         continue;
       }

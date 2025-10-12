@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 10,
+    version: 13,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -481,6 +481,112 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        spends: {
+          width: {
+            default: {
+              title: 150,
+              price: 150,
+              happened_at: 150,
+              created_at: 150,
+              created_by_user: 150,
+            },
+            dynamic: {
+              title: 150,
+              price: 150,
+              happened_at: 150,
+              created_at: 150,
+              created_by_user: 150,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            title: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            price: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            currency: {
+              value: "",
+              filterMode: {
+                label: "Дорівнює",
+                value: "equal",
+                shortName: "EQL",
+              },
+            },
+            happened_at: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            happened_at_from: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            happened_at_to: {
+              value: "",
+              filterMode: {
+                label: "Менше",
+                value: "less",
+                shortName: "LESS",
+              },
+            },
+            created_at: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            created_at_from: {
+              value: "",
+              filterMode: {
+                label: "Більше",
+                value: "more",
+                shortName: "MORE",
+              },
+            },
+            created_at_to: {
+              value: "",
+              filterMode: {
+                label: "Менше",
+                value: "less",
+                shortName: "LESS",
+              },
+            },
+            created_by_user: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 60,
@@ -527,6 +633,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       colors: 10,
       warehouses: 10,
       units: 10,
+      spends: 10,
     },
     currentPages: {
       items: 0,
@@ -536,6 +643,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       colors: 0,
       warehouses: 0,
       units: 0,
+      spends: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
     other: {
@@ -549,6 +657,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           warehouses: 7,
           units: 7,
           items: 7,
+          spends: 7,
         },
         //px
         gapsBetweenItems: {
@@ -559,6 +668,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           warehouses: 0,
           units: 0,
           items: 0,
+          spends: 0,
         },
       },
     },

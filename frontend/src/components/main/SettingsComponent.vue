@@ -283,7 +283,6 @@ function removeItemFromList(index) {
 watch(
   () => sectionStore.dialogs.settings.isShown,
   (newValue) => {
-    console.log("settings shown");
   }
 );
 </script>

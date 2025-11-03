@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 13,
+    version: 14,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -587,6 +587,90 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        contacts: {
+          width: {
+            default: {
+              name: 150,
+              phone: 150,
+              email: 150,
+              address: 150,
+              preferred_platforms: 150,
+              additional_info: 150,
+            },
+            dynamic: {
+              name: 150,
+              phone: 150,
+              email: 150,
+              address: 150,
+              preferred_platforms: 150,
+              additional_info: 150,
+            },
+          },
+          selectedParams: {
+            order: {
+              field: "",
+              value: "",
+              //watcherVariable
+              combined: "",
+            },
+            name_or_phone: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            name: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            phone: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            email: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            address: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            preferred_platforms: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+            additional_info: {
+              value: "",
+              filterMode: {
+                label: "Містить",
+                value: "include",
+                shortName: "LIKE",
+              },
+            },
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 60,
@@ -634,6 +718,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       warehouses: 10,
       units: 10,
       spends: 10,
+      contacts: 10,
     },
     currentPages: {
       items: 0,
@@ -644,6 +729,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       warehouses: 0,
       units: 0,
       spends: 0,
+      contacts: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
     other: {
@@ -658,6 +744,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           units: 7,
           items: 7,
           spends: 7,
+          contacts: 7,
         },
         //px
         gapsBetweenItems: {
@@ -669,6 +756,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           units: 0,
           items: 0,
           spends: 0,
+          contacts: 0,
         },
       },
     },

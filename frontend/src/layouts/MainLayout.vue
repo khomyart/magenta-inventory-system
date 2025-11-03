@@ -320,6 +320,7 @@ import { useWarehouseStore } from "src/stores/warehouseStore";
 import { useUnitStore } from "src/stores/unitStore";
 import SettingsComponent from "src/components/main/SettingsComponent.vue";
 import {useSpendStore} from "stores/spendStore";
+import {useContactStore} from "stores/contactStore";
 
 const enableRoleValidation = true;
 
@@ -329,6 +330,7 @@ const store = {
   app: useAppConfigStore(),
   items: useItemStore(),
   spends: useSpendStore(),
+  contacts: useContactStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -345,7 +347,8 @@ const menuItems = [
     name: "Бізнес",
     type: "header",
     isAllowed:
-      store.app.allowenses.renewAndCheckIsValidFor("read", "spends")
+      store.app.allowenses.renewAndCheckIsValidFor("read", "spends") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "contacts")
   },
   {
     name: "Витрати",
@@ -356,6 +359,16 @@ const menuItems = [
     },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "spends"),
+  },
+  {
+    name: "Контакти",
+    icon: "contact_page",
+    to: { name: "contacts" },
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "contacts"),
   },
   {
     type: "separator",

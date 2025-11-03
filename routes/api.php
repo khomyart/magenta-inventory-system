@@ -12,6 +12,7 @@ include "sections/warehouses.php";
 include "sections/units.php";
 include "sections/items.php";
 include "sections/spends.php";
+include "sections/contacts.php";
 
 //additional entities
 include "sections/countries.php";

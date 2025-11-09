@@ -15,11 +15,7 @@
         :style="{
           borderRadius:
             props.gap == 0
-              ? props.isFirst
-                ? `${props.itemsBorderRadius}px 0 0 0`
-                : props.isLast
-                ? `0 0 0 ${props.itemsBorderRadius}px`
-                : ``
+              ? (props.isFirst && !props.isLast ? `${props.itemsBorderRadius}px 0 0 0` : !props.isFirst && props.isLast ? `0 0 0 ${props.itemsBorderRadius}px` : props.isFirst && props.isLast ? `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px` : ``)
               : `${props.itemsBorderRadius}px 0 0 ${props.itemsBorderRadius}px`,
         }"
       >

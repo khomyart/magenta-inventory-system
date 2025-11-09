@@ -8,13 +8,13 @@
           style="margin-right: -5px"
           @click="router.push({ name: 'items' })"
         >
-          <img src="../assets/magenta-menu-logo.png" style="height: 35px" />
+          <img src="../assets/magenta-menu-logo.png" style="height: 35px"/>
         </q-btn>
 
         <q-toolbar-title>
           <transition appear name="title-appearing">
             <span v-if="router.currentRoute.value.name == 'dashboard'"
-              >Magenta print</span
+            >Magenta print</span
             >
           </transition>
         </q-toolbar-title>
@@ -94,12 +94,13 @@
                   {{ store.users.data.name }}
                 </q-item-section>
               </q-item>
-              <q-separator />
+              <q-separator/>
               <q-item clickable>
                 <q-item-section
                   v-close-popup
                   @click="store.app.dialogs.settings.isShown = true"
-                  >Налаштування</q-item-section
+                >Налаштування
+                </q-item-section
                 >
               </q-item>
               <q-item clickable v-close-popup>
@@ -108,9 +109,9 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <SettingsComponent />
+        <SettingsComponent/>
       </q-toolbar>
-      <q-separator inset />
+      <q-separator inset/>
     </q-header>
 
     <q-drawer show-if-above :width="200" :breakpoint="0">
@@ -136,10 +137,10 @@
               "
             >
               <q-item-section avatar>
-                <q-icon :name="menuItem.icon" />
+                <q-icon :name="menuItem.icon"/>
               </q-item-section>
 
-              <q-item-section> {{ menuItem.name }} </q-item-section>
+              <q-item-section> {{ menuItem.name }}</q-item-section>
             </q-item>
             <div
               class="menu-header q-mt-md q-ml-md"
@@ -211,19 +212,20 @@
           </q-input>
         </q-card-section>
         <q-card-section class="q-pt-none" style="text-align: end">
-          Залишилось спроб: {{ store.app.attemptsLeft }}</q-card-section
+          Залишилось спроб: {{ store.app.attemptsLeft }}
+        </q-card-section
         >
         <q-separator></q-separator>
         <q-card-actions align="right">
           <q-btn flat color="black" @click="logout"
-            ><b>Сторікна автентифікації</b></q-btn
+          ><b>Сторікна автентифікації</b></q-btn
           >
           <q-btn
             flat
             color="primary"
             type="submit"
             :loading="store.app.errors.reauth.dialogs.renewPassword.isLoading"
-            ><b>Відновити</b></q-btn
+          ><b>Відновити</b></q-btn
           >
         </q-card-actions>
       </q-form>
@@ -264,7 +266,7 @@
             color="primary"
             type="submit"
             :loading="store.app.errors.reauth.dialogs.unauthenticated.isLoading"
-            ><b>Гаразд</b></q-btn
+          ><b>Гаразд</b></q-btn
           >
         </q-card-actions>
       </q-form>
@@ -307,20 +309,21 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onBeforeMount } from "vue";
-import { useRouter } from "vue-router";
-import { useAppConfigStore } from "src/stores/appConfigStore";
-import { useUserStore } from "src/stores/userStore";
-import { useItemStore } from "src/stores/itemStore";
-import { useTypeStore } from "src/stores/typeStore";
-import { useSizeStore } from "src/stores/sizeStore";
-import { useGenderStore } from "src/stores/genderStore";
-import { useColorStore } from "src/stores/colorStore";
-import { useWarehouseStore } from "src/stores/warehouseStore";
-import { useUnitStore } from "src/stores/unitStore";
+import {ref, watch, computed, onBeforeMount} from "vue";
+import {useRouter} from "vue-router";
+import {useAppConfigStore} from "src/stores/appConfigStore";
+import {useUserStore} from "src/stores/userStore";
+import {useItemStore} from "src/stores/itemStore";
+import {useTypeStore} from "src/stores/typeStore";
+import {useSizeStore} from "src/stores/sizeStore";
+import {useGenderStore} from "src/stores/genderStore";
+import {useColorStore} from "src/stores/colorStore";
+import {useWarehouseStore} from "src/stores/warehouseStore";
+import {useUnitStore} from "src/stores/unitStore";
 import SettingsComponent from "src/components/main/SettingsComponent.vue";
 import {useSpendStore} from "stores/spendStore";
 import {useContactStore} from "stores/contactStore";
+import {useServiceStore} from "stores/serviceStore";
 
 const enableRoleValidation = true;
 
@@ -331,6 +334,7 @@ const store = {
   items: useItemStore(),
   spends: useSpendStore(),
   contacts: useContactStore(),
+  services: useServiceStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -348,12 +352,23 @@ const menuItems = [
     type: "header",
     isAllowed:
       store.app.allowenses.renewAndCheckIsValidFor("read", "spends") ||
-      store.app.allowenses.renewAndCheckIsValidFor("read", "contacts")
+      store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "services")
+  },
+  {
+    name: "Послуги",
+    icon: "miscellaneous_services",
+    to: { name: "services" },
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "services"),
   },
   {
     name: "Витрати",
     icon: "recycling",
-    to: { name: "spends" },
+    to: {name: "spends"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -363,7 +378,7 @@ const menuItems = [
   {
     name: "Контакти",
     icon: "contact_page",
-    to: { name: "contacts" },
+    to: {name: "contacts"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -391,7 +406,7 @@ const menuItems = [
   {
     name: "Перелік",
     icon: "apps",
-    to: { name: "items" },
+    to: {name: "items"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -401,8 +416,9 @@ const menuItems = [
   {
     name: "Лог дій",
     icon: "checklist", //edit_square, bug_report
-    to: { name: "logs" },
-    onClick: (pageName) => {},
+    to: {name: "logs"},
+    onClick: (pageName) => {
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "logs"),
   },
@@ -430,7 +446,7 @@ const menuItems = [
   {
     name: "Види",
     icon: "interests",
-    to: { name: "types" },
+    to: {name: "types"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -440,7 +456,7 @@ const menuItems = [
   {
     name: "Розміри",
     icon: "straighten",
-    to: { name: "sizes" },
+    to: {name: "sizes"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -450,7 +466,7 @@ const menuItems = [
   {
     name: "Гендери",
     icon: "face_retouching_natural",
-    to: { name: "genders" },
+    to: {name: "genders"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -460,7 +476,7 @@ const menuItems = [
   {
     name: "Кольори",
     icon: "palette",
-    to: { name: "colors" },
+    to: {name: "colors"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -470,7 +486,7 @@ const menuItems = [
   {
     name: "Склади",
     icon: "warehouse",
-    to: { name: "warehouses" },
+    to: {name: "warehouses"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -483,7 +499,7 @@ const menuItems = [
   {
     name: "Одиниці",
     icon: "dataset",
-    to: { name: "units" },
+    to: {name: "units"},
     onClick: (pageName) => {
       pageLoadAfterClickOnMenuItem(pageName);
     },
@@ -509,8 +525,9 @@ const menuItems = [
   {
     name: "Користувачі",
     icon: "manage_accounts",
-    to: { name: "users" },
-    onClick: (pageName) => {},
+    to: {name: "users"},
+    onClick: (pageName) => {
+    },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
   },
@@ -529,7 +546,9 @@ function pageLoadAfterClickOnMenuItem(pageName) {
     store.app.currentPages[pageName] = 1;
     store[pageName].receive();
   } else {
-    store[pageName].receive();
+    if (store[pageName] && typeof store[pageName].receive === 'function') {
+      store[pageName].receive();
+    }
   }
 }
 
@@ -589,6 +608,7 @@ watch(
 );
 
 let logoutInterval;
+
 function clearLogoutInterval() {
   clearInterval(logoutInterval);
 }
@@ -649,9 +669,11 @@ onBeforeMount(() => {
 .menu-list .q-item {
   border-radius: 0 10px 10px 0;
 }
+
 .menu-header {
   font-size: 17px;
 }
+
 .toolbar-icon-number {
   font-size: 17px;
   margin-right: 5px;
@@ -664,6 +686,7 @@ onBeforeMount(() => {
   font-size: 14px;
   min-width: 250px;
 }
+
 .toolbar-tooltip-content-header {
   font-size: 1.2em;
   padding: 5px 0px 0px 10px;
@@ -680,10 +703,12 @@ onBeforeMount(() => {
 .title-appearing-leave-to {
   opacity: 0;
 }
+
 .title-appearing-enter-to,
 .title-appearing-leave-from {
   opacity: 1;
 }
+
 .title-appearing-enter-active,
 .title-appearing-leave-active {
   transition: all 0.5s ease-in-out;

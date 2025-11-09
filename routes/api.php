@@ -13,6 +13,7 @@ include "sections/units.php";
 include "sections/items.php";
 include "sections/spends.php";
 include "sections/contacts.php";
+include "sections/services.php";
 
 //additional entities
 include "sections/countries.php";

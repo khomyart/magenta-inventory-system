@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 14,
+    version: 15,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -671,6 +671,25 @@ export const useAppConfigStore = defineStore("appConfig", {
             },
           },
         },
+        services: {
+          width: {
+            default: {
+              title: 300,
+              price: 150,
+              created_at: 150,
+            },
+            dynamic: {
+              title: 300,
+              price: 150,
+              created_at: 150,
+            },
+          },
+          selectedParams: {
+            order: { field: "", value: "", combined: "" },
+            title: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
+            price: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 60,
@@ -719,6 +738,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       units: 10,
       spends: 10,
       contacts: 10,
+      services: 10,
     },
     currentPages: {
       items: 0,
@@ -730,6 +750,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       units: 0,
       spends: 0,
       contacts: 0,
+      services: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
     other: {
@@ -745,6 +766,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           items: 7,
           spends: 7,
           contacts: 7,
+          services: 7,
         },
         //px
         gapsBetweenItems: {
@@ -757,6 +779,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           items: 0,
           spends: 0,
           contacts: 0,
+          services: 0,
         },
       },
     },

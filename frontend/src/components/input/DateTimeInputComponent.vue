@@ -35,18 +35,37 @@ onBeforeMount(()=>{
     val => val !== '' || 'Поле не може бути порожнім'
   ] : null;
 })
+
+// Function to handle date selection and add current time if not set
+function handleDateUpdate(newVal) {
+  if (newVal) {
+    // Check if the new value has time part and if it's 00:00
+    const parts = newVal.split(' ');
+    const timePart = parts.length > 1 ? parts[1] : null;
+
+    // If time is 00:00 or not set, add current time
+    if (!timePart || timePart === '00:00') {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const datePart = parts[0];
+      date.value = `${datePart} ${hours}:${minutes}`;
+    }
+    // Otherwise keep the value as is (user manually set time)
+  }
+}
 </script>
 
 <template>
   <q-input debounce="700" :dense="dense" outlined v-model="date" :label="label" :rules="rules">
 
     <template v-slot:append>
-      <q-icon name="close" class="cursor-pointer q-mr-sm" @click="date = ''">
+      <q-icon v-if="date && date !== ''" name="close" class="cursor-pointer q-mr-sm" @click="date = ''">
       </q-icon>
 
       <q-icon name="event" class="cursor-pointer q-mr-sm">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="date" mask="DD/MM/YYYY HH:mm">
+          <q-date v-model="date" mask="DD/MM/YYYY HH:mm" @update:model-value="handleDateUpdate">
             <div class="row items-center justify-end">
               <q-btn v-close-popup label="Close" color="primary" flat />
             </div>

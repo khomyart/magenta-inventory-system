@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 15,
+    version: 17,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -690,6 +690,35 @@ export const useAppConfigStore = defineStore("appConfig", {
             price: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
           },
         },
+        orders: {
+          width: {
+            default: {
+              status: 150,
+              total_price: 150,
+              contact_id: 150,
+              completion_deadline: 200,
+              created_at: 200,
+              notes: 80,
+            },
+            dynamic: {
+              status: 150,
+              total_price: 150,
+              contact_id: 150,
+              completion_deadline: 200,
+              created_at: 200,
+              notes: 80,
+            },
+          },
+          selectedParams: {
+            order: { field: "", value: "", combined: "" },
+            status: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
+            total_price: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            contact_id: { value: "", filterMode: { label: "Дорівнює", value: "equal", shortName: "EQL" }},
+            completion_deadline: { value: "", filterMode: { label: "Дорівнює", value: "equal", shortName: "EQL" }},
+            created_at: { value: "", filterMode: { label: "Дорівнює", value: "equal", shortName: "EQL" }},
+            notes: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 60,
@@ -739,6 +768,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       spends: 10,
       contacts: 10,
       services: 10,
+      orders: 10,
     },
     currentPages: {
       items: 0,
@@ -751,6 +781,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       spends: 0,
       contacts: 0,
       services: 0,
+      orders: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
     other: {
@@ -767,6 +798,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           spends: 7,
           contacts: 7,
           services: 7,
+          orders: 7,
         },
         //px
         gapsBetweenItems: {
@@ -780,6 +812,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           spends: 0,
           contacts: 0,
           services: 0,
+          orders: 0,
         },
       },
     },

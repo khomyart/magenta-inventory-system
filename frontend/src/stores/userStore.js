@@ -18,6 +18,8 @@ export const useUserStore = defineStore("user", {
       isLoading: false,
       isLoginSuccesed: false,
     },
+    users: [],
+    usersLoading: false,
   }),
   getters: {},
   actions: {
@@ -52,6 +54,21 @@ export const useUserStore = defineStore("user", {
       };
 
       return api.post("/login", userData);
+    },
+    async fetchUsers(searchValue = null) {
+      this.usersLoading = true;
+      try {
+        const response = await api.get("/users/simple", {
+          params: {
+            search_filter_value: searchValue,
+          },
+        });
+        this.users = response.data.data || [];
+      } catch (err) {
+        appConfigStore.catchRequestError(err);
+      } finally {
+        this.usersLoading = false;
+      }
     },
   },
 });

@@ -48,10 +48,25 @@ const filterOrder = computed(() => {
 const filterBadgeLabel = computed(() => {
   let filterFrom = appStore.filters.data[props.sectionName].selectedParams[props.targetFields[0]];
   let filterTo = appStore.filters.data[props.sectionName].selectedParams[props.targetFields[1]];
+  let isNullFilter = appStore.filters.data[props.sectionName].selectedParams[props.name + "_is_null"];
+
+  // Return empty badges if filters don't exist
+  if (!filterFrom || !filterTo) {
+    return {
+      value: "",
+      mode: "",
+      order: "",
+    };
+  }
+
+  // Check if null filter is active
+  const hasNullFilter = isNullFilter && isNullFilter.value === true;
+  // Check if date range filters are active
+  const hasDateFilter = filterFrom.value !== "" || filterTo.value !== "";
 
   return {
-    value: filterFrom.value !== "" || filterTo.value !== "" ? "V" : "",
-    mode: "DATE",
+    value: hasNullFilter || hasDateFilter ? "V" : "",
+    mode: hasNullFilter ? "NULL" : "DATE",
     order:
       appStore.filters.data[props.sectionName].selectedParams.order.field ===
       props.name
@@ -109,15 +124,37 @@ const filterModes = computed(() => {
           <q-btn flat v-close-popup dense icon="close"></q-btn>
         </div>
         <div class="row">
-          <div class="filter-body col-12 q-px-md">
+          <div class="filter-body col-12 q-px-md" style="width: 290px;">
 
-            <DateTimeInputComponent :label="searchBarLabel[0] ?? ''" dense class="q-mb-md" v-model="
+            <q-checkbox
+              v-if="appStore.filters.data[props.sectionName].selectedParams[props.name + '_is_null']"
+              v-model="appStore.filters.data[props.sectionName].selectedParams[props.name + '_is_null'].value"
+              label="Тільки записи без дати"
+              color="primary"
+              class="q-mb-md"
+            />
+
+            <DateTimeInputComponent
+              v-if="appStore.filters.data[props.sectionName].selectedParams[props.targetFields[0]]"
+              :label="searchBarLabel[0] ?? ''"
+              dense
+              :auto-set-current-time="false"
+              class="q-mb-md"
+              :disable="appStore.filters.data[props.sectionName].selectedParams[props.name + '_is_null']?.value === true"
+              v-model="
                 appStore.filters.data[props.sectionName].selectedParams[
                   props.targetFields[0]
                 ].value
               ">
             </DateTimeInputComponent>
-            <DateTimeInputComponent :label="searchBarLabel[1] ?? ''" dense class="q-mb-md" v-model="
+            <DateTimeInputComponent
+              v-if="appStore.filters.data[props.sectionName].selectedParams[props.targetFields[1]]"
+              :label="searchBarLabel[1] ?? ''"
+              dense
+              :auto-set-current-time="false"
+              class="q-mb-md"
+              :disable="appStore.filters.data[props.sectionName].selectedParams[props.name + '_is_null']?.value === true"
+              v-model="
                 appStore.filters.data[props.sectionName].selectedParams[
                   props.targetFields[1]
                 ].value
@@ -183,7 +220,7 @@ const filterModes = computed(() => {
               <q-btn
                 v-close-popup
                 class="col-12"
-                @click="$emit('clearFilter', [props.name, ...props.targetFields], props.mode)"
+                @click="$emit('clearFilter', [props.name, ...props.targetFields, props.name + '_is_null'], props.mode)"
               >Скинути</q-btn
               >
             </div>

@@ -8,7 +8,7 @@ Route::post('/contacts', [ContactsController::class, 'create'])
 Route::get('/contacts', [ContactsController::class, 'read'])
     ->middleware('api.authorization:read,contacts');
 
-Route::get('/contacts/simple', [ContactsController::class,'simpleRead'])
+Route::get('/contacts/simple', [ContactsController::class, 'simpleRead'])
     ->middleware('api.authorization:read,contacts');
 
 Route::patch('/contacts/{id}', [ContactsController::class, 'update'])

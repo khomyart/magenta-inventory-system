@@ -16,17 +16,17 @@ return new class extends Migration
         Schema::create('items_images', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId("item_id");
+            $table->foreignId('item_id');
             $table
-                ->foreign("item_id")
-                ->references("id")->on("items")
-                ->onUpdate("cascade")->onDelete("cascade");
+                ->foreign('item_id')
+                ->references('id')->on('items')
+                ->onUpdate('cascade')->onDelete('cascade');
 
-            $table->foreignId("image_id");
+            $table->foreignId('image_id');
             $table
-                ->foreign("image_id")
-                ->references("id")->on("images")
-                ->onUpdate("cascade")->onDelete("cascade");
+                ->foreign('image_id')
+                ->references('id')->on('images')
+                ->onUpdate('cascade')->onDelete('cascade');
 
             $table->timestamps();
         });

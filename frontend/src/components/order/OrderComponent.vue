@@ -1,5 +1,6 @@
 <script setup>
 import {computed, onUpdated, ref} from "vue";
+import {getClientTime} from "app/helpers/GeneralPurposeFunctions";
 
 const emit = defineEmits([
   "showEditDialog",
@@ -9,6 +10,8 @@ const emit = defineEmits([
   "showStartWorkDialog",
   "showCompleteDialog",
   "showPaymentDialog",
+  "showContactDetails",
+  "showNotesDialog",
   "clearUpdatedItemId",
   "copyValue",
 ]);
@@ -49,34 +52,153 @@ const statusDisplay = computed(() => {
   return statusMap[props.itemInfo.status] || props.itemInfo.status;
 });
 
+const statusColor = computed(() => {
+  const colorMap = {
+    'pending': 'orange',
+    'confirmed': 'primary',
+    'in_progress': 'blue',
+    'completed': 'green',
+    'cancelled': 'grey',
+  };
+  return colorMap[props.itemInfo.status] || 'grey';
+});
+
 const contactDisplay = computed(() => {
-  return props.itemInfo.contact?.name || `ID: ${props.itemInfo.contact_id || '-'}`;
+  if (!props.itemInfo.contact) return '-';
+  const name = props.itemInfo.contact.name || '-';
+  const phone = props.itemInfo.contact.phone || '';
+  return phone ? `${name} (+${phone})` : name;
 });
 
 const formattedDeadline = computed(() => {
   if (!props.itemInfo.completion_deadline) return '-';
-  const date = new Date(props.itemInfo.completion_deadline);
-  return date.toLocaleDateString('uk-UA');
+  return getClientTime(props.itemInfo.completion_deadline, 'ua', true);
 });
 
 const formattedCreatedAt = computed(() => {
   if (!props.itemInfo.created_at) return '-';
-  const date = new Date(props.itemInfo.created_at);
-  return date.toLocaleDateString('uk-UA');
+  return getClientTime(props.itemInfo.created_at, 'ua', true);
 });
 
-const involvementDisplay = computed(() => {
-  const parts = [];
-  if (props.itemInfo.involvement_level_1_user) {
-    parts.push(`${props.itemInfo.involvement_level_1_user.name} (8%)`);
+const formattedCompletedAt = computed(() => {
+  if (!props.itemInfo.completed_at) return '-';
+  return getClientTime(props.itemInfo.completed_at, 'ua', true);
+});
+
+const formattedFullyPayedAt = computed(() => {
+  if (!props.itemInfo.fully_payed_at) return '-';
+  return getClientTime(props.itemInfo.fully_payed_at, 'ua', true);
+});
+
+const advancePayment = computed(() => {
+  const total =
+    (parseFloat(props.itemInfo.amount_of_advance_payment_on_card) || 0) +
+    (parseFloat(props.itemInfo.amount_of_advance_payment_via_terminal) || 0) +
+    (parseFloat(props.itemInfo.amount_of_advance_payment_as_cash) || 0);
+  return total.toFixed(2);
+});
+
+const finalPayment = computed(() => {
+  const total =
+    (parseFloat(props.itemInfo.amount_of_final_payment_on_card) || 0) +
+    (parseFloat(props.itemInfo.amount_of_final_payment_via_terminal) || 0) +
+    (parseFloat(props.itemInfo.amount_of_final_payment_as_cash) || 0);
+  return total.toFixed(2);
+});
+
+const notesDisplay = computed(() => {
+  if (!props.itemInfo.notes) return '-';
+  const maxLength = 30;
+  return props.itemInfo.notes.length > maxLength
+    ? props.itemInfo.notes.substring(0, maxLength) + '...'
+    : props.itemInfo.notes;
+});
+
+const advancePaymentDetails = computed(() => {
+  const details = [];
+  const card = parseFloat(props.itemInfo.amount_of_advance_payment_on_card) || 0;
+  const terminal = parseFloat(props.itemInfo.amount_of_advance_payment_via_terminal) || 0;
+  const cash = parseFloat(props.itemInfo.amount_of_advance_payment_as_cash) || 0;
+
+  if (card > 0) details.push(`Карткою онлайн: ${currencyIcon.value}${card.toFixed(2)}`);
+  if (terminal > 0) details.push(`Терміналом: ${currencyIcon.value}${terminal.toFixed(2)}`);
+  if (cash > 0) details.push(`Готівкою: ${currencyIcon.value}${cash.toFixed(2)}`);
+
+  return details.length > 0 ? details.join('\n') : 'Немає авансових платежів';
+});
+
+const finalPaymentDetails = computed(() => {
+  const details = [];
+  const card = parseFloat(props.itemInfo.amount_of_final_payment_on_card) || 0;
+  const terminal = parseFloat(props.itemInfo.amount_of_final_payment_via_terminal) || 0;
+  const cash = parseFloat(props.itemInfo.amount_of_final_payment_as_cash) || 0;
+
+  if (card > 0) details.push(`Карткою онлайн: ${currencyIcon.value}${card.toFixed(2)}`);
+  if (terminal > 0) details.push(`Терміналом: ${currencyIcon.value}${terminal.toFixed(2)}`);
+  if (cash > 0) details.push(`Готівкою: ${currencyIcon.value}${cash.toFixed(2)}`);
+
+  return details.length > 0 ? details.join('\n') : 'Немає фінальних платежів';
+});
+
+const remainingPayment = computed(() => {
+  const total = parseFloat(props.itemInfo.total_price) || 0;
+  const advanceTotal = parseFloat(advancePayment.value) || 0;
+  const finalTotal = parseFloat(finalPayment.value) || 0;
+  const remaining = total - advanceTotal - finalTotal;
+  return remaining.toFixed(2);
+});
+
+const remainingPaymentDisplay = computed(() => {
+  const value = parseFloat(remainingPayment.value);
+  if (value < 0) {
+    return `- ${currencyIcon.value}${Math.abs(value).toFixed(2)}`;
   }
-  if (props.itemInfo.involvement_level_2_user) {
-    parts.push(`${props.itemInfo.involvement_level_2_user.name} (5%)`);
+  return `${currencyIcon.value}${remainingPayment.value}`;
+});
+
+// Helper function to format price for copying
+const formatPriceForCopy = (price) => {
+  const mainPart = Math.floor(price);
+  const mainPartLabel =
+    props.itemInfo.currency === "UAH"
+      ? "грн"
+      : props.itemInfo.currency === "USD"
+        ? "дол"
+        : props.itemInfo.currency === "EUR"
+          ? "у.о"
+          : "";
+
+  const secondaryPart = ((price - mainPart) * 100).toFixed(0);
+  const showSecondaryPart = secondaryPart != 0;
+  const formattedSecondaryPart = secondaryPart < 10 ? `0${secondaryPart}` : secondaryPart;
+  const secondaryPartLabel =
+    props.itemInfo.currency === "UAH"
+      ? "коп"
+      : props.itemInfo.currency === "USD"
+        ? "цент"
+        : props.itemInfo.currency === "EUR"
+          ? "є.ц"
+          : "";
+
+  return showSecondaryPart
+    ? `${mainPart} ${mainPartLabel}. ${formattedSecondaryPart} ${secondaryPartLabel}.`
+    : `${mainPart} ${mainPartLabel}.`;
+};
+
+const statusForCopy = computed(() => statusDisplay.value);
+
+const advancePaymentForCopy = computed(() => formatPriceForCopy(parseFloat(advancePayment.value)));
+
+const finalPaymentForCopy = computed(() => formatPriceForCopy(parseFloat(finalPayment.value)));
+
+const totalPriceForCopy = computed(() => formatPriceForCopy(parseFloat(totalPrice.value)));
+
+const remainingPaymentForCopy = computed(() => {
+  const value = parseFloat(remainingPayment.value);
+  if (value < 0) {
+    return `- ${formatPriceForCopy(Math.abs(value))}`;
   }
-  if (props.itemInfo.involvement_level_3_user) {
-    parts.push(`${props.itemInfo.involvement_level_3_user.name} (3%)`);
-  }
-  return parts.length > 0 ? parts.join(', ') : '-';
+  return formatPriceForCopy(value);
 });
 </script>
 
@@ -87,7 +209,7 @@ const involvementDisplay = computed(() => {
       <div :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
-         :style="{
+           :style="{
           borderRadius:
             props.gap == 0
               ? props.isFirst && !props.isLast
@@ -101,7 +223,8 @@ const involvementDisplay = computed(() => {
         }">
         <q-btn v-if="(
           props.allowenses.update || props.allowenses.delete
-          ) && ['pending', 'in_progress', 'confirmed', 'completed'].includes(props.itemInfo.status)" icon="list" round flat>
+          ) && ['pending', 'in_progress', 'confirmed', 'completed'].includes(props.itemInfo.status)" icon="list" round
+               flat>
           <q-menu :offset="[5, 5]">
             <q-list style="min-width: 100px">
               <q-item v-if="props.allowenses.update && props.itemInfo.status !== 'cancelled'" clickable v-close-popup
@@ -128,8 +251,10 @@ const involvementDisplay = computed(() => {
                   <q-icon size="sm" color="green" name="check_circle" left/>
                   <span>Виконати</span></div>
               </q-item>
-              <q-item v-if="props.allowenses.update && props.itemInfo.status !== 'pending' && props.itemInfo.status !== 'cancelled' && !props.itemInfo.fully_payed_at" clickable v-close-popup
-                      @click="$emit('showPaymentDialog', props.itemInfo)">
+              <q-item
+                v-if="props.allowenses.update && props.itemInfo.status !== 'pending' && props.itemInfo.status !== 'cancelled' && !props.itemInfo.fully_payed_at"
+                clickable v-close-popup
+                @click="$emit('showPaymentDialog', props.itemInfo)">
                 <div class="context-menu-item">
                   <q-icon size="sm" color="purple" name="payments" left/>
                   <span>Внести оплату</span></div>
@@ -140,12 +265,12 @@ const involvementDisplay = computed(() => {
                   <q-icon size="sm" color="orange" name="cancel" left/>
                   <span>Відмінити замовлення</span></div>
               </q-item>
-<!--              <q-item v-if="props.allowenses.delete" clickable v-close-popup-->
-<!--                      @click="$emit('showRemoveDialog', props.itemInfo.id)">-->
-<!--                <div class="context-menu-item">-->
-<!--                  <q-icon size="sm" color="red" name="delete" left/>-->
-<!--                  <span>Видалити</span></div>-->
-<!--              </q-item>-->
+              <!--              <q-item v-if="props.allowenses.delete" clickable v-close-popup-->
+              <!--                      @click="$emit('showRemoveDialog', props.itemInfo.id)">-->
+              <!--                <div class="context-menu-item">-->
+              <!--                  <q-icon size="sm" color="red" name="delete" left/>-->
+              <!--                  <span>Видалити</span></div>-->
+              <!--              </q-item>-->
             </q-list>
           </q-menu>
         </q-btn>
@@ -154,37 +279,29 @@ const involvementDisplay = computed(() => {
     <td class="separator-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
     </td>
+    <!-- ID (Номер) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', props.itemInfo.id, 'Номер')">
+        <div class="item-text">{{ props.itemInfo.id }}</div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
     <!-- Status -->
     <td class="item-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
-           @click="$emit('copyValue', props.itemInfo.status, 'Статус')">
-        <div class="item-text">{{ statusDisplay }}</div>
+           @click="$emit('copyValue', statusForCopy, 'Статус')">
+        <div class="item-text">
+          <q-badge :color="statusColor" :label="statusDisplay" />
+        </div>
       </div>
     </td>
     <td class="separator-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
     </td>
-    <!-- Total Price -->
-    <td class="item-cell">
-      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
-           @click="$emit('copyValue', `${currencyIcon}${totalPrice}`, 'Сума')">
-        <div class="item-text">{{ `${currencyIcon}${totalPrice}` }}</div>
-      </div>
-    </td>
-    <td class="separator-cell">
-      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
-    </td>
-    <!-- Contact ID -->
-    <td class="item-cell">
-      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
-           @click="$emit('copyValue', contactDisplay, 'Контакт')">
-        <div class="item-text">{{ contactDisplay }}</div>
-      </div>
-    </td>
-    <td class="separator-cell">
-      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
-    </td>
-    <!-- Completion Deadline -->
+    <!-- Completion Deadline (Дедлайн) -->
     <td class="item-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
            @click="$emit('copyValue', formattedDeadline, 'Дедлайн')">
@@ -194,7 +311,100 @@ const involvementDisplay = computed(() => {
     <td class="separator-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
     </td>
-    <!-- Created At -->
+    <!-- Advance Payment (Аванс) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', advancePaymentForCopy, 'Аванс')">
+        <div class="item-text">
+          {{ `${currencyIcon}${advancePayment}` }}
+          <q-tooltip max-width="300px" class="bg-black text-body2">
+            <div class="text-bold q-mb-xs">Деталізація авансу:</div>
+            <div style="white-space: pre-wrap;">{{ advancePaymentDetails }}</div>
+          </q-tooltip>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Final Payment (Оплата) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', finalPaymentForCopy, 'Оплата')">
+        <div class="item-text">
+          {{ `${currencyIcon}${finalPayment}` }}
+          <q-tooltip max-width="300px" class="bg-black text-body2">
+            <div class="text-bold q-mb-xs">Деталізація оплати:</div>
+            <div style="white-space: pre-wrap;">{{ finalPaymentDetails }}</div>
+          </q-tooltip>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Total Price (Сума) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', totalPriceForCopy, 'Сума')">
+        <div class="item-text">{{ `${currencyIcon}${totalPrice}` }}</div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Remaining to Pay (До сплати) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', remainingPaymentForCopy, 'До сплати')">
+        <div class="item-text">
+          <span :class="{
+            'text-red': parseFloat(remainingPayment) > 0 && props.itemInfo.status !== 'cancelled',
+            'text-green': parseFloat(remainingPayment) < 0,
+            'text-grey-7': parseFloat(remainingPayment) === 0 || props.itemInfo.status === 'cancelled'
+          }">
+            {{ remainingPaymentDisplay }}
+          </span>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Fully Payed At (Дата оплати) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
+           @click="$emit('copyValue', formattedFullyPayedAt, 'Дата повної оплати')">
+        <div class="item-text">
+          <span v-if="props.itemInfo.fully_payed_at" class="text-green">{{ formattedFullyPayedAt }}</span>
+          <span v-else class="text-grey-7">-</span>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Contact (Контакт) -->
+    <td class="item-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }">
+        <div class="item-text">
+          <span
+            v-if="props.itemInfo.contact"
+            class="text-primary"
+            style="cursor: pointer; "
+            @click="$emit('showContactDetails', props.itemInfo.contact)"
+          >
+            {{ contactDisplay }}
+            <q-tooltip class="bg-black text-body2">Переглянути контакт</q-tooltip>
+          </span>
+          <span v-else class="text-grey-7">-</span>
+        </div>
+      </div>
+    </td>
+    <td class="separator-cell">
+      <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
+    </td>
+    <!-- Created At (Створено) -->
     <td class="item-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
            @click="$emit('copyValue', formattedCreatedAt, 'Дата створення')">
@@ -204,17 +414,17 @@ const involvementDisplay = computed(() => {
     <td class="separator-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
     </td>
-    <!-- Involvement -->
+    <!-- Completed At (Завершено) -->
     <td class="item-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }" style="cursor: pointer"
-           @click="$emit('copyValue', involvementDisplay, 'Залучені')">
-        <div class="item-text">{{ involvementDisplay }}</div>
+           @click="$emit('copyValue', formattedCompletedAt, 'Дата завершення')">
+        <div class="item-text">{{ formattedCompletedAt }}</div>
       </div>
     </td>
     <td class="separator-cell">
       <div :class="{ 'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0 }"></div>
     </td>
-    <!-- Notes -->
+    <!-- Notes (Нотатки) -->
     <td class="item-cell">
       <div :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
@@ -231,13 +441,20 @@ const involvementDisplay = computed(() => {
                 : ``
               : `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`,
         }">
-        <div class="item-text" style="display: flex; justify-content: center; align-items: center;">
-          <q-btn v-if="props.itemInfo.notes" icon="description" round flat size="sm" color="primary">
+        <div class="item-text">
+          <span
+            v-if="props.itemInfo.notes"
+            class="text-primary"
+            style="cursor: pointer;"
+            @click="$emit('showNotesDialog', props.itemInfo.notes)"
+          >
+            {{ notesDisplay }}
             <q-tooltip max-width="300px" class="bg-black text-body2">
               <div class="text-bold q-mb-xs">Нотатки:</div>
               <div style="white-space: pre-wrap;">{{ props.itemInfo.notes }}</div>
             </q-tooltip>
-          </q-btn>
+          </span>
+          <span v-else class="text-grey-7">-</span>
         </div>
       </div>
     </td>

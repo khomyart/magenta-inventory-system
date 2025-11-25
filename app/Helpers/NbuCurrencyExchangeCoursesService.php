@@ -9,17 +9,16 @@ class NbuCurrencyExchangeCoursesService
     /**
      * Returns nbu currency exchange currency rate for today
      *
-     * @param string $date - yyyymm
-     * @param string $currencyCode - USD|EUR|etc...
+     * @param  string  $date - yyyymm
+     * @param  string  $currencyCode - USD|EUR|etc...
      * @param
-     *
      * @return float currency exchange index
      */
     public function getCourses(string $date, string $currencyCode): float
     {
-        $cachedCurrencies = Cache::get("nbuCurrencyExchangeCourses");
+        $cachedCurrencies = Cache::get('nbuCurrencyExchangeCourses');
         if ($cachedCurrencies != null) {
-            return (float)$cachedCurrencies[$currencyCode] ?? 1;
+            return (float) $cachedCurrencies[$currencyCode] ?? 1;
         }
         $response = file_get_contents("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={$date}&json");
         if ($response) {
@@ -31,8 +30,9 @@ class NbuCurrencyExchangeCoursesService
                 }
             }
 
-            Cache::put("nbuCurrencyExchangeCourses", $currenciesAssoc, now()->setTime(23,59,59));
-            return (float)$currenciesAssoc[$currencyCode] ?? 1;
+            Cache::put('nbuCurrencyExchangeCourses', $currenciesAssoc, now()->setTime(23, 59, 59));
+
+            return (float) $currenciesAssoc[$currencyCode] ?? 1;
         }
 
         return 1;

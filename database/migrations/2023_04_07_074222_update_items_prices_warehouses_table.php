@@ -16,9 +16,8 @@ return new class extends Migration
         Schema::table('items_prices_warehouses', function (Blueprint $table) {
             $table->after('warehouse_id', function ($table) {
                 $table->integer('price_per_item');
-                $table->enum('currency', ["UAH", "USD", "EUR"]);
+                $table->enum('currency', ['UAH', 'USD', 'EUR']);
             });
-
         });
     }
 

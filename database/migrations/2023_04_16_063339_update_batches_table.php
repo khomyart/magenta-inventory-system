@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table("batches", function(Blueprint $table) {
-            $table->decimal("price_per_item", 13, 4)->change();
+        Schema::table('batches', function (Blueprint $table) {
+            $table->decimal('price_per_item', 13, 4)->change();
         });
     }
 

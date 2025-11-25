@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('items', function (Blueprint $table) {
-            $table->UUID("group_id")->after("id");
-            $table->string("model", 255)->after("title");
+            $table->UUID('group_id')->after('id');
+            $table->string('model', 255)->after('title');
         });
     }
 

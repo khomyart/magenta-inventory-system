@@ -10,7 +10,7 @@ class Allowense extends Model
     use HasFactory;
 
     protected $fillable = [
-        'section', 'action'
+        'section', 'action',
     ];
 
     public $timestamps = false;

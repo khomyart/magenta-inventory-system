@@ -71,7 +71,25 @@ function getPlatformLabel(platform) {
               <q-icon name="phone" size="18px" class="q-mr-xs" />
               Телефон
             </div>
-            <div class="detail-value">{{ contact.phone }}</div>
+            <div class="detail-value phone-container">
+              <a :href="`tel:${contact.phone}`" class="phone-link">
+                {{ contact.phone }}
+              </a>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                color="primary"
+                icon="call"
+                :href="`tel:${contact.phone}`"
+                class="q-ml-sm"
+              >
+                <q-tooltip class="bg-black text-body2">
+                  Подзвонити
+                </q-tooltip>
+              </q-btn>
+            </div>
           </div>
 
           <!-- Email -->
@@ -80,7 +98,25 @@ function getPlatformLabel(platform) {
               <q-icon name="email" size="18px" class="q-mr-xs" />
               Email
             </div>
-            <div class="detail-value">{{ contact.email }}</div>
+            <div class="detail-value phone-container">
+              <a :href="`mailto:${contact.email}`" class="phone-link">
+                {{ contact.email }}
+              </a>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                color="primary"
+                icon="mail"
+                :href="`mailto:${contact.email}`"
+                class="q-ml-sm"
+              >
+                <q-tooltip class="bg-black text-body2">
+                  Написати email
+                </q-tooltip>
+              </q-btn>
+            </div>
           </div>
 
           <!-- Address -->
@@ -167,5 +203,21 @@ function getPlatformLabel(platform) {
   font-size: 1em;
   color: #333;
   word-wrap: break-word;
+}
+
+.phone-container {
+  display: flex;
+  align-items: center;
+}
+
+.phone-link {
+  color: #1976d2;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.phone-link:hover {
+  color: #1565c0;
+  text-decoration: underline;
 }
 </style>

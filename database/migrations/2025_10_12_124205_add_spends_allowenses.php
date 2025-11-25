@@ -14,7 +14,7 @@ return new class extends Migration
     {
         $actions = ['update_not_owned', 'delete_not_owned'];
         foreach ($actions as $action) {
-            if (!Allowense::query()->where([
+            if (! Allowense::query()->where([
                 'section' => 'spends',
                 'action' => $action,
             ])->exists()) {

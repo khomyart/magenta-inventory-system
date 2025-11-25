@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('types', function (Blueprint $table) {
             $table->id();
-            $table->char("article", 8);
-            $table->string("name");
+            $table->char('article', 8);
+            $table->string('name');
 
             $table->timestamps();
         });

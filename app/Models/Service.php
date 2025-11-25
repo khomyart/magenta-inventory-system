@@ -11,11 +11,11 @@ class Service extends Model
     use HasFactory;
 
     protected $fillable = [
-        "title", "price", "currency", "created_by_user_id"
+        'title', 'price', 'currency', 'created_by_user_id',
     ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, "created_by_user_id", "id");
+        return $this->belongsTo(User::class, 'created_by_user_id', 'id');
     }
 }

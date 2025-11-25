@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ErrorHandler;
 use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Helpers\ErrorHandler;
 
 class TypeController extends Controller
 {
-    public $section = "types";
-    public $fields = ["name"];
-    public $fieldsValidationRules = ["required|string|max:128"];
+    public $section = 'types';
+
+    public $fields = ['name'];
+
+    public $fieldsValidationRules = ['required|string|max:128'];
 
     //templated access to section model
-    public function getSectionModel() {
+    public function getSectionModel()
+    {
         return new Type;
     }
 
@@ -25,24 +28,24 @@ class TypeController extends Controller
      */
     public function read(Request $request)
     {
-        $compiledRegexRule = "";
+        $compiledRegexRule = '';
         $validationRules = [
-            "itemsPerPage" => "required|numeric",
-            "page" => "required|numeric",
-            "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
+            'itemsPerPage' => 'required|numeric',
+            'page' => 'required|numeric',
+            'orderValue' => ['string', 'regex:/^desc$|^asc$/i', 'nullable'],
         ];
 
         foreach ($this->fields as $key => $field) {
             //forming regular exp. for orderField validation
             $compiledRegexRule .= "^{$field}$";
-            $key != count($this->fields) - 1 ? $compiledRegexRule .= "|" : "";
+            $key != count($this->fields) - 1 ? $compiledRegexRule .= '|' : '';
 
             //setting rules for each field
-            $validationRules["{$field}FilterValue"] = "string|nullable";
-            $validationRules["{$field}FilterMode"] = ["string", "regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i", "nullable"];
+            $validationRules["{$field}FilterValue"] = 'string|nullable';
+            $validationRules["{$field}FilterMode"] = ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'];
         }
 
-        $validationRules["orderField"] = ["string", "regex:/^id$|{$compiledRegexRule}/i", "nullable"];
+        $validationRules['orderField'] = ['string', "regex:/^id$|{$compiledRegexRule}/i", 'nullable'];
 
         $data = $request->validate($validationRules);
 
@@ -54,11 +57,11 @@ class TypeController extends Controller
             $searchOperator = $this->getWhereOperator($data["{$field}FilterMode"]);
 
             if ($searchValue != null) {
-                if ($searchOperator === "like") {
-                    $section->where($field, "like", "%{$searchValue}%");
-                } elseif ($searchOperator === "notLike") {
+                if ($searchOperator === 'like') {
+                    $section->where($field, 'like', "%{$searchValue}%");
+                } elseif ($searchOperator === 'notLike') {
                     $section->whereNot(function ($query) use ($searchValue, $field) {
-                        $query->where($field, "like", "%{$searchValue}%");
+                        $query->where($field, 'like', "%{$searchValue}%");
                     });
                 } else {
                     $section->where($field, $searchOperator, $searchValue);
@@ -67,35 +70,36 @@ class TypeController extends Controller
         }
 
         //ordering query
-        if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
-            $section = $section->orderBy($data["orderField"], $data["orderValue"]);
+        if (! empty($data['orderField']) && ! empty($data['orderValue'])) {
+            $section = $section->orderBy($data['orderField'], $data['orderValue']);
         } else {
-            $section = $section->orderBy("number_in_row", "asc");
+            $section = $section->orderBy('number_in_row', 'asc');
         }
 
-        $firstItemInRow = $this->getSectionModel()::orderBy("number_in_row", "asc")->limit(1)->get();
-        $lastItemInRow = $this->getSectionModel()::orderBy("number_in_row", "desc")->limit(1)->get();
+        $firstItemInRow = $this->getSectionModel()::orderBy('number_in_row', 'asc')->limit(1)->get();
+        $lastItemInRow = $this->getSectionModel()::orderBy('number_in_row', 'desc')->limit(1)->get();
 
-        $response = json_decode(json_encode($section->paginate($data["itemsPerPage"])), true);
-        $response["first_item_number_in_row"] =
-            count($firstItemInRow) === 0 ? null : $firstItemInRow[0]["number_in_row"];
-        $response["last_item_number_in_row"] =
-            count($lastItemInRow) === 0 ? null : $lastItemInRow[0]["number_in_row"];
+        $response = json_decode(json_encode($section->paginate($data['itemsPerPage'])), true);
+        $response['first_item_number_in_row'] =
+            count($firstItemInRow) === 0 ? null : $firstItemInRow[0]['number_in_row'];
+        $response['last_item_number_in_row'] =
+            count($lastItemInRow) === 0 ? null : $lastItemInRow[0]['number_in_row'];
 
         return response($response);
     }
 
-    public function simpleRead(Request $request) {
+    public function simpleRead(Request $request)
+    {
         $data = $request->validate([
             'nameFilterValue' => 'string|nullable',
         ]);
         $items = [];
         $sectionModel = $this->getSectionModel();
 
-        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
+        if (empty($data['nameFilterValue']) || $data['nameFilterValue'] == null) {
             $query = $sectionModel::orderBy('number_in_row', 'asc');
         } else {
-            $query = $sectionModel::where('name', 'like', "%{$data["nameFilterValue"]}%")->orderBy('number_in_row', 'asc');
+            $query = $sectionModel::where('name', 'like', "%{$data['nameFilterValue']}%")->orderBy('number_in_row', 'asc');
         }
 
         $items = $query->limit(5)->get();
@@ -103,7 +107,8 @@ class TypeController extends Controller
         return response($items);
     }
 
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
         $sectionModel = $this->getSectionModel();
         $rules = [];
 
@@ -112,26 +117,30 @@ class TypeController extends Controller
         }
 
         $data = $request->validate($rules);
-        $data["number_in_row"] = $this->getLastNumberInRow() + 1;
+        $data['number_in_row'] = $this->getLastNumberInRow() + 1;
 
         /**
          * Validate input data for uniqueness
          */
-        if ($this->isItemExists($data)) return ErrorHandler::responseWith("Неможливо створити: такий вид вже існує");
+        if ($this->isItemExists($data)) {
+            return ErrorHandler::responseWith('Неможливо створити: такий вид вже існує');
+        }
 
         $dataForSecondaryValidation = [
-            ["name", "назва", $data["name"]],
+            ['name', 'назва', $data['name']],
         ];
 
         foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation) as $key => $field) {
-            if ($field["isUnique"] == false)
+            if ($field['isUnique'] == false) {
                 return ErrorHandler::responseWith("Неможливо створити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+            }
         }
 
         return $sectionModel::create($data);
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $rules = [];
 
@@ -143,16 +152,18 @@ class TypeController extends Controller
         $section = $sectionModel::find($id);
 
         if ($section) {
-            if ($this->isItemExists($data, $id))
-                return ErrorHandler::responseWith("Неможливо оновити: такий вид вже існує");
+            if ($this->isItemExists($data, $id)) {
+                return ErrorHandler::responseWith('Неможливо оновити: такий вид вже існує');
+            }
 
             $dataForSecondaryValidation = [
-                ["name", "назва", $data["name"]],
+                ['name', 'назва', $data['name']],
             ];
 
             foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation, $id) as $key => $field) {
-                if ($field["isUnique"] == false)
+                if ($field['isUnique'] == false) {
                     return ErrorHandler::responseWith("Неможливо оновити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+                }
             }
 
             foreach ($this->fields as $key => $field) {
@@ -164,75 +175,80 @@ class TypeController extends Controller
             return response($section);
         }
 
-        return ErrorHandler::responseWith("Предмет не знайдено", 404);
+        return ErrorHandler::responseWith('Предмет не знайдено', 404);
     }
 
     /**
      * Delete section (row) from DB by ID
      *
-     * @param Request $request
-     * @param integer $id Passed through URL
-     *
+     * @param  Request  $request
+     * @param  int  $id Passed through URL
      * @return Response
      */
-    public function delete(Request $request, $id) {
+    public function delete(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section == null)
-            return ErrorHandler::responseWith("Предмет не знайдено", 404);
-        if ($section->items != null)
-            return ErrorHandler::responseWith("Неможливо видалити: тип використовується в існуючих предметах");
+        if ($section == null) {
+            return ErrorHandler::responseWith('Предмет не знайдено', 404);
+        }
+        if ($section->items != null) {
+            return ErrorHandler::responseWith('Неможливо видалити: тип використовується в існуючих предметах');
+        }
 
         $section->delete();
-        return response("OK", 200);
+
+        return response('OK', 200);
     }
 
-    private function getWhereOperator($operatorName) {
+    private function getWhereOperator($operatorName)
+    {
         $equality = [
-            "include" => "like",
-            "exclude" => "notLike",
-            "more" => ">",
-            "less" => "<",
-            "equal"=> "=",
-            "notequal" => "<>"
+            'include' => 'like',
+            'exclude' => 'notLike',
+            'more' => '>',
+            'less' => '<',
+            'equal' => '=',
+            'notequal' => '<>',
         ];
 
         return $equality[$operatorName];
     }
 
-    private function getLastNumberInRow() {
+    private function getLastNumberInRow()
+    {
         $sectionModel = $this->getSectionModel();
-        $queryResult = $sectionModel::orderBy("number_in_row", "desc")->limit(1)->get();
+        $queryResult = $sectionModel::orderBy('number_in_row', 'desc')->limit(1)->get();
 
-        return count($queryResult) != 0 ? $queryResult[0]["number_in_row"] : 0;
+        return count($queryResult) != 0 ? $queryResult[0]['number_in_row'] : 0;
     }
 
-    public function moveInRow(Request $request, $id) {
+    public function moveInRow(Request $request, $id)
+    {
         $data = $request->validate([
-            "direction" => ["required", "string", "regex:/^up$|^down$/i"],
+            'direction' => ['required', 'string', 'regex:/^up$|^down$/i'],
         ]);
-        $direction = $data["direction"];
+        $direction = $data['direction'];
 
         $sectionModel = $this->getSectionModel();
         $currentElement = $sectionModel::find($id);
 
-        if ($currentElement === null)
-            return ErrorHandler::responseWith("Предмет не знайдено", 404);
+        if ($currentElement === null) {
+            return ErrorHandler::responseWith('Предмет не знайдено', 404);
+        }
 
-        $previousElementInRow = $sectionModel
-            ::where("number_in_row", ">", $currentElement["number_in_row"])
-            ->orderBy("number_in_row", "asc")->limit(1)->get();
+        $previousElementInRow = $sectionModel::where('number_in_row', '>', $currentElement['number_in_row'])
+            ->orderBy('number_in_row', 'asc')->limit(1)->get();
         $previousElementInRow = count($previousElementInRow) === 0 ? null : $previousElementInRow[0];
 
-        $nextElementInRow = $sectionModel
-            ::where("number_in_row", "<", $currentElement["number_in_row"])
-            ->orderBy("number_in_row", "desc")->limit(1)->get();
+        $nextElementInRow = $sectionModel::where('number_in_row', '<', $currentElement['number_in_row'])
+            ->orderBy('number_in_row', 'desc')->limit(1)->get();
         $nextElementInRow = count($nextElementInRow) === 0 ? null : $nextElementInRow[0];
 
-        if ($direction === "up" && $nextElementInRow !== null) {
-            $currentElementNumberInRow = $currentElement["number_in_row"];
-            $nextElementNumberInRow = $nextElementInRow["number_in_row"];
+        if ($direction === 'up' && $nextElementInRow !== null) {
+            $currentElementNumberInRow = $currentElement['number_in_row'];
+            $nextElementNumberInRow = $nextElementInRow['number_in_row'];
 
             $currentElement->number_in_row = $nextElementNumberInRow;
             $nextElementInRow->number_in_row = $currentElementNumberInRow;
@@ -241,15 +257,15 @@ class TypeController extends Controller
             $nextElementInRow->save();
 
             return response()->json([
-                "previousElementInRow" => $previousElementInRow,
-                "currentElement" => $currentElement,
-                "nextElementInRow" => $nextElementInRow,
+                'previousElementInRow' => $previousElementInRow,
+                'currentElement' => $currentElement,
+                'nextElementInRow' => $nextElementInRow,
             ]);
         }
 
-        if ($direction === "down" && $previousElementInRow !== null) {
-            $currentElementNumberInRow = $currentElement["number_in_row"];
-            $previousElementNumberInRow = $previousElementInRow["number_in_row"];
+        if ($direction === 'down' && $previousElementInRow !== null) {
+            $currentElementNumberInRow = $currentElement['number_in_row'];
+            $previousElementNumberInRow = $previousElementInRow['number_in_row'];
 
             $currentElement->number_in_row = $previousElementNumberInRow;
             $previousElementInRow->number_in_row = $currentElementNumberInRow;
@@ -258,13 +274,13 @@ class TypeController extends Controller
             $previousElementInRow->save();
 
             return response()->json([
-                "previousElementInRow" => $previousElementInRow,
-                "currentElement" => $currentElement,
-                "nextElementInRow" => $nextElementInRow,
+                'previousElementInRow' => $previousElementInRow,
+                'currentElement' => $currentElement,
+                'nextElementInRow' => $nextElementInRow,
             ]);
         }
 
-        return ErrorHandler::responseWith("Неможливо виконати рух");
+        return ErrorHandler::responseWith('Неможливо виконати рух');
     }
 
     /**
@@ -274,16 +290,18 @@ class TypeController extends Controller
      * (looks for similarity in items wich are different from item
      * with passed ID)
      *
-     * @param integer  $id        Item ID (for update case), null - default value
-     * @param array    $itemData  Contains validated values from request
-     *
-     * @return boolean Is item with passed params exists in "types" table
+     * @param  int  $id        Item ID (for update case), null - default value
+     * @param  array  $itemData  Contains validated values from request
+     * @return bool Is item with passed params exists in "types" table
      */
-    private function isItemExists($itemData, $id = null) {
+    private function isItemExists($itemData, $id = null)
+    {
         $sectionModel = $this->getSectionModel();
-        $matchingItems = $sectionModel::where("name", $itemData["name"]);
+        $matchingItems = $sectionModel::where('name', $itemData['name']);
 
-        if ($id != null) $matchingItems->where("id", "<>", $id);
+        if ($id != null) {
+            $matchingItems->where('id', '<>', $id);
+        }
 
         $matchingItems = $matchingItems->get();
 
@@ -293,9 +311,8 @@ class TypeController extends Controller
     /**
      * Helps to get more control on fields uniqueness validation
      *
-     * @param array    $data  Structure - [ [fieldName, fieldNameTranslation, fieldValue], [...] ]
-     * @param integer  $id    Item ID (in case of updating)
-     *
+     * @param  array  $data  Structure - [ [fieldName, fieldNameTranslation, fieldValue], [...] ]
+     * @param  int  $id    Item ID (in case of updating)
      * @return array   Structure - [ [isUnique: boolean
      *                                name: [
      *                                        original: string
@@ -303,7 +320,8 @@ class TypeController extends Controller
      *                                      ]
      *                                value: mixed], [...] ]
      */
-    private function isItemFieldsValuesAreUnique($data, $id = null) {
+    private function isItemFieldsValuesAreUnique($data, $id = null)
+    {
         $result = [];
         $sectionModel = $this->getSectionModel();
 
@@ -314,21 +332,25 @@ class TypeController extends Controller
              * Exclude item itself from validation, if $id
              * is passed through
              */
-            if ($id != null) $query->where("id", "<>", $id);
+            if ($id != null) {
+                $query->where('id', '<>', $id);
+            }
             $queryResult = $query->get();
             /**
              * Deciding is field value unique
              */
             $isUnique = true;
-            if (count($queryResult) > 0) $isUnique = false;
+            if (count($queryResult) > 0) {
+                $isUnique = false;
+            }
 
             $result[] = [
-                "isUnique" => $isUnique,
-                "name" => [
-                    "original" => $field[0],
-                    "translation" => $field[1],
+                'isUnique' => $isUnique,
+                'name' => [
+                    'original' => $field[0],
+                    'translation' => $field[1],
                 ],
-                "value" => $field[2]
+                'value' => $field[2],
             ];
         }
 

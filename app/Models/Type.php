@@ -9,10 +9,12 @@ class Type extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', "number_in_row"];
+    protected $fillable = ['name', 'number_in_row'];
+
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function items() {
-        return $this->belongsTo(Item::class, "id", "type_id");
+    public function items()
+    {
+        return $this->belongsTo(Item::class, 'id', 'type_id');
     }
 }

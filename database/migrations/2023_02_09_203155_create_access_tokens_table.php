@@ -15,15 +15,15 @@ return new class extends Migration
     {
         Schema::create('access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id");
-            $table->foreign("user_id")
-                ->references("id")
-                ->on("users")
-                ->onUpdate("cascade")
-                ->onDelete("cascade");
-            $table->string("token", 255);
-            $table->dateTime("last_used");
-            $table->dateTime("expired_at");
+            $table->foreignId('user_id');
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->string('token', 255);
+            $table->dateTime('last_used');
+            $table->dateTime('expired_at');
             $table->timestamps();
         });
     }

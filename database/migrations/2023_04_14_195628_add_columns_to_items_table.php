@@ -14,9 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('items', function (Blueprint $table) {
-            $table->after('unit_id', function($table) {
+            $table->after('unit_id', function ($table) {
                 $table->decimal('price', 13, 4);
-                $table->enum('currency', ["UAH", "USD", "EUR"]);
+                $table->enum('currency', ['UAH', 'USD', 'EUR']);
             });
         });
     }

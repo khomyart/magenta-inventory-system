@@ -9,10 +9,12 @@ class Color extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['value','article','description','text_color_value'];
+    protected $fillable = ['value', 'article', 'description', 'text_color_value'];
+
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function items() {
-        return $this->belongsTo(Item::class, "id", "color_id");
+    public function items()
+    {
+        return $this->belongsTo(Item::class, 'id', 'color_id');
     }
 }

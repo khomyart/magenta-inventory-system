@@ -1,22 +1,6 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-px-md q-mt-md">
-      <q-input
-        v-model="
-          appStore.filters.data[currentSection].selectedParams.status.value
-        "
-        debounce="700"
-        outlined
-        placeholder="Введіть статус замовлення"
-        dense
-        class="q-mr-md"
-        style="width: 300px"
-        :loading="sectionStore.data.isItemsLoading"
-      >
-        <template v-slot:append v-if="!sectionStore.data.isItemsLoading">
-          <q-icon name="search" />
-        </template>
-      </q-input>
+    <div class="toolbar row q-mt-md">
       <CreateOrderComponent v-if="allowenses.create" />
       <q-btn
         flat
@@ -48,8 +32,65 @@
           <div class="vertical-line"></div>
         </div>
         <template v-for="(item, index) in fieldsSequance" :key="index">
+          <!-- Select Filter (for status) -->
+          <SelectFilterButtonComponent
+            v-if="fieldsDetails[index].type === 'select'"
+            :appStore="appStore"
+            :sectionName="currentSection"
+            :sectionStore="sectionStore"
+            :name="fieldsSequance[index]"
+            :label="fieldsDetails[index].label"
+            :searchBarLabel="fieldsDetails[index].searchBarLabel"
+            :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
+            :width="computedFilterWidth.buttons[fieldsSequance[index]]"
+            :options="fieldsDetails[index].options"
+            optionLabel="label"
+            optionValue="value"
+            @clear-filter="clearFilter"
+            @change-filter-mode="onChangedFieldFilterMode"
+            @set-filter-order="setFilterOrder"
+          />
+
+          <!-- Searchable Filter (for contact) -->
+          <SearchableFilterButtonComponent
+            v-else-if="fieldsDetails[index].type === 'searchable'"
+            :appStore="appStore"
+            :sectionName="currentSection"
+            :sectionStore="sectionStore"
+            :name="fieldsSequance[index]"
+            :label="fieldsDetails[index].label"
+            :searchBarLabel="fieldsDetails[index].searchBarLabel"
+            :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
+            :width="computedFilterWidth.buttons[fieldsSequance[index]]"
+            apiEndpoint="/contacts/simple"
+            searchParam="search_filter_value"
+            optionLabel="name"
+            optionValue="id"
+            :displayTemplate="(contact) => contact.name"
+            :subtextTemplate="(contact) => [contact.phone, contact.email].filter(Boolean).join(' • ')"
+            @clear-filter="clearFilter"
+            @set-filter-order="setFilterOrder"
+          />
+          <!-- Date Filter (for dates) -->
+          <DateButtonComponent
+            v-else-if="fieldsDetails[index].type === 'date'"
+            :appStore="appStore"
+            :sectionName="currentSection"
+            :sectionStore="sectionStore"
+            :name="fieldsSequance[index]"
+            :targetFields="fieldsDetails[index].additionalFieldsForFiltering ?? []"
+            :label="fieldsDetails[index].label"
+            :searchBarLabel="fieldsDetails[index].searchBarLabel"
+            :orderButtonLabels="fieldsDetails[index].orderButtonLabels"
+            :width="computedFilterWidth.buttons[fieldsSequance[index]]"
+            :mode="fieldsDetails[index].type"
+            @clear-filter="clearFilter"
+            @change-filter-mode="onChangedFieldFilterMode"
+            @set-filter-order="setFilterOrder"
+          />
+          <!-- Regular Button Component -->
           <ButtonComponent
-            v-if="fieldsDetails[index].type !== 'display-only'"
+            v-else-if="fieldsDetails[index].type !== 'display-only'"
             :appStore="appStore"
             :sectionName="currentSection"
             :sectionStore="sectionStore"
@@ -66,6 +107,7 @@
             @change-filter-mode="onChangedFieldFilterMode"
             @set-filter-order="setFilterOrder"
           />
+          <!-- Display-only field -->
           <div v-else class="filter-button" :style="{ width: computedFilterWidth.buttons[fieldsSequance[index]] + 'px' }">
             <div class="text-center text-grey-7" style="padding: 8px;">{{ fieldsDetails[index].label }}</div>
           </div>
@@ -102,6 +144,8 @@
             @show-start-work-dialog="showStartWorkDialog"
             @show-complete-dialog="showCompleteDialog"
             @show-payment-dialog="showPaymentDialog"
+            @show-contact-details="showContactDetails"
+            @show-notes-dialog="showNotesDialog"
             @clear-updated-item-id="clearUpdatedItemId"
             @copy-value="copyValue"
             :allowenses="allowenses"
@@ -316,66 +360,105 @@
         <q-card-section>
           <div class="text-subtitle1 q-pb-md">Залученість у виконання завдання</div>
           <div class="q-gutter-md">
-            <q-select
-              outlined
-              v-model="completeItem.involvement_level_1_user_id"
-              :options="userStore.users"
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              clearable
-              hide-dropdown-icon
-              use-input
-              @filter="userFilterLevel1"
-              label="Повна (8%)"
-              :loading="userLoadingStates.level1"
-              :disable="completeItem.involvement_level_2_user_id !== null || completeItem.involvement_level_3_user_id !== null"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level1 && !completeItem.involvement_level_1_user_id">
-                <q-icon name="search" />
-              </template>
-            </q-select>
-            <q-select
-              outlined
-              v-model="completeItem.involvement_level_2_user_id"
-              :options="userStore.users.filter(u => u.id !== completeItem.involvement_level_1_user_id && u.id !== completeItem.involvement_level_3_user_id)"
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              clearable
-              hide-dropdown-icon
-              use-input
-              @filter="userFilterLevel2"
-              label="Часткова (5%)"
-              :loading="userLoadingStates.level2"
-              :disable="completeItem.involvement_level_1_user_id !== null"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level2 && !completeItem.involvement_level_2_user_id">
-                <q-icon name="search" />
-              </template>
-            </q-select>
-            <q-select
-              outlined
-              v-model="completeItem.involvement_level_3_user_id"
-              :options="userStore.users.filter(u => u.id !== completeItem.involvement_level_1_user_id && u.id !== completeItem.involvement_level_2_user_id)"
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              clearable
-              hide-dropdown-icon
-              use-input
-              @filter="userFilterLevel3"
-              label="Дотична (3%)"
-              :loading="userLoadingStates.level3"
-              :disable="completeItem.involvement_level_1_user_id !== null"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level3 && !completeItem.involvement_level_3_user_id">
-                <q-icon name="search" />
-              </template>
-            </q-select>
+            <div>
+              <q-select
+                outlined
+                v-model="completeItem.involvement_level_1_user_id"
+                :options="userStore.users"
+                option-value="id"
+                option-label="name"
+                emit-value
+                map-options
+                clearable
+                hide-dropdown-icon
+                use-input
+                @filter="userFilterLevel1"
+                label="Повна (8%)"
+                :loading="userLoadingStates.level1"
+                :disable="completeItem.involvement_level_2_user_id !== null || completeItem.involvement_level_3_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level1 && !completeItem.involvement_level_1_user_id">
+                  <q-icon name="search" />
+                </template>
+              </q-select>
+              <q-btn
+                v-if="completeItem.involvement_level_2_user_id === null && completeItem.involvement_level_3_user_id === null"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="completeItem.involvement_level_1_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
+            <div>
+              <q-select
+                outlined
+                v-model="completeItem.involvement_level_2_user_id"
+                :options="userStore.users.filter(u => u.id !== completeItem.involvement_level_1_user_id && u.id !== completeItem.involvement_level_3_user_id)"
+                option-value="id"
+                option-label="name"
+                emit-value
+                map-options
+                clearable
+                hide-dropdown-icon
+                use-input
+                @filter="userFilterLevel2"
+                label="Часткова (5%)"
+                :loading="userLoadingStates.level2"
+                :disable="completeItem.involvement_level_1_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level2 && !completeItem.involvement_level_2_user_id">
+                  <q-icon name="search" />
+                </template>
+              </q-select>
+              <q-btn
+                v-if="completeItem.involvement_level_1_user_id === null && completeItem.involvement_level_3_user_id !== userStore.data.id"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="completeItem.involvement_level_2_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
+            <div>
+              <q-select
+                outlined
+                v-model="completeItem.involvement_level_3_user_id"
+                :options="userStore.users.filter(u => u.id !== completeItem.involvement_level_1_user_id && u.id !== completeItem.involvement_level_2_user_id)"
+                option-value="id"
+                option-label="name"
+                emit-value
+                map-options
+                clearable
+                hide-dropdown-icon
+                use-input
+                @filter="userFilterLevel3"
+                label="Дотична (3%)"
+                :loading="userLoadingStates.level3"
+                :disable="completeItem.involvement_level_1_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level3 && !completeItem.involvement_level_3_user_id">
+                  <q-icon name="search" />
+                </template>
+              </q-select>
+              <q-btn
+                v-if="completeItem.involvement_level_1_user_id === null && completeItem.involvement_level_2_user_id !== userStore.data.id"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="completeItem.involvement_level_3_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
           </div>
         </q-card-section>
         <q-separator></q-separator>
@@ -516,6 +599,29 @@
     </q-dialog>
 
     <EditOrderComponent :order-data="editedOrder" />
+
+    <!-- Contact Details Dialog -->
+    <ContactDetailsComponent
+      v-model="showContactDialog"
+      :contact="selectedContact"
+    />
+
+    <!-- Notes Dialog -->
+    <q-dialog v-model="showNotesDialogState">
+      <q-card style="min-width: 400px; max-width: 600px;">
+        <q-card-section>
+          <div class="text-h6">Нотатки</div>
+        </q-card-section>
+        <q-separator />
+        <q-card-section style="max-height: 400px; overflow-y: auto;">
+          <div style="white-space: pre-wrap; word-wrap: break-word;">{{ selectedNotes }}</div>
+        </q-card-section>
+        <q-separator />
+        <q-card-actions align="right">
+          <q-btn flat color="primary" label="Закрити" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -531,6 +637,10 @@ import EditOrderComponent from "components/order/EditOrderComponent.vue";
 import OrderComponent from "components/order/OrderComponent.vue";
 import SortingComponent from "src/components/filter_bar/SortingComponent.vue";
 import ButtonComponent from "src/components/filter_bar/ButtonComponent.vue";
+import SelectFilterButtonComponent from "src/components/filter_bar/SelectFilterButtonComponent.vue";
+import SearchableFilterButtonComponent from "src/components/filter_bar/SearchableFilterButtonComponent.vue";
+import DateButtonComponent from "src/components/filter_bar/DateButtonComponent.vue";
+import ContactDetailsComponent from "src/components/contact/ContactDetailsComponent.vue";
 
 const currentSection = "orders";
 const appStore = useAppConfigStore();
@@ -539,15 +649,26 @@ const userStore = useUserStore();
 const router = useRouter();
 const $q = useQuasar();
 
-const fieldsSequance = ["status", "total_price", "contact_id", "completion_deadline", "created_at", "involvement", "notes"];
+const fieldsSequance = ["id", "status", "completion_deadline", "advance_payment", "final_payment", "total_price", "remaining_to_pay", "fully_payed_at", "contact", "created_at", "completed_at", "notes"];
 const fieldsDetails = [
-  { label: "Статус", searchBarLabel: "Статус", type: "universal", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }},
+  { label: "Номер", searchBarLabel: "Номер замовлення", type: "number", orderButtonLabels: { up: "Від меншого", down: "Від більшого" }},
+  { label: "Статус", searchBarLabel: "Статус", type: "select", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }, options: [
+    { label: "Очікує", value: "pending" },
+    { label: "Підтверджено", value: "confirmed" },
+    { label: "В роботі", value: "in_progress" },
+    { label: "Виконано", value: "completed" },
+    { label: "Скасовано", value: "cancelled" }
+  ]},
+  { label: "Дедлайн", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["completion_deadline_from", "completion_deadline_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
+  { label: "Аванс", searchBarLabel: "Сума авансу", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
+  { label: "Оплата", searchBarLabel: "Фінальна оплата", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
   { label: "Сума", searchBarLabel: "Загальна сума", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
-  { label: "Контакт ID", searchBarLabel: "ID контакту", type: "number", orderButtonLabels: { up: "Від меншого", down: "Від більшого" }},
-  { label: "Дедлайн", searchBarLabel: "Дедлайн виконання", type: "universal", orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Створено", searchBarLabel: "Дата створення", type: "universal", orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Залучені", searchBarLabel: "Залучені", type: "display-only", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }},
-  { label: "Нотатки", searchBarLabel: "Нотатки", type: "universal", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }},
+  { label: "До сплати", searchBarLabel: "Залишок до сплати", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
+  { label: "Дата повної оплати", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["fully_payed_at_from", "fully_payed_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
+  { label: "Контакт", searchBarLabel: "Ім'я або телефон", type: "text", orderButtonLabels: { up: "Від нового до старого", down: "Від старого до нового" }},
+  { label: "Створено", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["created_at_from", "created_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
+  { label: "Завершено", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["completed_at_from", "completed_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
+  { label: "Нотатки", searchBarLabel: "Нотатки", type: "text", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }},
 ];
 
 const allowenses = {
@@ -591,14 +712,23 @@ let paymentItem = reactive({
   amount_of_final_payment_as_cash_new: 0
 });
 let editedOrder = ref(null);
+let showContactDialog = ref(false);
+let selectedContact = ref(null);
+let showNotesDialogState = ref(false);
+let selectedNotes = ref('');
 
 let tempFieldWidths = reactive({
+  id: 0,
   status: 0,
-  total_price: 0,
-  contact_id: 0,
   completion_deadline: 0,
+  advance_payment: 0,
+  final_payment: 0,
+  total_price: 0,
+  remaining_to_pay: 0,
+  fully_payed_at: 0,
+  contact: 0,
   created_at: 0,
-  involvement: 0,
+  completed_at: 0,
   notes: 0,
 });
 
@@ -607,6 +737,14 @@ function copyValue(value, paramName) { navigator.clipboard.writeText(value); $q.
 function showUpdateDialog(item) {
   editedOrder.value = item;
   sectionStore.dialogs.update.isShown = true;
+}
+function showContactDetails(contact) {
+  selectedContact.value = contact;
+  showContactDialog.value = true;
+}
+function showNotesDialog(notes) {
+  selectedNotes.value = notes;
+  showNotesDialogState.value = true;
 }
 function showRemoveDialog(id) { deletedItem.id = id; sectionStore.dialogs.delete.isShown = true; }
 function showCancelDialog(item) {
@@ -617,10 +755,18 @@ function showCancelDialog(item) {
 }
 function showConfirmDialog(item) {
   confirmedItem.id = item.id;
-  confirmedItem.enterAdvance = true;
-  confirmedItem.amount_of_advance_payment_on_card = 0;
-  confirmedItem.amount_of_advance_payment_via_terminal = 0;
-  confirmedItem.amount_of_advance_payment_as_cash = 0;
+
+  // Автоматично заповнюємо поля на основі існуючих даних
+  const hasExistingAdvance =
+    (item.amount_of_advance_payment_on_card && item.amount_of_advance_payment_on_card > 0) ||
+    (item.amount_of_advance_payment_via_terminal && item.amount_of_advance_payment_via_terminal > 0) ||
+    (item.amount_of_advance_payment_as_cash && item.amount_of_advance_payment_as_cash > 0);
+
+  confirmedItem.enterAdvance = hasExistingAdvance || true;
+  confirmedItem.amount_of_advance_payment_on_card = item.amount_of_advance_payment_on_card || 0;
+  confirmedItem.amount_of_advance_payment_via_terminal = item.amount_of_advance_payment_via_terminal || 0;
+  confirmedItem.amount_of_advance_payment_as_cash = item.amount_of_advance_payment_as_cash || 0;
+
   sectionStore.dialogs.confirm.isShown = true;
 }
 function showStartWorkDialog(item) {
@@ -629,9 +775,9 @@ function showStartWorkDialog(item) {
 }
 function showCompleteDialog(item) {
   completeItem.id = item.id;
-  completeItem.involvement_level_1_user_id = null;
-  completeItem.involvement_level_2_user_id = null;
-  completeItem.involvement_level_3_user_id = null;
+  completeItem.involvement_level_1_user_id = item.involvement_level_1_user_id || null;
+  completeItem.involvement_level_2_user_id = item.involvement_level_2_user_id || null;
+  completeItem.involvement_level_3_user_id = item.involvement_level_3_user_id || null;
   userStore.fetchUsers();
   sectionStore.dialogs.complete.isShown = true;
 }
@@ -705,32 +851,86 @@ function clearFilter(fields, filterType = "all") {
     fields = [fields];
   }
 
+  // Define field types for proper filter mode reset
+  const fieldTypes = {
+    id: 'number',
+    status: 'select',
+    completion_deadline: 'date',
+    completion_deadline_from: 'date_from',
+    completion_deadline_to: 'date_to',
+    completion_deadline_is_null: 'boolean',
+    advance_payment: 'number',
+    final_payment: 'number',
+    total_price: 'number',
+    remaining_to_pay: 'number',
+    fully_payed_at: 'date',
+    fully_payed_at_from: 'date_from',
+    fully_payed_at_to: 'date_to',
+    fully_payed_at_is_null: 'boolean',
+    contact: 'text',
+    created_at: 'date',
+    created_at_from: 'date_from',
+    created_at_to: 'date_to',
+    created_at_is_null: 'boolean',
+    completed_at: 'date',
+    completed_at_from: 'date_from',
+    completed_at_to: 'date_to',
+    completed_at_is_null: 'boolean',
+    notes: 'text',
+  };
+
+  console.log(fields)
+
   fields.forEach((field, index) => {
-    filters.data[currentSection].selectedParams[field].value = "";
-    filters.data[currentSection].selectedParams[field].filterMode =
-      filters.availableParams.items[0];
+    if (filters.data[currentSection].selectedParams[field]) {
+      // Determine the correct filter mode based on field type
+      const actualFieldType = fieldTypes[field] || filterType;
 
-    if (filterType === "number") {
-      filters.data[currentSection].selectedParams[field].filterMode =
-        filters.availableParams.items[2];
-    }
+      // For boolean fields (is_null), reset to false instead of empty string
+      if (actualFieldType === "boolean") {
+        filters.data[currentSection].selectedParams[field].value = false;
+      } else {
+        filters.data[currentSection].selectedParams[field].value = "";
 
-    if (filters.data[currentSection].selectedParams.order.field === field) {
-      filters.data[currentSection].selectedParams.order.field = "";
-      filters.data[currentSection].selectedParams.order.value = "";
-      filters.data[currentSection].selectedParams.order.combined = "";
+        if (actualFieldType === "number") {
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[2]; // "more" mode for numeric filters
+        } else if (actualFieldType === "date_from") {
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[2]; // "more" mode for date from
+        } else if (actualFieldType === "date_to") {
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[3]; // "less" mode for date to
+        } else if (actualFieldType === "select") {
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[6]; // "equal" mode for select filters
+        } else {
+          // Default to "include" mode for text/string filters
+          filters.data[currentSection].selectedParams[field].filterMode =
+            filters.availableParams.items[0];
+        }
+      }
+
+      if (filters.data[currentSection].selectedParams.order.field === field) {
+        filters.data[currentSection].selectedParams.order.field = "";
+        filters.data[currentSection].selectedParams.order.value = "";
+        filters.data[currentSection].selectedParams.order.combined = "";
+      }
     }
-  })
+  });
 }
 function onChangedFieldFilterMode(field) { if (appStore.filters.data[currentSection].selectedParams[field].value) sectionStore.receive(); }
 function setFilterOrder(field, fieldOrder) {
   let order = appStore.filters.data[currentSection].selectedParams.order;
   if (order.field === field && order.value === fieldOrder) {
-    order.field = ""; order.value = "";
+    order.field = "";
+    order.value = "";
+    order.combined = "";
   } else {
-    order.field = field; order.value = fieldOrder;
+    order.field = field;
+    order.value = fieldOrder;
+    order.combined = `${field}${fieldOrder}`;
   }
-  order.combined = `${field}${fieldOrder}`;
 }
 
 const remainingAmount = computed(() => {
@@ -750,20 +950,32 @@ const computedFilterWidth = computed(() => {
   const separator = appStore.filters.availableParams.separatorWidth;
   return {
     buttons: {
-      status: dynamicWidths.status - padding,
-      total_price: dynamicWidths.total_price - padding,
-      contact_id: dynamicWidths.contact_id - padding,
-      completion_deadline: dynamicWidths.completion_deadline - padding,
-      created_at: dynamicWidths.created_at - padding,
-      notes: dynamicWidths.notes - padding,
+      id: (dynamicWidths.id || 100) - padding,
+      status: (dynamicWidths.status || 150) - padding,
+      completion_deadline: (dynamicWidths.completion_deadline || 150) - padding,
+      advance_payment: (dynamicWidths.advance_payment || 120) - padding,
+      final_payment: (dynamicWidths.final_payment || 120) - padding,
+      total_price: (dynamicWidths.total_price || 120) - padding,
+      remaining_to_pay: (dynamicWidths.remaining_to_pay || 120) - padding,
+      fully_payed_at: (dynamicWidths.fully_payed_at || 150) - padding,
+      contact: (dynamicWidths.contact || 200) - padding,
+      created_at: (dynamicWidths.created_at || 150) - padding,
+      completed_at: (dynamicWidths.completed_at || 150) - padding,
+      notes: (dynamicWidths.notes || 150) - padding,
     },
     fields: {
-      status: dynamicWidths.status,
-      total_price: dynamicWidths.total_price,
-      contact_id: dynamicWidths.contact_id,
-      completion_deadline: dynamicWidths.completion_deadline,
-      created_at: dynamicWidths.created_at,
-      notes: dynamicWidths.notes,
+      id: dynamicWidths.id || 100,
+      status: dynamicWidths.status || 150,
+      completion_deadline: dynamicWidths.completion_deadline || 150,
+      advance_payment: dynamicWidths.advance_payment || 120,
+      final_payment: dynamicWidths.final_payment || 120,
+      total_price: dynamicWidths.total_price || 120,
+      remaining_to_pay: dynamicWidths.remaining_to_pay || 120,
+      fully_payed_at: dynamicWidths.fully_payed_at || 150,
+      contact: dynamicWidths.contact || 200,
+      created_at: dynamicWidths.created_at || 150,
+      completed_at: dynamicWidths.completed_at || 150,
+      notes: dynamicWidths.notes || 150,
       separator: separator,
       lastSeparator: separator / 2 - 2,
     },
@@ -774,17 +986,135 @@ watch(() => appStore.currentPages[currentSection], (page) => { router.push(`/${c
 watch(() => appStore.amountOfItemsPerPages[currentSection], () => { if (appStore.currentPages[currentSection] !== 1) appStore.currentPages[currentSection] = 1; else sectionStore.receive(); });
 watch(() => [
   appStore.filters.data[currentSection].selectedParams.order.combined,
-  appStore.filters.data[currentSection].selectedParams.status.value,
-  appStore.filters.data[currentSection].selectedParams.total_price.value,
-  appStore.filters.data[currentSection].selectedParams.contact_id.value,
-  appStore.filters.data[currentSection].selectedParams.completion_deadline.value,
-  appStore.filters.data[currentSection].selectedParams.created_at.value,
-  appStore.filters.data[currentSection].selectedParams.notes.value,
+  appStore.filters.data[currentSection].selectedParams.id?.value,
+  appStore.filters.data[currentSection].selectedParams.status?.value,
+  appStore.filters.data[currentSection].selectedParams.completion_deadline_from?.value,
+  appStore.filters.data[currentSection].selectedParams.completion_deadline_to?.value,
+  appStore.filters.data[currentSection].selectedParams.completion_deadline_is_null?.value,
+  appStore.filters.data[currentSection].selectedParams.advance_payment?.value,
+  appStore.filters.data[currentSection].selectedParams.final_payment?.value,
+  appStore.filters.data[currentSection].selectedParams.total_price?.value,
+  appStore.filters.data[currentSection].selectedParams.remaining_to_pay?.value,
+  appStore.filters.data[currentSection].selectedParams.fully_payed_at_from?.value,
+  appStore.filters.data[currentSection].selectedParams.fully_payed_at_to?.value,
+  appStore.filters.data[currentSection].selectedParams.fully_payed_at_is_null?.value,
+  appStore.filters.data[currentSection].selectedParams.contact?.value,
+  appStore.filters.data[currentSection].selectedParams.created_at_from?.value,
+  appStore.filters.data[currentSection].selectedParams.created_at_to?.value,
+  appStore.filters.data[currentSection].selectedParams.created_at_is_null?.value,
+  appStore.filters.data[currentSection].selectedParams.completed_at_from?.value,
+  appStore.filters.data[currentSection].selectedParams.completed_at_to?.value,
+  appStore.filters.data[currentSection].selectedParams.completed_at_is_null?.value,
+  appStore.filters.data[currentSection].selectedParams.notes?.value,
 ], () => {
   sectionStore.receive();
 });
 
 onMounted(() => {
+  // Initialize filter parameters for new fields if they don't exist
+  const filterParams = appStore.filters.data[currentSection].selectedParams;
+  const defaultFilterMode = appStore.filters.availableParams.items[0]; // "include" mode for string filters
+  const numberFilterMode = appStore.filters.availableParams.items[2]; // "more" mode for numeric filters
+  const selectFilterMode = appStore.filters.availableParams.items[6]; // "equal" mode for select filters
+
+  // Initialize new filter parameters
+  if (!filterParams.id) {
+    filterParams.id = { value: "", filterMode: numberFilterMode };
+  }
+  if (!filterParams.status) {
+    filterParams.status = { value: "", filterMode: selectFilterMode };
+  } else {
+    // Ensure status has correct filterMode (select type)
+    if (filterParams.status.filterMode?.type !== 'select') {
+      filterParams.status.filterMode = selectFilterMode;
+    }
+  }
+  if (!filterParams.total_price) {
+    filterParams.total_price = { value: "", filterMode: numberFilterMode };
+  }
+  if (!filterParams.contact) {
+    filterParams.contact = { value: "", filterMode: defaultFilterMode };
+  }
+  if (!filterParams.notes) {
+    filterParams.notes = { value: "", filterMode: defaultFilterMode };
+  }
+  if (!filterParams.advance_payment) {
+    filterParams.advance_payment = { value: "", filterMode: numberFilterMode };
+  }
+  if (!filterParams.final_payment) {
+    filterParams.final_payment = { value: "", filterMode: numberFilterMode };
+  }
+  if (!filterParams.remaining_to_pay) {
+    filterParams.remaining_to_pay = { value: "", filterMode: numberFilterMode };
+  }
+
+  // Initialize date filter parameters
+  const moreFilterMode = appStore.filters.availableParams.items[2]; // "more" mode for "from" dates
+  const lessFilterMode = appStore.filters.availableParams.items[3]; // "less" mode for "to" dates
+
+  if (!filterParams.completion_deadline_from) {
+    filterParams.completion_deadline_from = { value: "", filterMode: moreFilterMode };
+  }
+  if (!filterParams.completion_deadline_to) {
+    filterParams.completion_deadline_to = { value: "", filterMode: lessFilterMode };
+  }
+  if (!filterParams.completion_deadline_is_null) {
+    filterParams.completion_deadline_is_null = { value: false };
+  }
+  if (!filterParams.created_at_from) {
+    filterParams.created_at_from = { value: "", filterMode: moreFilterMode };
+  }
+  if (!filterParams.created_at_to) {
+    filterParams.created_at_to = { value: "", filterMode: lessFilterMode };
+  }
+  if (!filterParams.created_at_is_null) {
+    filterParams.created_at_is_null = { value: false };
+  }
+  if (!filterParams.completed_at_from) {
+    filterParams.completed_at_from = { value: "", filterMode: moreFilterMode };
+  }
+  if (!filterParams.completed_at_to) {
+    filterParams.completed_at_to = { value: "", filterMode: lessFilterMode };
+  }
+  if (!filterParams.completed_at_is_null) {
+    filterParams.completed_at_is_null = { value: false };
+  }
+  if (!filterParams.fully_payed_at_from) {
+    filterParams.fully_payed_at_from = { value: "", filterMode: moreFilterMode };
+  }
+  if (!filterParams.fully_payed_at_to) {
+    filterParams.fully_payed_at_to = { value: "", filterMode: lessFilterMode };
+  }
+  if (!filterParams.fully_payed_at_is_null) {
+    filterParams.fully_payed_at_is_null = { value: false };
+  }
+
+  // Initialize width configuration for new fields if not exists
+  const defaultWidths = appStore.filters.data[currentSection].width.default;
+  const dynamicWidths = appStore.filters.data[currentSection].width.dynamic;
+
+  if (!defaultWidths.id) defaultWidths.id = 100;
+  if (!defaultWidths.status) defaultWidths.status = 150;
+  if (!defaultWidths.total_price) defaultWidths.total_price = 120;
+  if (!defaultWidths.contact) defaultWidths.contact = 200;
+  if (!defaultWidths.notes) defaultWidths.notes = 150;
+  if (!defaultWidths.advance_payment) defaultWidths.advance_payment = 120;
+  if (!defaultWidths.final_payment) defaultWidths.final_payment = 120;
+  if (!defaultWidths.remaining_to_pay) defaultWidths.remaining_to_pay = 120;
+  if (!defaultWidths.completed_at) defaultWidths.completed_at = 150;
+  if (!defaultWidths.fully_payed_at) defaultWidths.fully_payed_at = 150;
+
+  if (!dynamicWidths.id) dynamicWidths.id = 100;
+  if (!dynamicWidths.status) dynamicWidths.status = 150;
+  if (!dynamicWidths.total_price) dynamicWidths.total_price = 120;
+  if (!dynamicWidths.contact) dynamicWidths.contact = 200;
+  if (!dynamicWidths.notes) dynamicWidths.notes = 150;
+  if (!dynamicWidths.advance_payment) dynamicWidths.advance_payment = 120;
+  if (!dynamicWidths.final_payment) dynamicWidths.final_payment = 120;
+  if (!dynamicWidths.remaining_to_pay) dynamicWidths.remaining_to_pay = 120;
+  if (!dynamicWidths.completed_at) dynamicWidths.completed_at = 150;
+  if (!dynamicWidths.fully_payed_at) dynamicWidths.fully_payed_at = 150;
+
   if (appStore.errors.reauth.data.isLogoutThroughtLogoutMethod) {
     appStore.errors.reauth.data.isLogoutThroughtLogoutMethod = false;
     sectionStore.receive();

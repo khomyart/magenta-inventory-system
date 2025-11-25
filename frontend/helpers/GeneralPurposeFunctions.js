@@ -97,6 +97,7 @@ function getClientTime(serverTime, locale, includeHoursAndMinutes = true, includ
  * @param clientTime time in client locale format
  * @param locale locale in format; 'en' | 'ua'
  * @param includeHoursAndMinutes display hours and minutes or not
+ *
  * @param includeSeconds display seconds or not
  *
  * @returns {string} date and time in format related to user locale and timezone

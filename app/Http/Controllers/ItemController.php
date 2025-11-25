@@ -2,34 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ErrorHandler;
 use App\Helpers\NbuCurrencyExchangeCoursesService;
-use App\Models\Item;
+use App\Models\Color;
+use App\Models\Gender;
 use App\Models\Image;
 use App\Models\Income;
-use App\Models\Outcome;
-use App\Models\Move;
-use App\Models\Type;
-use App\Models\Gender;
-use App\Models\Color;
-use App\Models\Size;
+use App\Models\Item;
 use App\Models\ItemWarehouseAmount;
-use App\Helpers\ErrorHandler;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use App\Models\Move;
+use App\Models\OrderItem;
+use App\Models\Outcome;
+use App\Models\Size;
+use App\Models\Type;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class ItemController extends Controller
 {
-    public $section = "items";
+    public $section = 'items';
+
     public $currencyForSearching = null;
+
     //field names are used for accepting filters while searching in db
-    public $readFieldsInDB = ["items.group_id", "items.article", "items.title", "items.description", "converted_price_to_uah", "types.name", "genders.name", "sizes.value", "colors.description", "income.amount_of_items", "units.name"];
+    public $readFieldsInDB = ['items.group_id', 'items.article', 'items.title', 'items.description', 'converted_price_to_uah', 'types.name', 'genders.name', 'sizes.value', 'colors.description', 'income.amount_of_items', 'units.name'];
+
     //field names are used for validating incoming data
-    public $readFieldsFromFrontend = ["group_id", "article", "title", "description", "price", "type", "gender", "size", "color", "amount", "units"];
+    public $readFieldsFromFrontend = ['group_id', 'article', 'title', 'description', 'price', 'type', 'gender', 'size', 'color', 'amount', 'units'];
+
     //if 0 - unlimited
     public $defaultQueryResultLimit = 0;
 
@@ -50,15 +54,15 @@ class ItemController extends Controller
      */
     public function read(Request $request)
     {
-        $today = Carbon::now()->format("Ymd");
+        $today = Carbon::now()->format('Ymd');
 
-        $compiledRegexRule = "";
+        $compiledRegexRule = '';
         $validationRules = [
-            "itemsPerPage" => "required|numeric",
-            "page" => "required|numeric",
-            "extendedArticle" => "nullable|string|max:255", // (article) (color_article) (size)
-            "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
-            "warehouseId" => "nullable|numeric|gte:0",
+            'itemsPerPage' => 'required|numeric',
+            'page' => 'required|numeric',
+            'extendedArticle' => 'nullable|string|max:255', // (article) (color_article) (size)
+            'orderValue' => ['string', 'regex:/^desc$|^asc$/i', 'nullable'],
+            'warehouseId' => 'nullable|numeric|gte:0',
         ];
         foreach ($this->readFieldsFromFrontend as $key => $field) {
             /**
@@ -66,28 +70,28 @@ class ItemController extends Controller
              * (makes possible to set order only for existing ("prepeared") fields)
              */
             $compiledRegexRule .= "^{$field}$";
-            $key != count($this->readFieldsFromFrontend) - 1 ? $compiledRegexRule .= "|" : "";
+            $key != count($this->readFieldsFromFrontend) - 1 ? $compiledRegexRule .= '|' : '';
 
             /**
              * setting validation rule for each field
              * (field filter value and field filter mode)
              */
-            $validationRules["{$field}FilterValue"] = "string|nullable";
-            $validationRules["{$field}FilterMode"] = ["string", "regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i", "nullable"];
+            $validationRules["{$field}FilterValue"] = 'string|nullable';
+            $validationRules["{$field}FilterMode"] = ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'];
         }
 
-        $validationRules["orderField"] = ["string", "regex:/^id$|{$compiledRegexRule}/i", "nullable"];
+        $validationRules['orderField'] = ['string', "regex:/^id$|{$compiledRegexRule}/i", 'nullable'];
         $data = $request->validate($validationRules);
 
         $section = DB::table($this->section);
         $section->select(
-            "items.id AS id",
-            "items.group_id AS group_id",
-            "items.article AS article",
-            "items.title AS title",
-            "items.description AS description",
-            "items.price AS unconverted_price",
-            "items.currency AS currency"
+            'items.id AS id',
+            'items.group_id AS group_id',
+            'items.article AS article',
+            'items.title AS title',
+            'items.description AS description',
+            'items.price AS unconverted_price',
+            'items.currency AS currency'
         )
         ->selectRaw('
             IF(items.currency = "USD", items.price * ?,
@@ -98,26 +102,26 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                 $this->getNbuCurrencyExchangeCourses($today, "USD"),
-                 $this->getNbuCurrencyExchangeCourses($today, "EUR")
+                $this->getNbuCurrencyExchangeCourses($today, 'USD'),
+                $this->getNbuCurrencyExchangeCourses($today, 'EUR'),
             ]
         )
         ->addSelect(
-            "types.name AS type_name",
-            "types.number_in_row AS type", //extra field for ordering
-            "genders.name AS gender",
-            "sizes.value AS size_name",
-            "sizes.number_in_row AS size", //extra field for ordering
-            "sizes.description AS size_description",
-            "colors.article AS color_article",
-            "colors.description AS color_name",
-            "colors.description AS color", //extra field for ordering
-            "colors.value AS color_value",
-            "colors.text_color_value AS text_color_value",
+            'types.name AS type_name',
+            'types.number_in_row AS type', //extra field for ordering
+            'genders.name AS gender',
+            'sizes.value AS size_name',
+            'sizes.number_in_row AS size', //extra field for ordering
+            'sizes.description AS size_description',
+            'colors.article AS color_article',
+            'colors.description AS color_name',
+            'colors.description AS color', //extra field for ordering
+            'colors.value AS color_value',
+            'colors.text_color_value AS text_color_value',
             DB::raw('SUM(item_warehouse_amounts.amount) AS amount'),
-            "units.name AS unit_name",
-            "units.name AS units", //extra field for ordering
-            "units.description AS unit_description",
+            'units.name AS unit_name',
+            'units.name AS units', //extra field for ordering
+            'units.description AS unit_description',
         )
         ->join('types', 'items.type_id', '=', 'types.id')
         ->join('units', 'items.unit_id', '=', 'units.id')
@@ -133,12 +137,12 @@ class ItemController extends Controller
             $searchOperator = $this->getWhereOperator($data["{$this->readFieldsFromFrontend[$key]}FilterMode"]);
 
             //skip WHERE condition for "amount" param, HAVING will be used later
-            if ($this->readFieldsFromFrontend[$key] === "amount") {
+            if ($this->readFieldsFromFrontend[$key] === 'amount') {
                 continue;
             }
 
             //skip general WHERE condition cycle for "price" param, HAVING will be used later
-            if ($this->readFieldsFromFrontend[$key] === "price") {
+            if ($this->readFieldsFromFrontend[$key] === 'price') {
                 if (strlen($searchValue) === 0) {
                     continue;
                 }
@@ -153,28 +157,28 @@ class ItemController extends Controller
                     $amountOfMoney = $matches[2];
 
                     switch ($currencySymbol) {
-                        case "₴":
-                            $this->currencyForSearching = "UAH";
+                        case '₴':
+                            $this->currencyForSearching = 'UAH';
                             break;
-                        case "$":
-                            $this->currencyForSearching = "USD";
+                        case '$':
+                            $this->currencyForSearching = 'USD';
                             break;
-                        case "€":
-                            $this->currencyForSearching = "EUR";
+                        case '€':
+                            $this->currencyForSearching = 'EUR';
                             break;
                     }
                 }
 
                 if (
                     $this->currencyForSearching !== null
-                    && $searchOperator !== "like"
-                    && $searchOperator !== "notLike"
+                    && $searchOperator !== 'like'
+                    && $searchOperator !== 'notLike'
                 ) {
                     $searchValue = $amountOfMoney;
-                    $section->where("items.currency", "=", $this->currencyForSearching);
+                    $section->where('items.currency', '=', $this->currencyForSearching);
                     //search by price only when $searchValue is not empty
                     if (strlen($searchValue) !== 0) {
-                        $section->where("items.price", $searchOperator, $searchValue);
+                        $section->where('items.price', $searchOperator, $searchValue);
                     }
                 }
 
@@ -183,32 +187,32 @@ class ItemController extends Controller
 
             if ($searchValue != null) {
                 //special condition for "color" param with "#" value
-                if ($this->readFieldsFromFrontend[$key] === "color" && $searchValue[0] === "#") {
-                    $field = "colors.value";
+                if ($this->readFieldsFromFrontend[$key] === 'color' && $searchValue[0] === '#') {
+                    $field = 'colors.value';
                     $searchValue = substr($searchValue, 1);
 
-                    if ($data["orderField"] === "color") {
-                        $data["orderField"] = "color_value";
+                    if ($data['orderField'] === 'color') {
+                        $data['orderField'] = 'color_value';
                     }
                 }
 
                 //special condition for "color" param with "!" value
-                elseif ($this->readFieldsFromFrontend[$key] === "color" && $searchValue[0] === "!") {
-                    $field = "colors.article";
+                elseif ($this->readFieldsFromFrontend[$key] === 'color' && $searchValue[0] === '!') {
+                    $field = 'colors.article';
                     $searchValue = substr($searchValue, 1);
 
-                    if ($data["orderField"] === "color") {
-                        $data["orderField"] = "color_article";
+                    if ($data['orderField'] === 'color') {
+                        $data['orderField'] = 'color_article';
                     }
                 }
 
                 if (strlen($searchValue) > 0) {
                     //special conditions in case of 'like' or 'notLike' operator
-                    if ($searchOperator === "like") {
-                        $section->where($field, "like", "%{$searchValue}%");
-                    } elseif ($searchOperator === "notLike") {
+                    if ($searchOperator === 'like') {
+                        $section->where($field, 'like', "%{$searchValue}%");
+                    } elseif ($searchOperator === 'notLike') {
                         $section->whereNot(function ($query) use ($searchValue, $field) {
-                            $query->where($field, "like", "%{$searchValue}%");
+                            $query->where($field, 'like', "%{$searchValue}%");
                         });
                     } else {
                         $section->where($field, $searchOperator, $searchValue);
@@ -218,147 +222,153 @@ class ItemController extends Controller
         }
 
         //parsing extended article "WHERE" statement
-        $params = explode(" ",  trim($data["extendedArticle"]));
+        $params = explode(' ', trim($data['extendedArticle']));
         if (count($params) == 1) {
             $section->where(function (Builder $query) use ($params) {
-                $query->where("items.article", "LIKE", "%{$params[0]}%")
-                    ->orWhere("colors.article", "LIKE", "%{$params[0]}%")
-                    ->orWhere("sizes.value", "LIKE", "%{$params[0]}%");
+                $query->where('items.article', 'LIKE', "%{$params[0]}%")
+                    ->orWhere('colors.article', 'LIKE', "%{$params[0]}%")
+                    ->orWhere('sizes.value', 'LIKE', "%{$params[0]}%");
             });
         }
 
         if (count($params) == 2) {
             $section->where(function (Builder $query) use ($params) {
                 $query->where(function (Builder $query) use ($params) {
-                    $query->where("items.article", "LIKE", "%{$params[0]}%")
-                        ->where("colors.article", "LIKE", "%{$params[1]}%");
+                    $query->where('items.article', 'LIKE', "%{$params[0]}%")
+                        ->where('colors.article', 'LIKE', "%{$params[1]}%");
                 })
                 ->orWhere(function (Builder $query) use ($params) {
-                    $query->where("items.article", "LIKE", "%{$params[0]}%")
-                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                    $query->where('items.article', 'LIKE', "%{$params[0]}%")
+                        ->where('sizes.value', 'LIKE', "%{$params[1]}%");
                 })
                 ->orWhere(function (Builder $query) use ($params) {
-                    $query->where("colors.article", "LIKE", "%{$params[0]}%")
-                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
+                    $query->where('colors.article', 'LIKE', "%{$params[0]}%")
+                        ->where('sizes.value', 'LIKE', "%{$params[1]}%");
                 });
             });
         }
 
         if (count($params) == 3) {
-            $section->where("items.article", "LIKE", "%{$params[0]}%")
-                ->where("colors.article", "LIKE", "%{$params[1]}%")
-                ->where("sizes.value", "LIKE", "%{$params[2]}%");
+            $section->where('items.article', 'LIKE', "%{$params[0]}%")
+                ->where('colors.article', 'LIKE', "%{$params[1]}%")
+                ->where('sizes.value', 'LIKE', "%{$params[2]}%");
         }
 
         /**
          * special WHERE condition in case of activating
          * a "searching by warehouse" mode
          */
-        if (!empty($data["warehouseId"])) {
-            $section->where("item_warehouse_amounts.warehouse_id", $data["warehouseId"]);
+        if (! empty($data['warehouseId'])) {
+            $section->where('item_warehouse_amounts.warehouse_id', $data['warehouseId']);
         }
 
         $section->groupBy('items.id');
 
         //forming 'HAVING' query for "amount" field
-        $amountFilterValue = $data["amountFilterValue"];
-        $amountSearchOperator = $this->getWhereOperator($data["amountFilterMode"]);
+        $amountFilterValue = $data['amountFilterValue'];
+        $amountSearchOperator = $this->getWhereOperator($data['amountFilterMode']);
 
         if (
             $amountFilterValue != null
-            && $amountSearchOperator !== "like"
-            && $amountSearchOperator !== "notLike"
+            && $amountSearchOperator !== 'like'
+            && $amountSearchOperator !== 'notLike'
         ) {
             $section->havingRaw("SUM(item_warehouse_amounts.amount_of_items) {$amountSearchOperator} ?", [$amountFilterValue]);
         }
 
         //forming 'HAVING' query for "price" field
-        $priceFilterValue = $data["priceFilterValue"];
-        $priceSearchOperator = $this->getWhereOperator($data["priceFilterMode"]);
+        $priceFilterValue = $data['priceFilterValue'];
+        $priceSearchOperator = $this->getWhereOperator($data['priceFilterMode']);
 
         if (
             $priceFilterValue != null
-            && $priceSearchOperator !== "like"
-            && $priceSearchOperator !== "notLike"
+            && $priceSearchOperator !== 'like'
+            && $priceSearchOperator !== 'notLike'
             && $this->currencyForSearching === null
         ) {
             $section->havingRaw("price {$priceSearchOperator} ?", [$priceFilterValue]);
         }
 
         //ordering query
-        if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
-            $section = $section->orderBy($data["orderField"], $data["orderValue"]);
+        if (! empty($data['orderField']) && ! empty($data['orderValue'])) {
+            $section = $section->orderBy($data['orderField'], $data['orderValue']);
         } else {
-            $section = $section->orderBy("article", "asc");
+            $section = $section->orderBy('article', 'asc');
         }
 
         //receiving all data from formed query, paginate it and transform to array
-        $items = $section->paginate($data["itemsPerPage"]);
+        $items = $section->paginate($data['itemsPerPage']);
         $items = json_decode(json_encode($items), true);
 
         //binding additional data (images) to paginated and transformed query result
-        foreach ($items["data"] as $key => &$item) {
-            $item["images"] = Image::where("item_id", $item["id"])->orderBy("number_in_row", "asc")->get();
+        foreach ($items['data'] as $key => &$item) {
+            $item['images'] = Image::where('item_id', $item['id'])->orderBy('number_in_row', 'asc')->get();
         }
 
         //binding additional data (amounts in warehouses) to paginated and transformed query result
-        foreach ($items["data"] as $key => &$item) {
-            $item["amountsInWarehouses"] = $this->getAmountOfItemInEachWarehouse($item["id"]);
+        foreach ($items['data'] as $key => &$item) {
+            $item['amountsInWarehouses'] = $this->getAmountOfItemInEachWarehouse($item['id']);
         }
 
         return response($items);
     }
 
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
         $sectionModel = $this->getSectionModel();
 
         $itemData = $request->validate([
-            "article" => "required|string|max:100",
-            "group_id" => "required|string|max:36",
-            "title" => "required|string|max:255",
-            "description" => "nullable|string|max:5000",
-            "price" => "required|numeric|gte:1",
-            "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
-            "lack" => "required|numeric|integer|gte:1",
-            "type_id" => ["required", "exists:types,id"],
-            "unit_id" => ["required", "exists:units,id"],
-            "gender_id" => "nullable",
-            "size_id" => "nullable",
-            "color_id" => "nullable",
+            'article' => 'required|string|max:100',
+            'group_id' => 'required|string|max:36',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
+            'price' => 'required|numeric|gte:1',
+            'currency' => ['required', 'string', 'regex:/^UAH$|^USD$|^EUR$/i'],
+            'lack' => 'required|numeric|integer|gte:1',
+            'type_id' => ['required', 'exists:types,id'],
+            'unit_id' => ['required', 'exists:units,id'],
+            'gender_id' => 'nullable',
+            'size_id' => 'nullable',
+            'color_id' => 'nullable',
         ]);
         //additional validation for gender_id, size_id, color_id
-        if (!empty($itemData["gender_id"]) && Gender::find($itemData["gender_id"]) == null)
-            return ErrorHandler::responseWith("Такого гендеру не існує");
-        if (!empty($itemData["size_id"]) && Size::find($itemData["size_id"]) == null)
-            return ErrorHandler::responseWith("Такого розміру не існує");
-        if (!empty($itemData["color_id"]) && Color::find($itemData["color_id"]) == null)
-            return ErrorHandler::responseWith("Такого кольору не існує");
+        if (! empty($itemData['gender_id']) && Gender::find($itemData['gender_id']) == null) {
+            return ErrorHandler::responseWith('Такого гендеру не існує');
+        }
+        if (! empty($itemData['size_id']) && Size::find($itemData['size_id']) == null) {
+            return ErrorHandler::responseWith('Такого розміру не існує');
+        }
+        if (! empty($itemData['color_id']) && Color::find($itemData['color_id']) == null) {
+            return ErrorHandler::responseWith('Такого кольору не існує');
+        }
 
         $warehousesData = $request->validate([
-            "warehouses" => "nullable",
-            "warehouses.*.id" => "required|numeric|exists:warehouses,id",
-            "warehouses.*.batches" => "required",
-            "warehouses.*.batches.*.amount" => "required|numeric|integer|gte:1",
-            "warehouses.*.batches.*.price" => "required|numeric|gte:1",
-            "warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
+            'warehouses' => 'nullable',
+            'warehouses.*.id' => 'required|numeric|exists:warehouses,id',
+            'warehouses.*.batches' => 'required',
+            'warehouses.*.batches.*.amount' => 'required|numeric|integer|gte:1',
+            'warehouses.*.batches.*.price' => 'required|numeric|gte:1',
+            'warehouses.*.batches.*.currency' => ['required', 'regex:/^UAH$|^USD$|^EUR$/i'],
         ]);
 
         $imagesData = $request->validate([
-            "images" => "nullable",
-            "images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
+            'images' => 'nullable',
+            'images.*' => 'required|file|mimes:jpeg,jpg,png|max:5000',
         ]);
 
-        $warehousesData = !empty($warehousesData) ? $warehousesData["warehouses"] : [];
-        $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
+        $warehousesData = ! empty($warehousesData) ? $warehousesData['warehouses'] : [];
+        $imagesData = ! empty($imagesData) ? $imagesData['images'] : [];
 
         /**
          * Is item creation allowed:
          */
         $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
-        if ($specialValidationResult != null)
+        if ($specialValidationResult != null) {
             return ErrorHandler::responseWith($specialValidationResult);
+        }
         if ($this->isItemExists($itemData)) {
             $errorMessage = $this->itemExistenceErrorForming($itemData);
+
             return ErrorHandler::responseWith($errorMessage);
         }
         /**
@@ -370,9 +380,9 @@ class ItemController extends Controller
             //saving images in db and on disk
             foreach ($imagesData as $key => $file) {
                 $image = Image::create([
-                    "item_id" => $item->id,
-                    "src" => $file->store('/', 'images'),
-                    "number_in_row" => $key + 1
+                    'item_id' => $item->id,
+                    'src' => $file->store('/', 'images'),
+                    'number_in_row' => $key + 1,
                 ]);
             }
 
@@ -380,28 +390,28 @@ class ItemController extends Controller
             foreach ($warehousesData as $key => $warehouse) {
                 $amountOfItemPerWarehouse = 0;
 
-                foreach ($warehouse["batches"] as $key => $batch) {
+                foreach ($warehouse['batches'] as $key => $batch) {
                     Income::create([
-                        "item_id" => $item->id,
-                        "warehouse_id" => $warehouse["id"],
-                        "price_per_item" => $batch["price"],
-                        "currency" => $batch["currency"],
-                        "amount_of_items" => $batch["amount"],
+                        'item_id' => $item->id,
+                        'warehouse_id' => $warehouse['id'],
+                        'price_per_item' => $batch['price'],
+                        'currency' => $batch['currency'],
+                        'amount_of_items' => $batch['amount'],
                     ]);
-                    $amountOfItemPerWarehouse += $batch["amount"];
+                    $amountOfItemPerWarehouse += $batch['amount'];
                 }
 
-                $matchingItemWarehouseCombination = ItemWarehouseAmount::where("item_id", $item->id)
-                ->where("warehouse_id", $warehouse["id"])->first();
+                $matchingItemWarehouseCombination = ItemWarehouseAmount::where('item_id', $item->id)
+                ->where('warehouse_id', $warehouse['id'])->first();
 
                 if ($matchingItemWarehouseCombination != null) {
                     $matchingItemWarehouseCombination->amount += $amountOfItemPerWarehouse;
                     $matchingItemWarehouseCombination->save();
                 } else {
                     ItemWarehouseAmount::create([
-                        "item_id" => $item->id,
-                        "warehouse_id" => $warehouse["id"],
-                        "amount" => $amountOfItemPerWarehouse,
+                        'item_id' => $item->id,
+                        'warehouse_id' => $warehouse['id'],
+                        'amount' => $amountOfItemPerWarehouse,
                     ]);
                 }
             }
@@ -410,50 +420,53 @@ class ItemController extends Controller
         return response($itemData);
     }
 
-    public function createMultiple(Request $request) {
+    public function createMultiple(Request $request)
+    {
         $sectionModel = $this->getSectionModel();
 
         $itemsData = $request->validate([
-            "items.*.article" => "required|string|max:100",
-            "items.*.group_id" => "required|string|max:36",
-            "items.*.title" => "required|string|max:255",
-            "items.*.description" => "nullable|string|max:5000",
-            "items.*.price" => "required|numeric|gte:1",
-            "items.*.currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
-            "items.*.lack" => "required|numeric|integer|gte:1",
-            "items.*.type_id" => ["required", "exists:types,id"],
-            "items.*.unit_id" => ["required", "exists:units,id"],
-            "items.*.gender_id" => ["nullable", "exists:genders,id"],
-            "items.*.size_id" => ["nullable", "exists:sizes,id"],
-            "items.*.color_id" => ["nullable", "exists:colors,id"],
+            'items.*.article' => 'required|string|max:100',
+            'items.*.group_id' => 'required|string|max:36',
+            'items.*.title' => 'required|string|max:255',
+            'items.*.description' => 'nullable|string|max:5000',
+            'items.*.price' => 'required|numeric|gte:1',
+            'items.*.currency' => ['required', 'string', 'regex:/^UAH$|^USD$|^EUR$/i'],
+            'items.*.lack' => 'required|numeric|integer|gte:1',
+            'items.*.type_id' => ['required', 'exists:types,id'],
+            'items.*.unit_id' => ['required', 'exists:units,id'],
+            'items.*.gender_id' => ['nullable', 'exists:genders,id'],
+            'items.*.size_id' => ['nullable', 'exists:sizes,id'],
+            'items.*.color_id' => ['nullable', 'exists:colors,id'],
         ]);
 
         $itemsWarehousesData = $request->validate([
-            "items.*.warehouses" => "nullable",
-            "items.*.warehouses.*.id" => "required|numeric|exists:warehouses,id",
-            "items.*.warehouses.*.batches" => "required",
-            "items.*.warehouses.*.batches.*.amount" => "required|numeric|integer|gte:1",
-            "items.*.warehouses.*.batches.*.price" => "required|numeric|gte:1",
-            "items.*.warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
+            'items.*.warehouses' => 'nullable',
+            'items.*.warehouses.*.id' => 'required|numeric|exists:warehouses,id',
+            'items.*.warehouses.*.batches' => 'required',
+            'items.*.warehouses.*.batches.*.amount' => 'required|numeric|integer|gte:1',
+            'items.*.warehouses.*.batches.*.price' => 'required|numeric|gte:1',
+            'items.*.warehouses.*.batches.*.currency' => ['required', 'regex:/^UAH$|^USD$|^EUR$/i'],
         ]);
 
         $itemsImagesData = $request->validate([
-            "items.*.images" => "nullable",
-            "items.*.images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
+            'items.*.images' => 'nullable',
+            'items.*.images.*' => 'required|file|mimes:jpeg,jpg,png|max:5000',
         ]);
 
         /**
          * Firstly check each element separatly
          */
-        foreach ($itemsData["items"] as $itemIndex => $itemData) {
+        foreach ($itemsData['items'] as $itemIndex => $itemData) {
             /**
              * Is item creation allowed:
              */
             $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData);
-            if ($specialValidationResult != null)
+            if ($specialValidationResult != null) {
                 return ErrorHandler::responseWith($specialValidationResult);
+            }
             if ($this->isItemExists($itemData)) {
                 $errorMessage = $this->itemExistenceErrorForming($itemData);
+
                 return ErrorHandler::responseWith($errorMessage);
             }
         }
@@ -461,14 +474,14 @@ class ItemController extends Controller
         /**
          * Then, if all is good, create each element
          */
-        foreach ($itemsData["items"] as $itemIndex => $itemData) {
+        foreach ($itemsData['items'] as $itemIndex => $itemData) {
             $warehousesData =
-                isset($itemsWarehousesData["items"][$itemIndex]) ?
-                    $itemsWarehousesData["items"][$itemIndex]["warehouses"] : [];
+                isset($itemsWarehousesData['items'][$itemIndex]) ?
+                    $itemsWarehousesData['items'][$itemIndex]['warehouses'] : [];
 
             $imagesData =
-                isset($itemsImagesData["items"][$itemIndex]) ?
-                    $itemsImagesData["items"][$itemIndex]["images"] : [];
+                isset($itemsImagesData['items'][$itemIndex]) ?
+                    $itemsImagesData['items'][$itemIndex]['images'] : [];
 
             $item = Item::create($itemData);
 
@@ -476,9 +489,9 @@ class ItemController extends Controller
                 //saving images in db and on disk
                 foreach ($imagesData as $key => $file) {
                     $image = Image::create([
-                        "item_id" => $item->id,
-                        "src" => $file->store('/', 'images'),
-                        "number_in_row" => $key + 1
+                        'item_id' => $item->id,
+                        'src' => $file->store('/', 'images'),
+                        'number_in_row' => $key + 1,
                     ]);
                 }
 
@@ -486,136 +499,137 @@ class ItemController extends Controller
                 foreach ($warehousesData as $key => $warehouse) {
                     $amountOfItemPerWarehouse = 0;
 
-                    foreach ($warehouse["batches"] as $key => $batch) {
+                    foreach ($warehouse['batches'] as $key => $batch) {
                         Income::create([
-                            "item_id" => $item->id,
-                            "warehouse_id" => $warehouse["id"],
-                            "price_per_item" => $batch["price"],
-                            "currency" => $batch["currency"],
-                            "amount_of_items" => $batch["amount"],
+                            'item_id' => $item->id,
+                            'warehouse_id' => $warehouse['id'],
+                            'price_per_item' => $batch['price'],
+                            'currency' => $batch['currency'],
+                            'amount_of_items' => $batch['amount'],
                         ]);
-                        $amountOfItemPerWarehouse += $batch["amount"];
+                        $amountOfItemPerWarehouse += $batch['amount'];
                     }
 
-                    $matchingItemWarehouseCombination = ItemWarehouseAmount::where("item_id", $item->id)
-                    ->where("warehouse_id", $warehouse["id"])->first();
+                    $matchingItemWarehouseCombination = ItemWarehouseAmount::where('item_id', $item->id)
+                    ->where('warehouse_id', $warehouse['id'])->first();
 
                     if ($matchingItemWarehouseCombination != null) {
                         $matchingItemWarehouseCombination->amount += $amountOfItemPerWarehouse;
                         $matchingItemWarehouseCombination->save();
                     } else {
                         ItemWarehouseAmount::create([
-                            "item_id" => $item->id,
-                            "warehouse_id" => $warehouse["id"],
-                            "amount" => $amountOfItemPerWarehouse,
+                            'item_id' => $item->id,
+                            'warehouse_id' => $warehouse['id'],
+                            'amount' => $amountOfItemPerWarehouse,
                         ]);
                     }
                 }
             }
         }
 
-        return response("OK", 200);
+        return response('OK', 200);
     }
 
-    public function setIncome(Request $request) {
+    public function setIncome(Request $request)
+    {
         $data = $request->validate([
-            "warehouses" => "required",
-            "warehouses.*.id" => "required|numeric|exists:warehouses,id",
-            "warehouses.*.batches" => "required",
-            "warehouses.*.batches.*.amount" => "required|integer|gte:1",
-            "warehouses.*.batches.*.price" => "required|numeric|gte:1",
-            "warehouses.*.batches.*.currency" => ["required", "regex:/^UAH$|^USD$|^EUR$/i"],
-            "warehouses.*.batches.*.items" => "required",
-            "warehouses.*.batches.*.items.*.id" => "required|numeric|exists:items,id",
+            'warehouses' => 'required',
+            'warehouses.*.id' => 'required|numeric|exists:warehouses,id',
+            'warehouses.*.batches' => 'required',
+            'warehouses.*.batches.*.amount' => 'required|integer|gte:1',
+            'warehouses.*.batches.*.price' => 'required|numeric|gte:1',
+            'warehouses.*.batches.*.currency' => ['required', 'regex:/^UAH$|^USD$|^EUR$/i'],
+            'warehouses.*.batches.*.items' => 'required',
+            'warehouses.*.batches.*.items.*.id' => 'required|numeric|exists:items,id',
         ]);
 
         //processing warehouses info
-        foreach ($data["warehouses"] as $key => $warehouse) {
-            foreach ($warehouse["batches"] as $key => $batch) {
-                foreach ($batch["items"] as $key => $item) {
+        foreach ($data['warehouses'] as $key => $warehouse) {
+            foreach ($warehouse['batches'] as $key => $batch) {
+                foreach ($batch['items'] as $key => $item) {
                     Income::create([
-                        "item_id" => $item["id"],
-                        "warehouse_id" => $warehouse["id"],
-                        "price_per_item" => $batch["price"],
-                        "currency" => $batch["currency"],
-                        "amount_of_items" => $batch["amount"],
+                        'item_id' => $item['id'],
+                        'warehouse_id' => $warehouse['id'],
+                        'price_per_item' => $batch['price'],
+                        'currency' => $batch['currency'],
+                        'amount_of_items' => $batch['amount'],
                     ]);
 
                     //check if item has records in item_warehouse_amounts table about its amount
                     //if has - add batch["amount"] to its amount
                     //if not - create record with batch["amount"] number as its amount
-                    $itemWarehouseAmounts = ItemWarehouseAmount::where("item_id", $item["id"])
-                    ->where("warehouse_id", $warehouse["id"])->first();
+                    $itemWarehouseAmounts = ItemWarehouseAmount::where('item_id', $item['id'])
+                    ->where('warehouse_id', $warehouse['id'])->first();
 
                     if ($itemWarehouseAmounts != null) {
-                        $itemWarehouseAmounts->amount += $batch["amount"];
+                        $itemWarehouseAmounts->amount += $batch['amount'];
                         $itemWarehouseAmounts->save();
                     } else {
                         ItemWarehouseAmount::create([
-                            "item_id" => $item["id"],
-                            "warehouse_id" => $warehouse["id"],
-                            "amount" => $batch["amount"],
+                            'item_id' => $item['id'],
+                            'warehouse_id' => $warehouse['id'],
+                            'amount' => $batch['amount'],
                         ]);
                     }
                 }
             }
         }
 
-        return response("OK", 200);
+        return response('OK', 200);
     }
 
-    public function setOutcome(Request $request) {
+    public function setOutcome(Request $request)
+    {
         $data = $request->validate([
-            "warehouseId" => "required|integer|numeric|exists:warehouses,id",
-            "items" => "required",
-            "items.*.id" => "required|integer|numeric|exists:items,id",
-            "items.*.additionalReason" => "nullable|string|max:255",
-            "items.*.reason" => "required|string|max:255",
-            "items.*.reasonDetail" => "nullable|string|max:1000",
-            "items.*.amount" => "required|numeric|gte:1|max:999999",
+            'warehouseId' => 'required|integer|numeric|exists:warehouses,id',
+            'items' => 'required',
+            'items.*.id' => 'required|integer|numeric|exists:items,id',
+            'items.*.additionalReason' => 'nullable|string|max:255',
+            'items.*.reason' => 'required|string|max:255',
+            'items.*.reasonDetail' => 'nullable|string|max:1000',
+            'items.*.amount' => 'required|numeric|gte:1|max:999999',
         ]);
 
         $isItemsExistsInWarehouse = true;
         $isOutcomeAmountOfItemIsLessThanActualAmount = true;
 
-        foreach ($data["items"] as $key => $item) {
-            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
-                ->where("warehouse_id", $data["warehouseId"])->first();
+        foreach ($data['items'] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where('item_id', $item['id'])
+                ->where('warehouse_id', $data['warehouseId'])->first();
 
             if ($currentItem == null || $currentItem->amount == 0) {
                 $isItemsExistsInWarehouse = false;
                 break;
             }
 
-            if ($item["amount"] > $currentItem->amount) {
+            if ($item['amount'] > $currentItem->amount) {
                 $isOutcomeAmountOfItemIsLessThanActualAmount = false;
                 break;
             }
         }
 
         if ($isItemsExistsInWarehouse === false) {
-            return ErrorHandler::responseWith("Предмета не існує на складах", 404);
+            return ErrorHandler::responseWith('Предмета не існує на складах', 404);
         }
         if ($isOutcomeAmountOfItemIsLessThanActualAmount === false) {
-            return ErrorHandler::responseWith("Списання перевищує наявність");
+            return ErrorHandler::responseWith('Списання перевищує наявність');
         }
 
-        foreach ($data["items"] as $key => $item) {
-            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
-                ->where("warehouse_id", $data["warehouseId"])->first();
+        foreach ($data['items'] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where('item_id', $item['id'])
+                ->where('warehouse_id', $data['warehouseId'])->first();
 
             //create outcome
             Outcome::create([
-                "item_id" => $item["id"],
-                "warehouse_id" => $data["warehouseId"],
-                "amount" => $item["amount"],
-                "reason_name" => $item["reason"],
-                "additional_reason_name" =>
-                    $item["reason"] === "other" ? $item["additionalReason"] : null,
-                "detail" => $item["reasonDetail"],
+                'item_id' => $item['id'],
+                'warehouse_id' => $data['warehouseId'],
+                'amount' => $item['amount'],
+                'reason_name' => $item['reason'],
+                'additional_reason_name' => $item['reason'] === 'other' ? $item['additionalReason'] : null,
+                'detail' => $item['reasonDetail'],
             ]);
 
-            $differenceBetweenAmounts = $currentItem->amount - $item["amount"];
+            $differenceBetweenAmounts = $currentItem->amount - $item['amount'];
 
             if ($differenceBetweenAmounts == 0) {
                 $currentItem->delete();
@@ -625,77 +639,77 @@ class ItemController extends Controller
             }
         }
 
-        return response("OK", 200);
+        return response('OK', 200);
     }
 
     /**
      * Register moving of the items between warehouses
      *
-     * @param Request $request
+     * @param  Request  $request
      */
-    public function move(Request $request) {
+    public function move(Request $request)
+    {
         $data = $request->validate([
-            "fromWarehouseId" => "required|integer|numeric|exists:warehouses,id",
-            "toWarehouseId" => "required|integer|numeric|exists:warehouses,id",
-            "items" => "required",
-            "items.*.id" => "required|integer|numeric|exists:items,id",
-            "items.*.additionalReason" => "nullable|string|max:255",
-            "items.*.reason" => "required|string|max:255",
-            "items.*.reasonDetail" => "nullable|string|max:1000",
-            "items.*.amount" => "required|numeric|gte:1|max:999999",
+            'fromWarehouseId' => 'required|integer|numeric|exists:warehouses,id',
+            'toWarehouseId' => 'required|integer|numeric|exists:warehouses,id',
+            'items' => 'required',
+            'items.*.id' => 'required|integer|numeric|exists:items,id',
+            'items.*.additionalReason' => 'nullable|string|max:255',
+            'items.*.reason' => 'required|string|max:255',
+            'items.*.reasonDetail' => 'nullable|string|max:1000',
+            'items.*.amount' => 'required|numeric|gte:1|max:999999',
         ]);
 
-        if ($data["fromWarehouseId"] == $data["toWarehouseId"]) {
+        if ($data['fromWarehouseId'] == $data['toWarehouseId']) {
             return ErrorHandler::responseWith(
-                "Склад \"звідки\" і склад \"куди\" не можуть бути однаковими"
+                'Склад "звідки" і склад "куди" не можуть бути однаковими'
             );
         }
 
         $isItemsExistsInWarehouse = true;
         $isOutcomeAmountOfItemIsLessThanActualAmount = true;
 
-        foreach ($data["items"] as $key => $item) {
-            $currentItem = ItemWarehouseAmount::where("item_id", $item["id"])
-                ->where("warehouse_id", $data["fromWarehouseId"])->first();
+        foreach ($data['items'] as $key => $item) {
+            $currentItem = ItemWarehouseAmount::where('item_id', $item['id'])
+                ->where('warehouse_id', $data['fromWarehouseId'])->first();
 
             if ($currentItem == null || $currentItem->amount == 0) {
                 $isItemsExistsInWarehouse = false;
                 break;
             }
 
-            if ($item["amount"] > $currentItem->amount) {
+            if ($item['amount'] > $currentItem->amount) {
                 $isOutcomeAmountOfItemIsLessThanActualAmount = false;
                 break;
             }
         }
 
         if ($isItemsExistsInWarehouse === false) {
-            return ErrorHandler::responseWith("Предмета не існує на складах", 404);
+            return ErrorHandler::responseWith('Предмета не існує на складах', 404);
         }
         if ($isOutcomeAmountOfItemIsLessThanActualAmount === false) {
-            return ErrorHandler::responseWith("Списання перевищує наявність");
+            return ErrorHandler::responseWith('Списання перевищує наявність');
         }
 
-        foreach ($data["items"] as $key => $item) {
+        foreach ($data['items'] as $key => $item) {
             //create move
             Move::create([
-                "item_id" => $item["id"],
-                "from_warehouse_id" => $data["fromWarehouseId"],
-                "to_warehouse_id" => $data["toWarehouseId"],
-                "amount" => $item["amount"],
-                "reason_name" => $item["reason"],
-                "additional_reason_name" =>
-                    $item["reason"] === "other" ? $item["additionalReason"] : null,
-                "detail" => $item["reasonDetail"],
+                'item_id' => $item['id'],
+                'from_warehouse_id' => $data['fromWarehouseId'],
+                'to_warehouse_id' => $data['toWarehouseId'],
+                'amount' => $item['amount'],
+                'reason_name' => $item['reason'],
+                'additional_reason_name' => $item['reason'] === 'other' ? $item['additionalReason'] : null,
+                'detail' => $item['reasonDetail'],
             ]);
 
-            $fromWarehouseItem = ItemWarehouseAmount::where("item_id", $item["id"])
-                ->where("warehouse_id", $data["fromWarehouseId"])->first();
-            $toWarehouseItem = ItemWarehouseAmount::where("item_id", $item["id"])
-                ->where("warehouse_id", $data["toWarehouseId"])->first();
+            $fromWarehouseItem = ItemWarehouseAmount::where('item_id', $item['id'])
+                ->where('warehouse_id', $data['fromWarehouseId'])->first();
+            $toWarehouseItem = ItemWarehouseAmount::where('item_id', $item['id'])
+                ->where('warehouse_id', $data['toWarehouseId'])->first();
 
             //subtract item amount of fromWarehouseItem
-            $differenceBetweenAmounts = $fromWarehouseItem->amount - $item["amount"];
+            $differenceBetweenAmounts = $fromWarehouseItem->amount - $item['amount'];
             if ($differenceBetweenAmounts == 0) {
                 $fromWarehouseItem->delete();
             } else {
@@ -705,43 +719,47 @@ class ItemController extends Controller
 
             //adding item amount for toWarehouseItem
             if ($toWarehouseItem != null) {
-                $toWarehouseItem->amount += $item["amount"];
+                $toWarehouseItem->amount += $item['amount'];
                 $toWarehouseItem->save();
             } else {
                 ItemWarehouseAmount::create([
-                    "item_id" => $item["id"],
-                    "warehouse_id" => $data["toWarehouseId"],
-                    "amount" => $item["amount"],
+                    'item_id' => $item['id'],
+                    'warehouse_id' => $data['toWarehouseId'],
+                    'amount' => $item['amount'],
                 ]);
             }
         }
 
-        return response("OK", 200);
+        return response('OK', 200);
     }
 
     /**
      * Give an item, or array of items (depends on request parameters)
      * as a response
      *
-     * @param Request $request Contains three variables: "mode", "value", "warehouse_id":
+     * @param  Request  $request Contains three variables: "mode", "value", "warehouse_id":
      * mode -           way of building item search query (search by id, group_id or article)
      * value -          value, which is used for query forming
      * warehouse_id -   id of warehouse where searching need to be done (works in pair with article mode)
-     *
      * @return Response of items, or a single item as array
      */
-    public function getItemsWithPreparedData(Request $request) {
+    public function getItemsWithPreparedData(Request $request)
+    {
         $filterData = $request->validate([
-            "mode" => ["required", "string", "regex:/^id$|^group_id$|^article$/i"],
-            "value" => "nullable|string|max:36",
-            "warehouse_id" => "integer"
+            'mode' => ['required', 'string', 'regex:/^id$|^group_id$|^article$/i'],
+            'value' => 'nullable|string|max:36',
+            'warehouse_id' => 'integer',
         ]);
 
-        if ($filterData["value"] === null) return [];
+        if ($filterData['value'] === null) {
+            return [];
+        }
 
-        if ($filterData["mode"] == "id") {
-            $item = Item::query()->find($filterData["value"]);
-            if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено", 404);
+        if ($filterData['mode'] == 'id') {
+            $item = Item::query()->find($filterData['value']);
+            if ($item === null) {
+                return ErrorHandler::responseWith('Предмет не знайдено', 404);
+            }
 
             $item->type;
             $item->gender;
@@ -752,25 +770,27 @@ class ItemController extends Controller
 
             $item = json_decode(json_encode($item), true);
 
-            foreach ($item["images"] as $key => $image) {
-                $imageFile = Storage::disk("images")->get($image["src"]);
-                $mimeType = Storage::disk("images")->mimeType($image["src"]);
+            foreach ($item['images'] as $key => $image) {
+                $imageFile = Storage::disk('images')->get($image['src']);
+                $mimeType = Storage::disk('images')->mimeType($image['src']);
 
                 $base64StringPrefix = "data:{$mimeType};base64,";
                 $base64File = base64_encode($imageFile);
 
-                $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
-                $item["images"][$key]["mimeType"] = $mimeType;
+                $item['images'][$key]['base64'] = "{$base64StringPrefix}{$base64File}";
+                $item['images'][$key]['mimeType'] = $mimeType;
             }
 
             return response()->json($item);
         }
 
-        if ($filterData["mode"] == "group_id") {
-            $items = Item::where("group_id", "=", $filterData['value'])
-                ->orderBy("updated_at", "desc")
+        if ($filterData['mode'] == 'group_id') {
+            $items = Item::where('group_id', '=', $filterData['value'])
+                ->orderBy('updated_at', 'desc')
                 ->get();
-            if (count($items) === 0) return 0;
+            if (count($items) === 0) {
+                return 0;
+            }
 
             foreach ($items as $key => &$item) {
                 $item->type;
@@ -784,15 +804,15 @@ class ItemController extends Controller
             $items = json_decode(json_encode($items), true);
 
             foreach ($items as $key => &$item) {
-                foreach ($item["images"] as $key => $image) {
-                    $imageFile = Storage::disk("images")->get($image["src"]);
-                    $mimeType = Storage::disk("images")->mimeType($image["src"]);
+                foreach ($item['images'] as $key => $image) {
+                    $imageFile = Storage::disk('images')->get($image['src']);
+                    $mimeType = Storage::disk('images')->mimeType($image['src']);
 
                     $base64StringPrefix = "data:{$mimeType};base64,";
                     $base64File = base64_encode($imageFile);
 
-                    $item["images"][$key]["base64"] = "{$base64StringPrefix}{$base64File}";
-                    $item["images"][$key]["mimeType"] = $mimeType;
+                    $item['images'][$key]['base64'] = "{$base64StringPrefix}{$base64File}";
+                    $item['images'][$key]['mimeType'] = $mimeType;
                 }
             }
 
@@ -800,175 +820,193 @@ class ItemController extends Controller
         }
 
         //article color_article size
-        if ($filterData["mode"] == "article") {
-            $params = explode(" ",  trim($filterData["value"]));
+        if ($filterData['mode'] == 'article') {
+            $params = explode(' ', trim($filterData['value']));
 
             $section = DB::table($this->section);
 
             //select forming
             $section->select(
-                "items.id AS id",
-                "items.article AS article",
-                "sizes.value AS size",
-                "colors.article AS color_article",
-                "colors.value AS color_value",
-                "colors.text_color_value AS text_color_value",
-                "items.title AS title",
+                'items.id AS id',
+                'items.article AS article',
+                'sizes.value AS size',
+                'colors.article AS color_article',
+                'colors.value AS color_value',
+                'colors.text_color_value AS text_color_value',
+                'items.title AS title',
+                'items.price AS price',
+                'items.currency AS currency',
 
-                DB::raw("(SELECT src FROM images i WHERE items.id = i.item_id LIMIT 1) AS image"),
+                DB::raw('(SELECT src FROM images i WHERE items.id = i.item_id LIMIT 1) AS image'),
             );
 
-            if ($filterData["warehouse_id"] != 0) {
+            if ($filterData['warehouse_id'] != 0) {
                 $section->addSelect(
-                    "item_warehouse_amounts.warehouse_id AS warehouse_id",
-                    "item_warehouse_amounts.amount AS amount",
+                    'item_warehouse_amounts.warehouse_id AS warehouse_id',
+                    'item_warehouse_amounts.amount AS amount',
                 );
             }
 
             //join forming
-            $section->leftJoin("colors", "items.color_id", "=", "colors.id")
-            ->leftJoin("sizes", "items.size_id", "=", "sizes.id");
+            $section->leftJoin('colors', 'items.color_id', '=', 'colors.id')
+            ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id');
 
-            if ($filterData["warehouse_id"] != 0) {
-                $section->rightJoin("item_warehouse_amounts", "items.id", "=", "item_warehouse_amounts.item_id");
+            if ($filterData['warehouse_id'] != 0) {
+                $section->rightJoin('item_warehouse_amounts', 'items.id', '=', 'item_warehouse_amounts.item_id');
             }
 
             //ordering forming
-            $section->orderBy("items.article", "asc")
-            ->orderBy("colors.article", "asc")
-            ->orderBy("sizes.number_in_row", "asc");
+            $section->orderBy('items.article', 'asc')
+            ->orderBy('colors.article', 'asc')
+            ->orderBy('sizes.number_in_row', 'asc');
 
             //"WHERE" statement forming
             if (count($params) == 1) {
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("items.article", "LIKE", "%{$params[0]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('items.article', 'LIKE', "%{$params[0]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("colors.article", "LIKE", "%{$params[0]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('colors.article', 'LIKE', "%{$params[0]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("sizes.value", "LIKE", "%{$params[0]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('sizes.value', 'LIKE', "%{$params[0]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
             }
 
             if (count($params) == 2) {
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("items.article", "LIKE", "%{$params[0]}%")
-                        ->where("colors.article", "LIKE", "%{$params[1]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('items.article', 'LIKE', "%{$params[0]}%")
+                        ->where('colors.article', 'LIKE', "%{$params[1]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("items.article", "LIKE", "%{$params[0]}%")
-                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('items.article', 'LIKE', "%{$params[0]}%")
+                        ->where('sizes.value', 'LIKE', "%{$params[1]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
-                $section->orWhere(function(Builder $query) use ($params, $filterData) {
-                    $query->where("colors.article", "LIKE", "%{$params[0]}%")
-                        ->where("sizes.value", "LIKE", "%{$params[1]}%");
-                    if ($filterData["warehouse_id"] != 0)
-                        $query->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                $section->orWhere(function (Builder $query) use ($params, $filterData) {
+                    $query->where('colors.article', 'LIKE', "%{$params[0]}%")
+                        ->where('sizes.value', 'LIKE', "%{$params[1]}%");
+                    if ($filterData['warehouse_id'] != 0) {
+                        $query->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                    }
                 });
             }
 
             if (count($params) == 3) {
-                $section->where("items.article", "LIKE", "%{$params[0]}%")
-                ->where("colors.article", "LIKE", "%{$params[1]}%")
-                ->where("sizes.value", "LIKE", "%{$params[2]}%");
+                $section->where('items.article', 'LIKE', "%{$params[0]}%")
+                ->where('colors.article', 'LIKE', "%{$params[1]}%")
+                ->where('sizes.value', 'LIKE', "%{$params[2]}%");
 
-                if ($filterData["warehouse_id"] != 0)
-                        $section->where("item_warehouse_amounts.warehouse_id", $filterData["warehouse_id"]);
+                if ($filterData['warehouse_id'] != 0) {
+                    $section->where('item_warehouse_amounts.warehouse_id', $filterData['warehouse_id']);
+                }
             }
 
             //additional query tweaks
             $amountOfItems = $section->count();
-            if ($this->defaultQueryResultLimit != 0)
+            if ($this->defaultQueryResultLimit != 0) {
                 $section->limit($this->defaultQueryResultLimit);
+            }
 
             $items = $section->get();
 
             return response()->json([
-                "data" => $items,
-                "amountOfItems" => $amountOfItems,
-                "limitation" => $this->defaultQueryResultLimit
+                'data' => $items,
+                'amountOfItems' => $amountOfItems,
+                'limitation' => $this->defaultQueryResultLimit,
             ]);
         }
 
-        ErrorHandler::responseWith("Неможливо виконати пошук: режим не знайдений");
+        ErrorHandler::responseWith('Неможливо виконати пошук: режим не знайдений');
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $item = $sectionModel::find($id);
 
-        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено");
+        if ($item === null) {
+            return ErrorHandler::responseWith('Предмет не знайдено');
+        }
 
         $itemData = $request->validate([
-            "article" => "required|string|max:100",
-            "title" => "required|string|max:255",
-            "description" => "nullable|string|max:5000",
-            "price" => "required|numeric|gte:1",
-            "currency" => ["required", "string", "regex:/^UAH$|^USD$|^EUR$/i"],
-            "lack" => "required|numeric|integer|gte:1",
-            "gender_id" => "nullable",
-            "size_id" => "nullable",
-            "color_id" => "nullable",
+            'article' => 'required|string|max:100',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
+            'price' => 'required|numeric|gte:1',
+            'currency' => ['required', 'string', 'regex:/^UAH$|^USD$|^EUR$/i'],
+            'lack' => 'required|numeric|integer|gte:1',
+            'gender_id' => 'nullable',
+            'size_id' => 'nullable',
+            'color_id' => 'nullable',
         ]);
 
         //additional validation for gender_id, size_id, color_id
-        if (!empty($itemData["gender_id"]) && Gender::find($itemData["gender_id"]) == null)
-            return ErrorHandler::responseWith("Такого гендеру не існує");
-        if (!empty($itemData["size_id"]) && Size::find($itemData["size_id"]) == null)
-            return ErrorHandler::responseWith("Такого розміру не існує");
-        if (!empty($itemData["color_id"]) && Color::find($itemData["color_id"]) == null)
-            return ErrorHandler::responseWith("Такого кольору не існує");
+        if (! empty($itemData['gender_id']) && Gender::find($itemData['gender_id']) == null) {
+            return ErrorHandler::responseWith('Такого гендеру не існує');
+        }
+        if (! empty($itemData['size_id']) && Size::find($itemData['size_id']) == null) {
+            return ErrorHandler::responseWith('Такого розміру не існує');
+        }
+        if (! empty($itemData['color_id']) && Color::find($itemData['color_id']) == null) {
+            return ErrorHandler::responseWith('Такого кольору не існує');
+        }
 
         $imagesData = $request->validate([
-            "images" => "nullable",
-            "images.*" => "required|file|mimes:jpeg,jpg,png|max:5000",
+            'images' => 'nullable',
+            'images.*' => 'required|file|mimes:jpeg,jpg,png|max:5000',
         ]);
-        $imagesData = !empty($imagesData) ? $imagesData["images"] : [];
+        $imagesData = ! empty($imagesData) ? $imagesData['images'] : [];
 
         /**
          * Inserting data to itemData array not from request
          * to avoid unexpected data collisions
          */
-        $itemData["group_id"] = $item->group_id;
-        $itemData["type_id"] = $item->type_id;
-        $itemData["unit_id"] = $item->unit_id;
+        $itemData['group_id'] = $item->group_id;
+        $itemData['type_id'] = $item->type_id;
+        $itemData['unit_id'] = $item->unit_id;
 
         $specialValidationResult = $this->getItemDataSpecialValidationResult($itemData, $id);
-        if ($specialValidationResult != null)
+        if ($specialValidationResult != null) {
             return ErrorHandler::responseWith($specialValidationResult);
+        }
         if ($this->isItemExists($itemData, $id)) {
             $errorMessage = $this->itemExistenceErrorForming($itemData);
+
             return ErrorHandler::responseWith($errorMessage);
         }
 
-        $item->article = $itemData["article"];
-        $item->title = $itemData["title"];
-        $item->description = $itemData["description"];
-        $item->price = $itemData["price"];
-        $item->currency = $itemData["currency"];
-        $item->lack = $itemData["lack"];
-        $item->type_id = $itemData["type_id"];
-        $item->unit_id = $itemData["unit_id"];
+        $item->article = $itemData['article'];
+        $item->title = $itemData['title'];
+        $item->description = $itemData['description'];
+        $item->price = $itemData['price'];
+        $item->currency = $itemData['currency'];
+        $item->lack = $itemData['lack'];
+        $item->type_id = $itemData['type_id'];
+        $item->unit_id = $itemData['unit_id'];
 
-        $item->color_id = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
-        $item->size_id = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
-        $item->gender_id = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
+        $item->color_id = ! empty($itemData['color_id']) ? $itemData['color_id'] : null;
+        $item->size_id = ! empty($itemData['size_id']) ? $itemData['size_id'] : null;
+        $item->gender_id = ! empty($itemData['gender_id']) ? $itemData['gender_id'] : null;
 
         $item->save();
 
         //removing old images
-        foreach($item->images as $key => $image){
+        foreach ($item->images as $key => $image) {
             Storage::disk('images')->delete($image->src);
             $image->delete();
         }
@@ -976,45 +1014,69 @@ class ItemController extends Controller
         //saving images in db and on disk
         foreach ($imagesData as $key => $file) {
             $image = Image::create([
-                "item_id" => $item->id,
-                "src" => $file->store('/', 'images'),
-                "number_in_row" => $key + 1
+                'item_id' => $item->id,
+                'src' => $file->store('/', 'images'),
+                'number_in_row' => $key + 1,
             ]);
         }
 
         return response($this->getUpdatedItem($item->id));
     }
 
-    public function delete(Request $request, $id) {
+    public function delete(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $item = $sectionModel::find($id);
 
-        if ($item === null) return ErrorHandler::responseWith("Предмет не знайдено");
+        if ($item === null) {
+            return ErrorHandler::responseWith('Предмет не знайдено');
+        }
 
         $amountOfItem = $this->getAmountOfItem($item->id);
 
-        if ($amountOfItem != null || $amountOfItem > 0) {
-            return ErrorHandler::responseWith("Неможливо видалити: предмет присутній на складах");
+        if ($amountOfItem != null && $amountOfItem > 0) {
+            return ErrorHandler::responseWith('Неможливо видалити: предмет присутній на складах');
         }
 
-        foreach($item->images as $key => $image) {
+        // Check if item is referenced in orders
+        if (OrderItem::where('item_id', $item->id)->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити: предмет використовується в замовленнях');
+        }
+
+        // Check if item has income history
+        if (Income::where('item_id', $item->id)->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити: предмет має історію надходжень');
+        }
+
+        // Check if item has outcome history
+        if (Outcome::where('item_id', $item->id)->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити: предмет має історію списань');
+        }
+
+        // Check if item has move history
+        if (Move::where('item_id', $item->id)->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити: предмет має історію переміщень');
+        }
+
+        foreach ($item->images as $key => $image) {
             Storage::disk('images')->delete($image->src);
             $image->delete();
         }
 
         $item->delete();
 
-        return response("OK", 200);
+        return response('OK', 200);
     }
 
-    private function getWhereOperator($operatorName) {
+    private function getWhereOperator($operatorName)
+    {
         $equality = [
-            "include" => "like",
-            "exclude" => "notLike",
-            "more" => ">",
-            "less" => "<",
-            "equal"=> "=",
-            "notequal" => "<>"
+            'include' => 'like',
+            'exclude' => 'notLike',
+            'more' => '>',
+            'less' => '<',
+            'equal' => '=',
+            'notequal' => '<>',
         ];
 
         return $equality[$operatorName];
@@ -1026,25 +1088,27 @@ class ItemController extends Controller
      * @param $date - yyyymm
      * @param $currencyCode - USD|EUR|etc...
      * @param
-     *
      * @return float currency exchange index
      */
-    private function getNbuCurrencyExchangeCourses($date, $currencyCode): float {
+    private function getNbuCurrencyExchangeCourses($date, $currencyCode): float
+    {
         $nbuService = new NbuCurrencyExchangeCoursesService();
+
         return $nbuService->getCourses($date, $currencyCode);
     }
 
-    private function getUpdatedItem($id) {
-        $today = Carbon::now()->format("Ymd");
+    private function getUpdatedItem($id)
+    {
+        $today = Carbon::now()->format('Ymd');
         $section = DB::table($this->section);
         $section->select(
-            "items.id AS id",
-            "items.group_id AS group_id",
-            "items.article AS article",
-            "items.title AS title",
-            "items.description AS description",
-            "items.price AS unconverted_price",
-            "items.currency AS currency",
+            'items.id AS id',
+            'items.group_id AS group_id',
+            'items.article AS article',
+            'items.title AS title',
+            'items.description AS description',
+            'items.price AS unconverted_price',
+            'items.currency AS currency',
         )
         ->selectRaw('
             IF(items.currency = "USD", items.price * ?,
@@ -1055,26 +1119,26 @@ class ItemController extends Controller
             AS converted_price_to_uah
             ',
             [
-                 $this->getNbuCurrencyExchangeCourses($today, "USD"),
-                 $this->getNbuCurrencyExchangeCourses($today, "EUR")
+                $this->getNbuCurrencyExchangeCourses($today, 'USD'),
+                $this->getNbuCurrencyExchangeCourses($today, 'EUR'),
             ]
         )
         ->addSelect(
-            "types.name AS type_name",
-            "types.number_in_row AS type", //extra field for ordering
-            "genders.name AS gender",
-            "sizes.value AS size_name",
-            "sizes.number_in_row AS size", //extra field for ordering
-            "sizes.description AS size_description",
-            "colors.article AS color_article",
-            "colors.description AS color_name",
-            "colors.description AS color", //extra field for ordering
-            "colors.value AS color_value",
-            "colors.text_color_value AS text_color_value",
+            'types.name AS type_name',
+            'types.number_in_row AS type', //extra field for ordering
+            'genders.name AS gender',
+            'sizes.value AS size_name',
+            'sizes.number_in_row AS size', //extra field for ordering
+            'sizes.description AS size_description',
+            'colors.article AS color_article',
+            'colors.description AS color_name',
+            'colors.description AS color', //extra field for ordering
+            'colors.value AS color_value',
+            'colors.text_color_value AS text_color_value',
             DB::raw('SUM(income.amount_of_items) AS amount'),
-            "units.name AS unit_name",
-            "units.name AS units", //extra field for ordering
-            "units.description AS unit_description",
+            'units.name AS unit_name',
+            'units.name AS units', //extra field for ordering
+            'units.description AS unit_description',
         )
         ->join('types', 'items.type_id', '=', 'types.id')
         ->join('units', 'items.unit_id', '=', 'units.id')
@@ -1082,12 +1146,13 @@ class ItemController extends Controller
         ->leftJoin('sizes', 'items.size_id', '=', 'sizes.id')
         ->leftJoin('colors', 'items.color_id', '=', 'colors.id')
         ->leftJoin('income', 'items.id', '=', 'income.item_id')
-        ->where("items.id", $id);
+        ->where('items.id', $id);
         $updatedItem = $section->get()[0];
         $updatedItem = json_decode(json_encode($updatedItem), true);
 
         //binding images to updated item
-        $updatedItem["images"] = Image::where("item_id", $updatedItem["id"])->orderBy("number_in_row", "asc")->get();
+        $updatedItem['images'] = Image::where('item_id', $updatedItem['id'])->orderBy('number_in_row', 'asc')->get();
+
         return $updatedItem;
     }
 
@@ -1095,22 +1160,22 @@ class ItemController extends Controller
      * Calculates how much item do we have in general,
      * or in particular warehouse
      *
-     * @param integer  $itemId        ID of item from "items" table
-     * @param integer  $warehouseId   ID of warehouse from "warehouses" table
-     *
+     * @param  int  $itemId        ID of item from "items" table
+     * @param  int  $warehouseId   ID of warehouse from "warehouses" table
      * @return null    No records found in "item_warehouse_amount" table
-     * @return integer Amount of items according to records in "item_warehouse_amount" table
+     * @return int Amount of items according to records in "item_warehouse_amount" table
      */
-    private function getAmountOfItem($itemId, $warehouseId = null) {
+    private function getAmountOfItem($itemId, $warehouseId = null)
+    {
         $amountOfItem = DB::table($this->section)
-        ->selectRaw("SUM(item_warehouse_amounts.amount) as amount")
-        ->leftJoin("item_warehouse_amounts", "item_warehouse_amounts.item_id", "=", "items.id")
-        ->where("items.id", $itemId);
+        ->selectRaw('SUM(item_warehouse_amounts.amount) as amount')
+        ->leftJoin('item_warehouse_amounts', 'item_warehouse_amounts.item_id', '=', 'items.id')
+        ->where('items.id', $itemId);
 
         if ($warehouseId != null) {
-            $amountOfItem->where("item_warehouse_amounts.warehouse_id", $warehouseId);
+            $amountOfItem->where('item_warehouse_amounts.warehouse_id', $warehouseId);
         } else {
-            $amountOfItem->groupBy("item_warehouse_amounts.item_id");
+            $amountOfItem->groupBy('item_warehouse_amounts.item_id');
         }
 
         $amountOfItem =
@@ -1123,28 +1188,29 @@ class ItemController extends Controller
     /**
      * Returns warehouses detail and amount of item in there.
      *
-     * @param integer $id item id
+     * @param  int  $id item id
      */
-    private function getAmountOfItemInEachWarehouse($id) {
-        $table = DB::table("item_warehouse_amounts");
+    private function getAmountOfItemInEachWarehouse($id)
+    {
+        $table = DB::table('item_warehouse_amounts');
         $warehousesAmounts = $table
         ->select(
-            "item_warehouse_amounts.id AS id",
-            "countries.name AS country_name",
-            "cities.name AS city_name",
-            "warehouses.id AS warehouse_id",
-            "warehouses.description AS warehouse_description",
-            "warehouses.address AS warehouse_address",
-            "warehouses.name AS warehouse_name",
-            "item_warehouse_amounts.amount AS amount",
-            "units.name AS unit"
+            'item_warehouse_amounts.id AS id',
+            'countries.name AS country_name',
+            'cities.name AS city_name',
+            'warehouses.id AS warehouse_id',
+            'warehouses.description AS warehouse_description',
+            'warehouses.address AS warehouse_address',
+            'warehouses.name AS warehouse_name',
+            'item_warehouse_amounts.amount AS amount',
+            'units.name AS unit'
         )
-        ->join("items", "item_warehouse_amounts.item_id", "=", "items.id")
-        ->join("units", "items.unit_id", "=", "units.id")
-        ->join("warehouses", "item_warehouse_amounts.warehouse_id", "=", "warehouses.id")
-        ->join("countries", "countries.id", "=", "warehouses.country_id")
-        ->join("cities", "cities.id", "=", "warehouses.city_id")
-        ->where("item_warehouse_amounts.item_id", $id)
+        ->join('items', 'item_warehouse_amounts.item_id', '=', 'items.id')
+        ->join('units', 'items.unit_id', '=', 'units.id')
+        ->join('warehouses', 'item_warehouse_amounts.warehouse_id', '=', 'warehouses.id')
+        ->join('countries', 'countries.id', '=', 'warehouses.country_id')
+        ->join('cities', 'cities.id', '=', 'warehouses.city_id')
+        ->where('item_warehouse_amounts.item_id', $id)
         ->get();
 
         return $warehousesAmounts;
@@ -1157,32 +1223,33 @@ class ItemController extends Controller
      * (looks for similarity in items wich are different from item
      * with passed ID)
      *
-     * @param integer  $id        Item ID (for update case), null - default value
-     * @param array    $itemData  Contains validated values from request
-     *
-     * @return boolean Is item with passed params exists in "items" table
+     * @param  int  $id        Item ID (for update case), null - default value
+     * @param  array  $itemData  Contains validated values from request
+     * @return bool Is item with passed params exists in "items" table
      */
-    private function isItemExists($itemData, $id = null) {
+    private function isItemExists($itemData, $id = null)
+    {
         $sectionModel = $this->getSectionModel();
-        $matchingItems = $sectionModel::
-          where("article", $itemData["article"])
-        ->where("group_id", $itemData["group_id"])
-        ->where("type_id", $itemData["type_id"]);
+        $matchingItems = $sectionModel::where('article', $itemData['article'])
+        ->where('group_id', $itemData['group_id'])
+        ->where('type_id', $itemData['type_id']);
 
         /**
          * Nullable items additional validation
          */
-        $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
-        $itemData["size_id"] = !empty($itemData["size_id"]) ? $itemData["size_id"] : null;
-        $itemData["color_id"] = !empty($itemData["color_id"]) ? $itemData["color_id"] : null;
-        $matchingItems->where("gender_id", $itemData["gender_id"]);
-        $matchingItems->where("size_id", $itemData["size_id"]);
-        $matchingItems->where("color_id", $itemData["color_id"]);
+        $itemData['gender_id'] = ! empty($itemData['gender_id']) ? $itemData['gender_id'] : null;
+        $itemData['size_id'] = ! empty($itemData['size_id']) ? $itemData['size_id'] : null;
+        $itemData['color_id'] = ! empty($itemData['color_id']) ? $itemData['color_id'] : null;
+        $matchingItems->where('gender_id', $itemData['gender_id']);
+        $matchingItems->where('size_id', $itemData['size_id']);
+        $matchingItems->where('color_id', $itemData['color_id']);
 
         /**
          * if ID != null -> item "update" mode
          */
-        if ($id != null) $matchingItems->where("id", "<>", $id);
+        if ($id != null) {
+            $matchingItems->where('id', '<>', $id);
+        }
 
         $matchingItems = $matchingItems->get();
 
@@ -1192,23 +1259,23 @@ class ItemController extends Controller
     /**
      * Return html string with text for "item exists" error message
      *
-     * @param array  $itemData  Contains validated values from request
-     *
+     * @param  array  $itemData  Contains validated values from request
      * @return string html formatted string
      */
-    private function itemExistenceErrorForming($itemData) {
+    private function itemExistenceErrorForming($itemData)
+    {
         $title = "<p class='error-row'>Назва: {$itemData['title']}</p>";
         $article = "<p class='error-row'>Артикль: {$itemData['article']}</p>";
 
-        $genderPart = "";
-        if (isset($itemData["gender_id"])) {
-            $gender = Gender::find($itemData["gender_id"]);
-            $genderPart = $gender != null ? "<p class='error-row'>Гендер: {$gender->name}</p>" : "";
+        $genderPart = '';
+        if (isset($itemData['gender_id'])) {
+            $gender = Gender::find($itemData['gender_id']);
+            $genderPart = $gender != null ? "<p class='error-row'>Гендер: {$gender->name}</p>" : '';
         }
 
-        $colorPart = "";
-        if (isset($itemData["color_id"])) {
-            $color = Color::find($itemData["color_id"]);
+        $colorPart = '';
+        if (isset($itemData['color_id'])) {
+            $color = Color::find($itemData['color_id']);
             if ($color != null) {
                 $colorPart = "
                     <p class='error-row'>
@@ -1229,10 +1296,10 @@ class ItemController extends Controller
             }
         }
 
-        $sizePart = "";
-        if (isset($itemData["size_id"])) {
-            $size = Size::find($itemData["size_id"]);
-            $sizePart = $size != null ? "<p class='error-row'>Розмір: {$size->value}</p>" : "";
+        $sizePart = '';
+        if (isset($itemData['size_id'])) {
+            $size = Size::find($itemData['size_id']);
+            $sizePart = $size != null ? "<p class='error-row'>Розмір: {$size->value}</p>" : '';
         }
 
         $responseMessage = "
@@ -1255,26 +1322,26 @@ class ItemController extends Controller
      * Do specific validation of item data.
      * Checking for uniqueness of item params
      *
-     * @param array   $itemData Validated item data, received from request
-     * @param integer $id       ID of item. Use this param if checking for item
+     * @param  array  $itemData Validated item data, received from request
+     * @param  int  $id       ID of item. Use this param if checking for item
      *                          updating data
-     *
      * @return string|null String, if error does exists. Null, if everything is good
      */
-    private function getItemDataSpecialValidationResult($itemData, $id = null) {
-        $action = $id != null ? "оновити" : "створити";
+    private function getItemDataSpecialValidationResult($itemData, $id = null)
+    {
+        $action = $id != null ? 'оновити' : 'створити';
 
-        $validationItem = Item::where("group_id", $itemData["group_id"]);
+        $validationItem = Item::where('group_id', $itemData['group_id']);
         $validationItem = $id != null
-            ? $validationItem->where("id", "<>", $id)->get()
+            ? $validationItem->where('id', '<>', $id)->get()
             : $validationItem->get();
         if (count($validationItem) > 0) {
             $validationItem = $validationItem[0];
 
-            if ($validationItem["type_id"] != $itemData["type_id"]) {
-                $itemData["type_id"] = !empty($itemData["type_id"]) ? $itemData["type_id"] : null;
-                $typeName = $validationItem["type_id"] != null ?
-                    Type::find($validationItem["type_id"])->name : "відсутнє значення";
+            if ($validationItem['type_id'] != $itemData['type_id']) {
+                $itemData['type_id'] = ! empty($itemData['type_id']) ? $itemData['type_id'] : null;
+                $typeName = $validationItem['type_id'] != null ?
+                    Type::find($validationItem['type_id'])->name : 'відсутнє значення';
 
                 return "Неможливо {$action}: невірне значення
                     характеристики \"вид\" для предмету з даним
@@ -1282,33 +1349,33 @@ class ItemController extends Controller
             }
         }
 
-        $validationItem = Item::where("article", $itemData["article"]);
+        $validationItem = Item::where('article', $itemData['article']);
         $validationItem = $id != null
-            ? $validationItem->where("id", "<>", $id)->get()
+            ? $validationItem->where('id', '<>', $id)->get()
             : $validationItem->get();
         if (count($validationItem) > 0) {
             $validationItem = $validationItem[0];
 
-            if ($validationItem["group_id"] != $itemData["group_id"]) {
+            if ($validationItem['group_id'] != $itemData['group_id']) {
                 return "Неможливо {$action}: невірне значення
                     характеристики \"ідентифікатор групи\" для предмету з
                     даним артиклем. (Пропозиція: \"{$validationItem['group_id']}\")";
             }
 
-            if ($validationItem["type_id"] != $itemData["type_id"]) {
-                $itemData["type_id"] = !empty($itemData["type_id"]) ? $itemData["type_id"] : null;
-                $typeName = $validationItem["type_id"] != null ?
-                    Type::find($validationItem["type_id"])->name : "відсутнє значення";
+            if ($validationItem['type_id'] != $itemData['type_id']) {
+                $itemData['type_id'] = ! empty($itemData['type_id']) ? $itemData['type_id'] : null;
+                $typeName = $validationItem['type_id'] != null ?
+                    Type::find($validationItem['type_id'])->name : 'відсутнє значення';
 
                 return "Неможливо {$action}: невірне значення
                     характеристики \"вид\" для предмету з даним артиклем.
                     (Пропозиція: \"{$typeName}\")";
             }
 
-            $itemData["gender_id"] = !empty($itemData["gender_id"]) ? $itemData["gender_id"] : null;
-            if ($validationItem["gender_id"] != $itemData["gender_id"]) {
-                $genderName = $validationItem["gender_id"] != null ?
-                    Gender::find($validationItem["gender_id"])->name : "відсутнє значення";
+            $itemData['gender_id'] = ! empty($itemData['gender_id']) ? $itemData['gender_id'] : null;
+            if ($validationItem['gender_id'] != $itemData['gender_id']) {
+                $genderName = $validationItem['gender_id'] != null ?
+                    Gender::find($validationItem['gender_id'])->name : 'відсутнє значення';
 
                 return "Неможливо {$action}: невірне значення
                     характеристики \"гендер\" для предмету з
@@ -1316,24 +1383,23 @@ class ItemController extends Controller
             }
         }
 
-        $validationItem = Item::where("group_id", $itemData["group_id"]);
+        $validationItem = Item::where('group_id', $itemData['group_id']);
         $validationItem = $id != null
-            ? $validationItem->where("id", "<>", $id)->get()
+            ? $validationItem->where('id', '<>', $id)->get()
             : $validationItem->get();
         if (count($validationItem) > 0) {
-
             foreach ($validationItem as $key => $row) {
-                $itemData["gender_id"] = $itemData["gender_id"] ?? null;
+                $itemData['gender_id'] = $itemData['gender_id'] ?? null;
 
-                if ($row["gender_id"] == $itemData["gender_id"]
-                    && $row["article"] != $itemData["article"])
+                if ($row['gender_id'] == $itemData['gender_id']
+                    && $row['article'] != $itemData['article']) {
                     return "Неможливо {$action}: невірне значення
                         характеристики \"артикль\" для предмету з
                         даним гендером. (Пропозиція: \"{$row['article']}\")";
+                }
             }
         }
 
         return null;
     }
-
 }

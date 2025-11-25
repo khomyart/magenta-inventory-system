@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table("items_images", function(Blueprint $table){
-            $table->smallInteger("number_in_row")->after("image_id");
+        Schema::table('items_images', function (Blueprint $table) {
+            $table->smallInteger('number_in_row')->after('image_id');
         });
     }
 

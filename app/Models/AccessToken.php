@@ -12,7 +12,7 @@ class AccessToken extends Model
         'token',
         'ip_address',
         'last_used',
-        'expired_at'
+        'expired_at',
     ];
 
     protected $hidden = [
@@ -20,7 +20,7 @@ class AccessToken extends Model
         'user_id',
         'created_at',
         'updated_at',
-        'ip_address'
+        'ip_address',
     ];
 
     public function user(): BelongsTo

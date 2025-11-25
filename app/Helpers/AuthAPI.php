@@ -4,22 +4,24 @@ namespace App\Helpers;
 
 use App\Models\AccessToken;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class AuthAPI
 {
     //minutes
     const TOKEN_LIFE_TIME = 99999;
+
     const AWAY_FROM_KEYBOARD_TIME = 99999;
 
     public User $user;
+
     public int $tokenTime;
+
     public string $ip;
 
-    function __construct(User $user, string $ip, int $tokenTime = self::TOKEN_LIFE_TIME)
+    public function __construct(User $user, string $ip, int $tokenTime = self::TOKEN_LIFE_TIME)
     {
         $this->user = $user;
         $this->tokenTime = $tokenTime;
@@ -31,7 +33,6 @@ class AuthAPI
      *
      * @param $bearerToken
      * @param $ip
-     *
      * @return AuthAPI|false
      */
     public static function isAuthenticated($bearerToken, $ip): AuthAPI|false
@@ -53,6 +54,7 @@ class AuthAPI
     public function hasToken(): AccessToken|false
     {
         $token = $this->user->accessToken;
+
         return $token ?? false;
     }
 
@@ -85,7 +87,6 @@ class AuthAPI
         return $accessToken ?? false;
     }
 
-
     public function refreshAccessToken($tokenLifeTime = self::TOKEN_LIFE_TIME): AccessToken
     {
         $accessToken = $this->user->accessToken;
@@ -116,7 +117,6 @@ class AuthAPI
      *
      * @param $action
      * @param $section
-     *
      * @return bool
      */
     public function isAuthorizedFor($action, $section): bool

@@ -9,10 +9,12 @@ class Gender extends Model
 {
     use HasFactory;
 
-    protected $fillable = ["name", "number_in_row"];
-    protected $hidden = ["created_at", "updated_at"];
+    protected $fillable = ['name', 'number_in_row'];
 
-    public function items() {
-        return $this->belongsTo(Item::class, "id", "gender_id");
+    protected $hidden = ['created_at', 'updated_at'];
+
+    public function items()
+    {
+        return $this->belongsTo(Item::class, 'id', 'gender_id');
     }
 }

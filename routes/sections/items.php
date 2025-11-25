@@ -1,29 +1,30 @@
 <?php
+
 use App\Http\Controllers\ItemController;
 
-Route::post('/items', [ItemController::class,'create'])
+Route::post('/items', [ItemController::class, 'create'])
 ->middleware('api.authorization:create,items');
 
-Route::post('/items/createMultiple', [ItemController::class,'createMultiple'])
+Route::post('/items/createMultiple', [ItemController::class, 'createMultiple'])
 ->middleware('api.authorization:create,items');
 
-Route::get('/items', [ItemController::class,'read'])
+Route::get('/items', [ItemController::class, 'read'])
 ->middleware('api.authorization:read,items');
 
-Route::post('/items/{id}', [ItemController::class,'update'])
+Route::post('/items/{id}', [ItemController::class, 'update'])
 ->middleware('api.authorization:update,items')->whereNumber('id');
 
-Route::get('/items/prepared', [ItemController::class,'getItemsWithPreparedData'])
+Route::get('/items/prepared', [ItemController::class, 'getItemsWithPreparedData'])
 ->middleware('api.authorization:read,items');
 
-Route::delete('/items/{id}', [ItemController::class,'delete'])
+Route::delete('/items/{id}', [ItemController::class, 'delete'])
 ->middleware('api.authorization:delete,items')->whereNumber('id');
 
-Route::post('/items/income', [ItemController::class,'setIncome'])
+Route::post('/items/income', [ItemController::class, 'setIncome'])
 ->middleware('api.authorization:income,items');
 
-Route::post('/items/outcome', [ItemController::class,'setOutcome'])
+Route::post('/items/outcome', [ItemController::class, 'setOutcome'])
 ->middleware('api.authorization:outcome,items');
 
-Route::post('/items/move', [ItemController::class,'move'])
+Route::post('/items/move', [ItemController::class, 'move'])
 ->middleware('api.authorization:move,items');

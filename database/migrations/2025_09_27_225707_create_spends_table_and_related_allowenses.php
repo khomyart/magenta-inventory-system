@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\Allowense;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\Allowense;
 
 return new class extends Migration
 {
@@ -48,13 +48,13 @@ return new class extends Migration
     {
         $actions = ['create', 'read', 'update', 'delete', 'hide', 'see_hidden'];
         foreach ($actions as $action) {
-            if (!Allowense::query()->where([
+            if (! Allowense::query()->where([
                 'section' => 'spends',
                 'action' => $action,
             ])->exists()) {
                 Allowense::create([
-                   'section' => 'spends',
-                   'action' => $action,
+                    'section' => 'spends',
+                    'action' => $action,
                 ]);
             }
         }

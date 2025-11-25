@@ -16,19 +16,19 @@ return new class extends Migration
         Schema::create('item_warehouse_amounts', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId("item_id");
+            $table->foreignId('item_id');
             $table
-                ->foreign("item_id")
-                ->references("id")->on("items")
-                ->onUpdate("cascade")->onDelete("cascade");
+                ->foreign('item_id')
+                ->references('id')->on('items')
+                ->onUpdate('cascade')->onDelete('cascade');
 
-            $table->foreignId("warehouse_id");
+            $table->foreignId('warehouse_id');
             $table
-                ->foreign("warehouse_id")
-                ->references("id")->on("warehouses")
-                ->onUpdate("cascade")->onDelete("cascade");
+                ->foreign('warehouse_id')
+                ->references('id')->on('warehouses')
+                ->onUpdate('cascade')->onDelete('cascade');
 
-            $table->unsignedMediumInteger("amount");
+            $table->unsignedMediumInteger('amount');
             $table->timestamps();
         });
     }

@@ -6,24 +6,27 @@
 
 /* width */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 4px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: rgba(136, 136, 136, 0.6);
+  border-radius: 4px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgb(94, 94, 94);
 }
+
 
 :root {
   --footer-height: 70px;
@@ -37,13 +40,7 @@
   flex-direction: column;
   height: 100%;
 }
-.content {
-  width: fit-content;
-  overflow: auto;
-  height: 100%;
-  width: 100%;
-  padding: 0px 5px 30px 10px;
-}
+
 .q-inner-loading {
   z-index: 1100;
 }
@@ -51,7 +48,6 @@
 .toolbar {
   overflow: visible;
   height: auto;
-  padding-left: 10px;
 }
 .filter-width-helper {
   width: 1px;
@@ -103,7 +99,7 @@ span.q-btn__content.text-center.col.items-center.q-anchor--skip.justify-center.r
   overflow: auto;
   height: 100%;
   width: 100%;
-  padding: 0px 20px 30px 10px;
+  padding: 0px 20px 10px 0px;
 }
 .items-container {
   width: fit-content;

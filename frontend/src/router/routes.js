@@ -51,6 +51,17 @@ const routes = [
         ],
       },
       {
+        path: "/orders",
+        name: "orders",
+        redirect: "/orders/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/OrdersPage.vue"),
+          },
+        ],
+      },
+      {
         path: "/items",
         name: "items",
         redirect: "/items/1",

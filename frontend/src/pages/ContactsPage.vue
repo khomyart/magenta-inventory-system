@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="toolbar row q-px-md q-mt-md">
+    <div class="toolbar row q-mt-md">
       <q-input
         v-model="
           appStore.filters.data[currentSection].selectedParams.name_or_phone.value

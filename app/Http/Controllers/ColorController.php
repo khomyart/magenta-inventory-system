@@ -2,22 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ErrorHandler;
 use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use App\Helpers\ErrorHandler;
-
 class ColorController extends Controller
 {
-    public $section = "colors";
-    public $fields = ["value", "article", "description", "text_color_value"];
-    public $fieldsValidationRules = ["required|string|max:10", "required|string|max:10", "required|string|max:128", "required|string|max:10"];
+    public $section = 'colors';
+
+    public $fields = ['value', 'article', 'description', 'text_color_value'];
+
+    public $fieldsValidationRules = ['required|string|max:10', 'required|string|max:10', 'required|string|max:128', 'required|string|max:10'];
+
     //if 0 - unlimited
     public $queryResultLimiter = 15;
 
     //templated access to section model
-    public function getSectionModel() {
+    public function getSectionModel()
+    {
         return new Color;
     }
 
@@ -26,25 +29,26 @@ class ColorController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function read(Request $request) {
-        $compiledRegexRule = "";
+    public function read(Request $request)
+    {
+        $compiledRegexRule = '';
         $validationRules = [
-            "itemsPerPage" => "required|numeric",
-            "page" => "required|numeric",
-            "orderValue" => ["string", "regex:/^desc$|^asc$/i", "nullable"],
+            'itemsPerPage' => 'required|numeric',
+            'page' => 'required|numeric',
+            'orderValue' => ['string', 'regex:/^desc$|^asc$/i', 'nullable'],
         ];
 
         foreach ($this->fields as $key => $field) {
             //forming regular exp. for orderField validation
             $compiledRegexRule .= "^{$field}$";
-            $key != count($this->fields) - 1 ? $compiledRegexRule .= "|" : "";
+            $key != count($this->fields) - 1 ? $compiledRegexRule .= '|' : '';
 
             //setting rules for each field
-            $validationRules["{$field}FilterValue"] = "string|nullable";
-            $validationRules["{$field}FilterMode"] = ["string", "regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i", "nullable"];
+            $validationRules["{$field}FilterValue"] = 'string|nullable';
+            $validationRules["{$field}FilterMode"] = ['string', 'regex:/^include$|^exclude$|^more$|^less$|^equal$|^notequal$/i', 'nullable'];
         }
 
-        $validationRules["orderField"] = ["string", "regex:/^id$|{$compiledRegexRule}/i", "nullable"];
+        $validationRules['orderField'] = ['string', "regex:/^id$|{$compiledRegexRule}/i", 'nullable'];
 
         $data = $request->validate($validationRules);
 
@@ -56,11 +60,11 @@ class ColorController extends Controller
             $searchOperator = $this->getWhereOperator($data["{$field}FilterMode"]);
 
             if ($searchValue != null) {
-                if ($searchOperator === "like") {
-                    $section->where($field, "like", "%{$searchValue}%");
-                } elseif ($searchOperator === "notLike") {
+                if ($searchOperator === 'like') {
+                    $section->where($field, 'like', "%{$searchValue}%");
+                } elseif ($searchOperator === 'notLike') {
                     $section->whereNot(function ($query) use ($searchValue, $field) {
-                        $query->where($field, "like", "%{$searchValue}%");
+                        $query->where($field, 'like', "%{$searchValue}%");
                     });
                 } else {
                     $section->where($field, $searchOperator, $searchValue);
@@ -69,37 +73,38 @@ class ColorController extends Controller
         }
 
         //ordering query
-        if (!empty($data["orderField"]) && !empty($data["orderValue"])) {
-            $section = $section->orderBy($data["orderField"], $data["orderValue"]);
+        if (! empty($data['orderField']) && ! empty($data['orderValue'])) {
+            $section = $section->orderBy($data['orderField'], $data['orderValue']);
         } else {
             $section = $section->latest();
         }
 
-        return response($section->paginate($data["itemsPerPage"]));
+        return response($section->paginate($data['itemsPerPage']));
     }
 
-    public function simpleRead(Request $request) {
+    public function simpleRead(Request $request)
+    {
         $data = $request->validate([
-            "nameFilterValue" => "string|nullable",
+            'nameFilterValue' => 'string|nullable',
         ]);
         $items = [];
         $sectionModel = $this->getSectionModel();
 
-        if (empty($data["nameFilterValue"]) || $data["nameFilterValue"] == null) {
-            $query = $sectionModel::orderBy("description", "asc");
+        if (empty($data['nameFilterValue']) || $data['nameFilterValue'] == null) {
+            $query = $sectionModel::orderBy('description', 'asc');
         } else {
             //if input param starts with "#" or with "!"
-            switch ($data["nameFilterValue"][0]) {
-                case "#":
-                    $colorSearchValue = substr($data["nameFilterValue"], 1);
-                    $query = $sectionModel::where("value", "like", "%{$colorSearchValue}%")->orderBy("description", "asc");
+            switch ($data['nameFilterValue'][0]) {
+                case '#':
+                    $colorSearchValue = substr($data['nameFilterValue'], 1);
+                    $query = $sectionModel::where('value', 'like', "%{$colorSearchValue}%")->orderBy('description', 'asc');
                     break;
-                case "!":
-                    $colorSearchValue = substr($data["nameFilterValue"], 1);
-                    $query = $sectionModel::where("article", "like", "%{$colorSearchValue}%")->orderBy("description", "asc");
+                case '!':
+                    $colorSearchValue = substr($data['nameFilterValue'], 1);
+                    $query = $sectionModel::where('article', 'like', "%{$colorSearchValue}%")->orderBy('description', 'asc');
                     break;
                 default:
-                    $query = $sectionModel::where("description", "like", "%{$data["nameFilterValue"]}%")->orderBy("description", "asc");
+                    $query = $sectionModel::where('description', 'like', "%{$data['nameFilterValue']}%")->orderBy('description', 'asc');
                     break;
             }
         }
@@ -111,7 +116,8 @@ class ColorController extends Controller
         return response($items);
     }
 
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
         $sectionModel = $this->getSectionModel();
         $rules = [];
 
@@ -124,24 +130,27 @@ class ColorController extends Controller
         /**
          * Validate input data for uniqueness
          */
-        if ($this->isItemExists($data))
-            return ErrorHandler::responseWith("Неможливо створити: такий колір вже існує");
+        if ($this->isItemExists($data)) {
+            return ErrorHandler::responseWith('Неможливо створити: такий колір вже існує');
+        }
 
         $dataForSecondaryValidation = [
-            ["value", "головний колір", $data["value"]],
-            ["article", "артикль", $data["article"]],
-            ["description", "опис", $data["description"]],
+            ['value', 'головний колір', $data['value']],
+            ['article', 'артикль', $data['article']],
+            ['description', 'опис', $data['description']],
         ];
 
         foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation) as $key => $field) {
-            if ($field["isUnique"] == false)
+            if ($field['isUnique'] == false) {
                 return ErrorHandler::responseWith("Неможливо створити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+            }
         }
 
         return $sectionModel::create($data);
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $rules = [];
 
@@ -153,18 +162,20 @@ class ColorController extends Controller
         $section = $sectionModel::find($id);
 
         if ($section) {
-            if ($this->isItemExists($data, $id))
-                return ErrorHandler::responseWith("Неможливо оновити: такий колір вже існує");
+            if ($this->isItemExists($data, $id)) {
+                return ErrorHandler::responseWith('Неможливо оновити: такий колір вже існує');
+            }
 
             $dataForSecondaryValidation = [
-                ["value", "головний колір", $data["value"]],
-                ["article", "артикль", $data["article"]],
-                ["description", "опис", $data["description"]],
+                ['value', 'головний колір', $data['value']],
+                ['article', 'артикль', $data['article']],
+                ['description', 'опис', $data['description']],
             ];
 
             foreach ($this->isItemFieldsValuesAreUnique($dataForSecondaryValidation, $id) as $key => $field) {
-                if ($field["isUnique"] == false)
+                if ($field['isUnique'] == false) {
                     return ErrorHandler::responseWith("Неможливо оновити: значення поля \"{$field['name']['translation']}\" повинно бути унікальним");
+                }
             }
 
             foreach ($this->fields as $key => $field) {
@@ -175,38 +186,42 @@ class ColorController extends Controller
             return response($section);
         }
 
-        return ErrorHandler::responseWith("Колір не знайдено", 404);
+        return ErrorHandler::responseWith('Колір не знайдено', 404);
     }
 
     /**
      * Delete section (row) from DB by ID
      *
-     * @param Request $request
-     * @param integer $id Passed through URL
-     *
+     * @param  Request  $request
+     * @param  int  $id Passed through URL
      * @return Response
      */
-    public function delete(Request $request, $id) {
+    public function delete(Request $request, $id)
+    {
         $sectionModel = $this->getSectionModel();
         $section = $sectionModel::find($id);
 
-        if ($section == null)
-            return ErrorHandler::responseWith("Колір не знайдено", 404);
-        if ($section->items != null)
-            return ErrorHandler::responseWith("Неможливо видалити: колір використовується в існуючих предметах", 422);
+        if ($section == null) {
+            return ErrorHandler::responseWith('Колір не знайдено', 404);
+        }
+        if ($section->items != null) {
+            return ErrorHandler::responseWith('Неможливо видалити: колір використовується в існуючих предметах', 422);
+        }
 
         $section->delete();
-        return response("OK", 200);
+
+        return response('OK', 200);
     }
 
-    private function getWhereOperator($operatorName) {
+    private function getWhereOperator($operatorName)
+    {
         $equality = [
-            "include" => "like",
-            "exclude" => "notLike",
-            "more" => ">",
-            "less" => "<",
-            "equal"=> "=",
-            "notequal" => "<>"
+            'include' => 'like',
+            'exclude' => 'notLike',
+            'more' => '>',
+            'less' => '<',
+            'equal' => '=',
+            'notequal' => '<>',
         ];
 
         return $equality[$operatorName];
@@ -219,19 +234,20 @@ class ColorController extends Controller
      * (looks for similarity in items wich are different from item
      * with passed ID)
      *
-     * @param integer  $id        Item ID (for update case), null - default value
-     * @param array    $itemData  Contains validated values from request
-     *
-     * @return boolean Is item with passed params exists in "types" table
+     * @param  int  $id        Item ID (for update case), null - default value
+     * @param  array  $itemData  Contains validated values from request
+     * @return bool Is item with passed params exists in "types" table
      */
-    private function isItemExists($itemData, $id = null) {
+    private function isItemExists($itemData, $id = null)
+    {
         $sectionModel = $this->getSectionModel();
-        $matchingItems = $sectionModel::
-          where("value", $itemData["value"])
-        ->where("article", $itemData["article"])
-        ->where("description", $itemData["description"]);
+        $matchingItems = $sectionModel::where('value', $itemData['value'])
+        ->where('article', $itemData['article'])
+        ->where('description', $itemData['description']);
 
-        if ($id != null) $matchingItems->where("id", "<>", $id);
+        if ($id != null) {
+            $matchingItems->where('id', '<>', $id);
+        }
 
         $matchingItems = $matchingItems->get();
 
@@ -241,9 +257,8 @@ class ColorController extends Controller
     /**
      * Helps to get more control on fields uniqueness validation
      *
-     * @param array    $data  Structure - [ [fieldName, fieldNameTranslation, fieldValue], [...] ]
-     * @param integer  $id    Item ID (in case of updating)
-     *
+     * @param  array  $data  Structure - [ [fieldName, fieldNameTranslation, fieldValue], [...] ]
+     * @param  int  $id    Item ID (in case of updating)
      * @return array   Structure - [ [isUnique: boolean
      *                                name: [
      *                                        original: string
@@ -251,7 +266,8 @@ class ColorController extends Controller
      *                                      ]
      *                                value: mixed], [...] ]
      */
-    private function isItemFieldsValuesAreUnique($data, $id = null) {
+    private function isItemFieldsValuesAreUnique($data, $id = null)
+    {
         $result = [];
         $sectionModel = $this->getSectionModel();
 
@@ -262,21 +278,25 @@ class ColorController extends Controller
              * Exclude item itself from validation, if $id
              * is passed through
              */
-            if ($id != null) $query->where("id", "<>", $id);
+            if ($id != null) {
+                $query->where('id', '<>', $id);
+            }
             $queryResult = $query->get();
             /**
              * Deciding is field value unique
              */
             $isUnique = true;
-            if (count($queryResult) > 0) $isUnique = false;
+            if (count($queryResult) > 0) {
+                $isUnique = false;
+            }
 
             $result[] = [
-                "isUnique" => $isUnique,
-                "name" => [
-                    "original" => $field[0],
-                    "translation" => $field[1],
+                'isUnique' => $isUnique,
+                'name' => [
+                    'original' => $field[0],
+                    'translation' => $field[1],
                 ],
-                "value" => $field[2]
+                'value' => $field[2],
             ];
         }
 

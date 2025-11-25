@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "src/boot/axios";
 import { useAppConfigStore } from "./appConfigStore";
+import { getServerTime } from "app/helpers/GeneralPurposeFunctions";
 
 const appConfigStore = useAppConfigStore();
 const sectionName = "orders";
@@ -180,23 +181,57 @@ export const useOrderStore = defineStore("order", {
     receive() {
       appConfigStore.updateLocalStorageConfig();
       this.data.isItemsLoading = true;
+
+      // Helper function to convert client date to server time
+      const convertDateToServerTime = (dateValue) => {
+        if (!dateValue || dateValue === "") {
+          return dateValue;
+        }
+        // Convert to server time format (YYYY-MM-DD HH:mm)
+        return getServerTime(dateValue, "ua", true, false);
+      };
+
       api.get(`/${sectionName}`, {
         params: {
           itemsPerPage: appConfigStore.amountOfItemsPerPages[sectionName],
           page: appConfigStore.currentPages[sectionName],
           // Filters
-          status_filter_value: appConfigStore.filters.data[sectionName].selectedParams.status.value,
-          status_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.status.filterMode.value,
-          total_price_filter_value: appConfigStore.filters.data[sectionName].selectedParams.total_price.value,
-          total_price_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.total_price.filterMode.value,
-          contact_id_filter_value: appConfigStore.filters.data[sectionName].selectedParams.contact_id.value,
-          contact_id_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.contact_id.filterMode.value,
-          completion_deadline_filter_value: appConfigStore.filters.data[sectionName].selectedParams.completion_deadline.value,
-          completion_deadline_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.completion_deadline.filterMode.value,
-          created_at_filter_value: appConfigStore.filters.data[sectionName].selectedParams.created_at.value,
-          created_at_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.created_at.filterMode.value,
-          notes_filter_value: appConfigStore.filters.data[sectionName].selectedParams.notes.value,
-          notes_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.notes.filterMode.value,
+          id_filter_value: appConfigStore.filters.data[sectionName].selectedParams.id?.value,
+          id_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.id?.filterMode.value,
+          status_filter_value: appConfigStore.filters.data[sectionName].selectedParams.status?.value,
+          status_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.status?.filterMode.value,
+          total_price_filter_value: appConfigStore.filters.data[sectionName].selectedParams.total_price?.value,
+          total_price_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.total_price?.filterMode.value,
+          remaining_to_pay_filter_value: appConfigStore.filters.data[sectionName].selectedParams.remaining_to_pay?.value,
+          remaining_to_pay_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.remaining_to_pay?.filterMode.value,
+          contact_filter_value: appConfigStore.filters.data[sectionName].selectedParams.contact?.value,
+          contact_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.contact?.filterMode.value,
+          completion_deadline_from_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.completion_deadline_from?.value),
+          completion_deadline_from_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.completion_deadline_from?.filterMode.value,
+          completion_deadline_to_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.completion_deadline_to?.value),
+          completion_deadline_to_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.completion_deadline_to?.filterMode.value,
+          completion_deadline_is_null_filter_value: appConfigStore.filters.data[sectionName].selectedParams.completion_deadline_is_null?.value === true ? true : undefined,
+          created_at_from_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.created_at_from?.value),
+          created_at_from_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.created_at_from?.filterMode.value,
+          created_at_to_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.created_at_to?.value),
+          created_at_to_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.created_at_to?.filterMode.value,
+          created_at_is_null_filter_value: appConfigStore.filters.data[sectionName].selectedParams.created_at_is_null?.value === true ? true : undefined,
+          completed_at_from_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.completed_at_from?.value),
+          completed_at_from_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.completed_at_from?.filterMode.value,
+          completed_at_to_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.completed_at_to?.value),
+          completed_at_to_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.completed_at_to?.filterMode.value,
+          completed_at_is_null_filter_value: appConfigStore.filters.data[sectionName].selectedParams.completed_at_is_null?.value === true ? true : undefined,
+          fully_payed_at_from_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_from?.value),
+          fully_payed_at_from_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_from?.filterMode.value,
+          fully_payed_at_to_filter_value: convertDateToServerTime(appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_to?.value),
+          fully_payed_at_to_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_to?.filterMode.value,
+          fully_payed_at_is_null_filter_value: appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_is_null?.value === true ? true : undefined,
+          notes_filter_value: appConfigStore.filters.data[sectionName].selectedParams.notes?.value,
+          notes_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.notes?.filterMode.value,
+          advance_payment_filter_value: appConfigStore.filters.data[sectionName].selectedParams.advance_payment?.value,
+          advance_payment_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.advance_payment?.filterMode.value,
+          final_payment_filter_value: appConfigStore.filters.data[sectionName].selectedParams.final_payment?.value,
+          final_payment_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.final_payment?.filterMode.value,
           // Order
           orderField: appConfigStore.filters.data[sectionName].selectedParams.order.field,
           orderValue: appConfigStore.filters.data[sectionName].selectedParams.order.value,

@@ -15,18 +15,18 @@ return new class extends Migration
     {
         Schema::create('users_roles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id");
-            $table->foreign("user_id")
-                ->references("id")
-                ->on("users")
-                ->onUpdate("cascade")
-                ->onDelete("cascade");
-            $table->foreignId("role_id");
-            $table->foreign("role_id")
-                ->references("id")
-                ->on("roles")
-                ->onUpdate("cascade")
-                ->onDelete("cascade");
+            $table->foreignId('user_id');
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->foreignId('role_id');
+            $table->foreign('role_id')
+                ->references('id')
+                ->on('roles')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

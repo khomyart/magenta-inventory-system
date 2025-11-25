@@ -10,15 +10,15 @@ class Contact extends Model
     use HasFactory;
 
     protected $fillable = [
-        "name",
-        "phone",
-        "email",
-        "address",
-        "preferred_platforms",
-        "additional_info"
+        'name',
+        'phone',
+        'email',
+        'address',
+        'preferred_platforms',
+        'additional_info',
     ];
 
     protected $casts = [
-        "preferred_platforms" => "json"
+        'preferred_platforms' => 'json',
     ];
 }

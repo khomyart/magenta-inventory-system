@@ -11,15 +11,15 @@ class Spend extends Model
     use HasFactory;
 
     protected $fillable = [
-        "title", "price", "currency", "happened_at", "is_hidden", "created_by_user_id"
+        'title', 'price', 'currency', 'happened_at', 'is_hidden', 'created_by_user_id',
     ];
 
     protected $casts = [
-        "happened_at" => "datetime"
+        'happened_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, "created_by_user_id", "id");
+        return $this->belongsTo(User::class, 'created_by_user_id', 'id');
     }
 }

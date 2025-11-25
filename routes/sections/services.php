@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/services', [ServiceController::class, 'read'])
     ->middleware('api.authorization:read,services');
 
+Route::get('/services/search', [ServiceController::class, 'simpleSearch'])
+    ->middleware('api.authorization:read,services');
+
 Route::post('/services', [ServiceController::class, 'create'])
     ->middleware('api.authorization:create,services');
 

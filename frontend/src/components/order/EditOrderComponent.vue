@@ -119,6 +119,10 @@ watch(() => props.orderData, (newOrderData) => {
       warehouseSelection.country = newOrderData.warehouse.city?.country || null;
       warehouseSelection.city = newOrderData.warehouse.city || null;
       warehouseSelection.warehouse = newOrderData.warehouse;
+    } else {
+      warehouseSelection.country = null;
+      warehouseSelection.city = null;
+      warehouseSelection.warehouse = null;
     }
 
     // Initialize contact selection
@@ -411,8 +415,8 @@ function userFilterLevel3(val, update, abort) {
         >
           <!-- Contact Section -->
           <div class="col-6">
-            <!-- Editable Contact (для pending) -->
-            <div v-if="editedItem.status === 'pending'" class="contact-wrapper">
+            <!-- Editable Contact (для pending та confirmed) -->
+            <div v-if="['pending', 'confirmed'].includes(editedItem.status)" class="contact-wrapper">
               <div class="section-header q-mb-sm">
                 <div class="text-subtitle1">Контакт</div>
               </div>
@@ -536,8 +540,8 @@ function userFilterLevel3(val, update, abort) {
 
           <!-- Warehouse Section -->
           <div class="col-6">
-            <!-- Editable Warehouse (для pending) -->
-            <div v-if="editedItem.status === 'pending'" class="warehouse-wrapper">
+            <!-- Editable Warehouse (для pending та confirmed) -->
+            <div v-if="['pending', 'confirmed'].includes(editedItem.status)" class="warehouse-wrapper">
               <div class="section-header q-mb-sm">
                 <div class="text-subtitle1">Склад</div>
               </div>
@@ -733,9 +737,9 @@ function userFilterLevel3(val, update, abort) {
 
           <!-- Items Section -->
           <div class="col-6">
-            <!-- Editable Items (для pending) -->
+            <!-- Editable Items (для pending та confirmed) -->
             <OrderItemsListComponent
-              v-if="editedItem.status === 'pending'"
+              v-if="['pending', 'confirmed'].includes(editedItem.status)"
               class="full-width"
               v-model="editedItem.order_items"
               :warehouse-id="editedItem.warehouse_id"
@@ -754,7 +758,7 @@ function userFilterLevel3(val, update, abort) {
                     <q-item-label>
                       {{ item.item?.title || `Item #${item.item_id}` }}
                       <span v-if="item.item?.color?.article || item.item?.size?.value" class="text-grey-7">
-                        ({{ [item.item?.color?.article ? `Колір: ${item.item.color.article}` : null, item.item?.size?.value ? `Розмір: ${item.item.size.value}` : null].filter(Boolean).join(', ') }})
+                        ({{item.item?.article}}{{ item.item?.color?.article ? ` ${item.item.color.article}` : null }}{{ item.item?.size?.value ? ` ${item.item.size.value}` : null }})
                       </span>
                     </q-item-label>
                     <q-item-label caption>
@@ -770,9 +774,9 @@ function userFilterLevel3(val, update, abort) {
 
           <!-- Services Section -->
           <div class="col-6">
-            <!-- Editable Services (для pending) -->
+            <!-- Editable Services (для pending та confirmed) -->
             <OrderServicesListComponent
-              v-if="editedItem.status === 'pending'"
+              v-if="['pending', 'confirmed'].includes(editedItem.status)"
               class="full-width"
               v-model="editedItem.order_services"
               :currency="editedItem.currency"
@@ -926,78 +930,115 @@ function userFilterLevel3(val, update, abort) {
             label="Нотатки до замовлення"
             type="textarea"
             autogrow
+            :maxlength="5000"
+            counter
             class="col-12"
             :rules="[
               (val) => !val || val.length <= 5000 || 'Не більше 5000 символів',
             ]"
           />
 
-          <!-- Involvement levels (only for completed orders) -->
-          <template v-if="editedItem.status === 'completed'">
+          <template v-if="['completed', 'in_progress'].includes(editedItem.status)">
             <div class="col-12 text-subtitle1 q-mt-md">Залученість у виконання завдання</div>
-            <q-select
-              outlined
-              v-model="editedItem.involvement_level_1_user_id"
-              :options="userStore.users"
-              option-value="id"
-              option-label="name"
-              emit-value
-              hide-dropdown-icon
-              map-options
-              clearable
-              use-input
-              @filter="userFilterLevel1"
-              label="Повна (8%)"
-              :loading="userLoadingStates.level1"
-              :disable="editedItem.involvement_level_2_user_id !== null || editedItem.involvement_level_3_user_id !== null"
-              class="col-4"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level1 && !editedItem.involvement_level_1_user_id">
-                <q-icon name="search"/>
-              </template>
-            </q-select>
-            <q-select
-              outlined
-              v-model="editedItem.involvement_level_2_user_id"
-              :options="userStore.users.filter(u => u.id !== editedItem.involvement_level_1_user_id && u.id !== editedItem.involvement_level_3_user_id)"
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              hide-dropdown-icon
-              clearable
-              use-input
-              @filter="userFilterLevel2"
-              label="Часткова (5%)"
-              :loading="userLoadingStates.level2"
-              :disable="editedItem.involvement_level_1_user_id !== null"
-              class="col-4"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level2 && !editedItem.involvement_level_2_user_id">
-                <q-icon name="search"/>
-              </template>
-            </q-select>
-            <q-select
-              outlined
-              v-model="editedItem.involvement_level_3_user_id"
-              :options="userStore.users.filter(u => u.id !== editedItem.involvement_level_1_user_id && u.id !== editedItem.involvement_level_2_user_id)"
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              hide-dropdown-icon
-              clearable
-              use-input
-              @filter="userFilterLevel3"
-              label="Дотична (3%)"
-              :loading="userLoadingStates.level3"
-              :disable="editedItem.involvement_level_1_user_id !== null"
-              class="col-4"
-            >
-              <template v-slot:append v-if="!userLoadingStates.level3 && !editedItem.involvement_level_3_user_id">
-                <q-icon name="search"/>
-              </template>
-            </q-select>
+            <div class="col-4">
+              <q-select
+                outlined
+                v-model="editedItem.involvement_level_1_user_id"
+                :options="userStore.users"
+                option-value="id"
+                option-label="name"
+                emit-value
+                hide-dropdown-icon
+                map-options
+                clearable
+                use-input
+                @filter="userFilterLevel1"
+                label="Повна (8%)"
+                :loading="userLoadingStates.level1"
+                :disable="editedItem.involvement_level_2_user_id !== null || editedItem.involvement_level_3_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level1 && !editedItem.involvement_level_1_user_id">
+                  <q-icon name="search"/>
+                </template>
+              </q-select>
+              <q-btn
+                v-if="editedItem.involvement_level_2_user_id === null && editedItem.involvement_level_3_user_id === null"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="editedItem.involvement_level_1_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
+            <div class="col-4">
+              <q-select
+                outlined
+                v-model="editedItem.involvement_level_2_user_id"
+                :options="userStore.users.filter(u => u.id !== editedItem.involvement_level_1_user_id && u.id !== editedItem.involvement_level_3_user_id)"
+                option-value="id"
+                option-label="name"
+                emit-value
+                map-options
+                hide-dropdown-icon
+                clearable
+                use-input
+                @filter="userFilterLevel2"
+                label="Часткова (5%)"
+                :loading="userLoadingStates.level2"
+                :disable="editedItem.involvement_level_1_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level2 && !editedItem.involvement_level_2_user_id">
+                  <q-icon name="search"/>
+                </template>
+              </q-select>
+              <q-btn
+                v-if="editedItem.involvement_level_1_user_id === null && editedItem.involvement_level_3_user_id !== userStore.data.id"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="editedItem.involvement_level_2_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
+            <div class="col-4">
+              <q-select
+                outlined
+                v-model="editedItem.involvement_level_3_user_id"
+                :options="userStore.users.filter(u => u.id !== editedItem.involvement_level_1_user_id && u.id !== editedItem.involvement_level_2_user_id)"
+                option-value="id"
+                option-label="name"
+                emit-value
+                map-options
+                hide-dropdown-icon
+                clearable
+                use-input
+                @filter="userFilterLevel3"
+                label="Дотична (3%)"
+                :loading="userLoadingStates.level3"
+                :disable="editedItem.involvement_level_1_user_id !== null"
+              >
+                <template v-slot:append v-if="!userLoadingStates.level3 && !editedItem.involvement_level_3_user_id">
+                  <q-icon name="search"/>
+                </template>
+              </q-select>
+              <q-btn
+                v-if="editedItem.involvement_level_1_user_id === null && editedItem.involvement_level_2_user_id !== userStore.data.id"
+                flat
+                dense
+                color="primary"
+                size="sm"
+                class="q-mt-xs"
+                @click="editedItem.involvement_level_3_user_id = userStore.data.id"
+              >
+                Обрати себе
+              </q-btn>
+            </div>
           </template>
         </q-card-section>
 

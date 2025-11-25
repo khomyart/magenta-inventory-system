@@ -100,15 +100,42 @@ function setFilterOrder(field, fieldOrder) {
 
 function clearAllFilters() {
   let filter = appStore.filters.data[props.filterIn];
+
+  // Define numeric fields that should use "more" filter mode
+  const numericFields = ['price', 'amount', 'id', 'total_price', 'advance_payment', 'final_payment', 'remaining_to_pay'];
+  // Define select fields that should use "equal" filter mode
+  const selectFields = ['status'];
+  // Define date "from" fields that should use "more" filter mode
+  const dateFromFields = ['completion_deadline_from', 'created_at_from', 'completed_at_from', 'fully_payed_at_from'];
+  // Define date "to" fields that should use "less" filter mode
+  const dateToFields = ['completion_deadline_to', 'created_at_to', 'completed_at_to', 'fully_payed_at_to'];
+  // Define boolean fields (is_null) that should be reset to false
+  const booleanFields = ['completion_deadline_is_null', 'created_at_is_null', 'completed_at_is_null', 'fully_payed_at_is_null'];
+
   for (const [key] of Object.entries(filter.selectedParams)) {
     if (key === "warehouse") continue;
 
-    filter.selectedParams[key].value = "";
+    // Reset boolean fields to false, others to empty string
+    if (booleanFields.includes(key)) {
+      filter.selectedParams[key].value = false;
+    } else {
+      filter.selectedParams[key].value = "";
+    }
 
-    if (key === "price" || key === "amount") {
+    if (numericFields.includes(key) || dateFromFields.includes(key)) {
+      // "more" mode for numeric fields and date "from" fields
       filter.selectedParams[key].filterMode =
         appStore.filters.availableParams.items[2];
-    } else {
+    } else if (dateToFields.includes(key)) {
+      // "less" mode for date "to" fields
+      filter.selectedParams[key].filterMode =
+        appStore.filters.availableParams.items[3];
+    } else if (selectFields.includes(key)) {
+      // "equal" mode for select filters
+      filter.selectedParams[key].filterMode =
+        appStore.filters.availableParams.items[6];
+    } else if (!booleanFields.includes(key)) {
+      // "include" mode for text/string filters (skip boolean fields)
       filter.selectedParams[key].filterMode =
         appStore.filters.availableParams.items[0];
     }

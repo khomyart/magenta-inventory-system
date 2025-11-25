@@ -10,13 +10,16 @@ class City extends Model
     use HasFactory;
 
     protected $fillable = ['country_id', 'name'];
+
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function country() {
+    public function country()
+    {
         return $this->belongsTo(Country::class, 'country_id', 'id');
     }
 
-    public function warehouses() {
+    public function warehouses()
+    {
         return $this->hasMany(Warehouse::class, 'city_id', 'id');
     }
 }

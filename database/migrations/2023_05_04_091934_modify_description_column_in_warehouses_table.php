@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('warehouses', function (Blueprint $table) {
-            $table->string("description", 1000)->change();
+            $table->string('description', 1000)->change();
         });
     }
 

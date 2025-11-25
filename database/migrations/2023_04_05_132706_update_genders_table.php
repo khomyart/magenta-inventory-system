@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('genders', function(Blueprint $table) {
+        Schema::table('genders', function (Blueprint $table) {
             $table->integer('number_in_row')->after('name');
         });
     }

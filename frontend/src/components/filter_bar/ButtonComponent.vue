@@ -34,7 +34,7 @@
           <div class="filter-body col-12 q-px-md">
             <q-input
               autofocus
-              v-if="props.justOrder != true"
+              v-if="props.justOrder != true && appStore.filters.data[props.sectionName].selectedParams[props.name]"
               class="col-12 q-mb-md"
               outlined
               v-model="
@@ -47,7 +47,7 @@
               debounce="700"
             />
             <q-select
-              v-if="props.justOrder != true"
+              v-if="props.justOrder != true && appStore.filters.data[props.sectionName].selectedParams[props.name]"
               class="col-12 q-mb-md"
               dense
               outlined
@@ -168,9 +168,18 @@ const filterBadgeLabel = computed(() => {
   let filter =
     appStore.filters.data[props.sectionName].selectedParams[props.name];
 
+  // Return empty badges if filter doesn't exist
+  if (!filter) {
+    return {
+      value: "",
+      mode: "",
+      order: "",
+    };
+  }
+
   return {
     value: filter.value != "" ? "V" : "",
-    mode: filter.filterMode.shortName,
+    mode: filter.filterMode?.shortName || "",
     order:
       appStore.filters.data[props.sectionName].selectedParams.order.field ==
       props.name

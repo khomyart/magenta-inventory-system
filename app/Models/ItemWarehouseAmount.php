@@ -10,6 +10,6 @@ class ItemWarehouseAmount extends Model
     use HasFactory;
 
     protected $fillable = [
-        "item_id", "warehouse_id", "amount"
+        'item_id', 'warehouse_id', 'amount',
     ];
 }

@@ -114,9 +114,9 @@
       <q-separator inset/>
     </q-header>
 
-    <q-drawer show-if-above :width="200" :breakpoint="0">
-      <q-scroll-area class="fit">
-        <q-list padding class="menu-list">
+    <q-drawer show-if-above :width="225" :breakpoint="0">
+      <div class="drawer-scroll-container">
+        <q-list padding class="menu-list q-px-sm q-pb-md">
           <template v-for="(menuItem, index) in menuItems" :key="index">
             <q-separator
               inset
@@ -143,7 +143,7 @@
               <q-item-section> {{ menuItem.name }}</q-item-section>
             </q-item>
             <div
-              class="menu-header q-mt-md q-ml-md"
+              class="menu-header q-my-md q-ml-md"
               v-if="
                 menuItem.type == 'header' &&
                 (menuItem.isAllowed == true || enableRoleValidation == false)
@@ -153,7 +153,7 @@
             </div>
           </template>
         </q-list>
-      </q-scroll-area>
+      </div>
     </q-drawer>
 
     <q-page-container>
@@ -324,6 +324,7 @@ import SettingsComponent from "src/components/main/SettingsComponent.vue";
 import {useSpendStore} from "stores/spendStore";
 import {useContactStore} from "stores/contactStore";
 import {useServiceStore} from "stores/serviceStore";
+import {useOrderStore} from "stores/orderStore";
 
 const enableRoleValidation = true;
 
@@ -335,6 +336,7 @@ const store = {
   spends: useSpendStore(),
   contacts: useContactStore(),
   services: useServiceStore(),
+  orders: useOrderStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -353,7 +355,8 @@ const menuItems = [
     isAllowed:
       store.app.allowenses.renewAndCheckIsValidFor("read", "spends") ||
       store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
-      store.app.allowenses.renewAndCheckIsValidFor("read", "services")
+      store.app.allowenses.renewAndCheckIsValidFor("read", "services") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "orders")
   },
   {
     name: "Послуги",
@@ -384,6 +387,16 @@ const menuItems = [
     },
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "contacts"),
+  },
+  {
+    name: "Замовлення",
+    icon: "receipt_long",
+    to: {name: "orders"},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "orders"),
   },
   {
     type: "separator",
@@ -666,8 +679,14 @@ onBeforeMount(() => {
 </script>
 
 <style scoped>
+.drawer-scroll-container {
+  height: calc(100vh - 51px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .menu-list .q-item {
-  border-radius: 0 10px 10px 0;
+  border-radius: 10px;
 }
 
 .menu-header {
@@ -696,6 +715,7 @@ onBeforeMount(() => {
   /* min-height: calc(100vh - 51px); */
   height: calc(100vh - 51px);
   /* max-height: calc(100vh - 51px); 50px - height of toolbar */
+  padding-left: 10px;
 }
 
 /* animations */

@@ -16,16 +16,16 @@ return new class extends Migration
         Schema::create('users_favorite_warehouses', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId("user_id");
+            $table->foreignId('user_id');
             $table
-                ->foreign("user_id")
-                ->references("id")->on("users")
-                ->onUpdate("cascade")->onDelete("cascade");
-            $table->foreignId("warehouse_id");
+                ->foreign('user_id')
+                ->references('id')->on('users')
+                ->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('warehouse_id');
             $table
-                ->foreign("warehouse_id")
-                ->references("id")->on("warehouses")
-                ->onUpdate("cascade")->onDelete("cascade");
+                ->foreign('warehouse_id')
+                ->references('id')->on('warehouses')
+                ->onUpdate('cascade')->onDelete('cascade');
         });
     }
 

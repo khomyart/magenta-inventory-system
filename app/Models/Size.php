@@ -9,10 +9,12 @@ class Size extends Model
 {
     use HasFactory;
 
-    protected $fillable=["value", "description", "number_in_row"];
-    protected $hidden=["created_at", "updated_at"];
+    protected $fillable = ['value', 'description', 'number_in_row'];
 
-    public function items() {
-        return $this->belongsTo(Item::class, "id", "size_id");
+    protected $hidden = ['created_at', 'updated_at'];
+
+    public function items()
+    {
+        return $this->belongsTo(Item::class, 'id', 'size_id');
     }
 }

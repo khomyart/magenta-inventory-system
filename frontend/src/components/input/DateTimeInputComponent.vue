@@ -17,6 +17,10 @@ const props = defineProps({
   useRules: {
     type: Boolean,
     default: false
+  },
+  autoSetCurrentTime: {
+    type: Boolean,
+    default: true
   }
 });
 const emit = defineEmits(['update:modelValue']);
@@ -32,7 +36,7 @@ const rules = ref([]);
 onBeforeMount(()=>{
   console.log(props.useRules)
   rules.value = props.useRules ? [
-    val => val !== '' || 'Поле не може бути порожнім'
+    val => !!val || 'Поле не може бути порожнім'
   ] : null;
 })
 
@@ -43,13 +47,20 @@ function handleDateUpdate(newVal) {
     const parts = newVal.split(' ');
     const timePart = parts.length > 1 ? parts[1] : null;
 
-    // If time is 00:00 or not set, add current time
+    // If time is 00:00 or not set
     if (!timePart || timePart === '00:00') {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
       const datePart = parts[0];
-      date.value = `${datePart} ${hours}:${minutes}`;
+
+      if (props.autoSetCurrentTime) {
+        // Add current time if autoSetCurrentTime is true
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        date.value = `${datePart} ${hours}:${minutes}`;
+      } else {
+        // Keep 00:00 if autoSetCurrentTime is false
+        date.value = `${datePart} 00:00`;
+      }
     }
     // Otherwise keep the value as is (user manually set time)
   }
@@ -57,13 +68,12 @@ function handleDateUpdate(newVal) {
 </script>
 
 <template>
-  <q-input debounce="700" :dense="dense" outlined v-model="date" :label="label" :rules="rules">
+  <q-input debounce="700" :dense="dense" outlined v-model="date" :label="label" :rules="rules" mask="##/##/#### ##:##">
 
     <template v-slot:append>
-      <q-icon v-if="date && date !== ''" name="close" class="cursor-pointer q-mr-sm" @click="date = ''">
-      </q-icon>
+      <q-icon v-if="date && date !== ''" name="close" class="cursor-pointer" @click="date = ''" />
 
-      <q-icon name="event" class="cursor-pointer q-mr-sm">
+      <q-icon name="event" class="cursor-pointer q-mx-sm">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-date v-model="date" mask="DD/MM/YYYY HH:mm" @update:model-value="handleDateUpdate">
             <div class="row items-center justify-end">

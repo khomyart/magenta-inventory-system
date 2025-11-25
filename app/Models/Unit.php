@@ -10,9 +10,11 @@ class Unit extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'description'];
+
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function items() {
-        return $this->belongsTo(Item::class, "id", "unit_id");
+    public function items()
+    {
+        return $this->belongsTo(Item::class, 'id', 'unit_id');
     }
 }

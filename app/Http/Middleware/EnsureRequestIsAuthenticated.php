@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\AuthAPI;
 use Closure;
 use Illuminate\Http\Request;
-use App\Helpers\AuthAPI;
 
 class EnsureRequestIsAuthenticated
 {
@@ -21,6 +21,6 @@ class EnsureRequestIsAuthenticated
             return $next($request);
         }
 
-        return response("Невірні данні аутентифікації", 403);
+        return response('Невірні данні аутентифікації', 403);
     }
 }

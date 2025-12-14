@@ -175,8 +175,7 @@
               type="tel"
               lazy-rules
               :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть телефон',
-                (val) => phoneValidationRule(val)
+                (val) => !val || phoneValidationRule(val)
               ]"
             />
 
@@ -235,6 +234,7 @@
                   <q-checkbox v-model="updatedItem.preferred_platforms" val="telegram" label="Telegram" color="blue" />
                   <q-checkbox v-model="updatedItem.preferred_platforms" val="viber" label="Viber" color="purple" />
                   <q-checkbox v-model="updatedItem.preferred_platforms" val="whatsapp" label="Whatsapp" color="green" />
+                  <q-checkbox v-model="updatedItem.preferred_platforms" val="instagram" label="Instagram" color="pink" />
                   <q-checkbox v-model="updatedItem.preferred_platforms" val="other" label="Інша" color="cyan" />
                 </div>
               </template>

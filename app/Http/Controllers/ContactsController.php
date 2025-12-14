@@ -33,7 +33,7 @@ class ContactsController extends Controller
 
         return [
             'name' => 'required|string|max:255',
-            'phone' => ['required', 'string', 'min:4', 'max:20'],
+            'phone' => ['nullable', 'string', 'min:4', 'max:20'],
             'email' => 'nullable|email|max:150',
             'address' => 'nullable|string|max:255',
             'preferred_platforms' => 'required|array|min:1',
@@ -234,7 +234,7 @@ class ContactsController extends Controller
             return ErrorHandler::responseWith($e->getMessage());
         }
 
-        if (Contact::query()->where([['phone', $data['phone']]])->exists()) {
+        if (!empty($data['phone']) && Contact::query()->where([['phone', $data['phone']]])->exists()) {
             return ErrorHandler::responseWith('Контакт з таким номером вже існує');
         }
 
@@ -262,7 +262,7 @@ class ContactsController extends Controller
             return ErrorHandler::responseWith($e->getMessage());
         }
 
-        if (Contact::query()->where('phone', $data['phone'])->whereNot('id', $id)->exists()) {
+        if (!empty($data['phone']) && Contact::query()->where('phone', $data['phone'])->whereNot('id', $id)->exists()) {
             return ErrorHandler::responseWith('Контакт з таким номером вже існує');
         }
 

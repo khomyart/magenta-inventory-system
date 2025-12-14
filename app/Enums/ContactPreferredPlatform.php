@@ -8,6 +8,8 @@ class ContactPreferredPlatform
 
     const WHATSAPP = 'whatsapp';
 
+    const INSTAGRAM = 'instagram';
+
     const SMS = 'sms';
 
     const EMAIL = 'email';

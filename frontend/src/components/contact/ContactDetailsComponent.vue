@@ -27,6 +27,7 @@ function getPlatformColor(platform) {
     telegram: 'blue',
     viber: 'purple',
     whatsapp: 'green',
+    instagram: 'pink',
     other: 'cyan'
   };
   return colors[platform] || 'grey';
@@ -40,6 +41,7 @@ function getPlatformLabel(platform) {
     telegram: 'Telegram',
     viber: 'Viber',
     whatsapp: 'Whatsapp',
+    instagram: 'Instagram',
     other: 'Інша'
   };
   return labels[platform] || platform;

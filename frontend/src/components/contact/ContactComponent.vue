@@ -46,7 +46,11 @@ const preferredPlatformsLabel = computed(() => {
 })
 
 const parsedPhoneNumber = computed(() => {
-  return parsePhoneNumberFromString("+" + props.itemInfo.phone).formatInternational()
+  if (!props.itemInfo.phone) {
+    return '-';
+  }
+  const parsed = parsePhoneNumberFromString("+" + props.itemInfo.phone);
+  return parsed ? parsed.formatInternational() : props.itemInfo.phone;
 })
 </script>
 
@@ -176,7 +180,7 @@ const parsedPhoneNumber = computed(() => {
         @click="$emit('copyValue', props.itemInfo.email, 'Електронну пошту')"
       >
         <div class="item-text">
-          {{ props.itemInfo.email }}
+          {{ props.itemInfo.email || '-' }}
         </div>
       </div>
     </td>
@@ -196,7 +200,7 @@ const parsedPhoneNumber = computed(() => {
         @click="$emit('copyValue', props.itemInfo.address, 'Адресу')"
       >
         <div class="item-text">
-          {{ props.itemInfo.address }}
+          {{ props.itemInfo.address || '-' }}
         </div>
       </div>
     </td>
@@ -216,7 +220,7 @@ const parsedPhoneNumber = computed(() => {
         @click="$emit('copyValue', props.itemInfo.additional_info, 'Додаткову інформацію')"
       >
         <div class="item-text">
-          {{ props.itemInfo.additional_info }}
+          {{ props.itemInfo.additional_info || '-' }}
         </div>
       </div>
     </td>

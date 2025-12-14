@@ -356,7 +356,8 @@ const menuItems = [
       store.app.allowenses.renewAndCheckIsValidFor("read", "spends") ||
       store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
       store.app.allowenses.renewAndCheckIsValidFor("read", "services") ||
-      store.app.allowenses.renewAndCheckIsValidFor("read", "orders")
+      store.app.allowenses.renewAndCheckIsValidFor("read", "orders") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "reports")
   },
   {
     name: "Послуги",
@@ -399,15 +400,25 @@ const menuItems = [
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "orders"),
   },
   {
+    name: "Звіти",
+    icon: "analytics",
+    to: {name: "reports"},
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "reports"),
+  },
+  {
     type: "separator",
     isAllowed:
+      (store.app.allowenses.renewAndCheckIsValidFor("read", "spends") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "services") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "orders") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "reports")) &&
       (store.app.allowenses.renewAndCheckIsValidFor("read", "items") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "logs")) &&
-      (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses")),
+        store.app.allowenses.renewAndCheckIsValidFor("read", "logs")),
   },
   {
     name: "Предмети",
@@ -519,31 +530,31 @@ const menuItems = [
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "units"),
   },
-  {
-    type: "separator",
-    isAllowed:
-      (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "units")) &&
-      store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  },
-  {
-    name: "Налаштування",
-    type: "header",
-    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  },
-  {
-    name: "Користувачі",
-    icon: "manage_accounts",
-    to: {name: "users"},
-    onClick: (pageName) => {
-    },
-    type: "item",
-    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  },
+  // {
+  //   type: "separator",
+  //   isAllowed:
+  //     (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
+  //       store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
+  //       store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
+  //       store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
+  //       store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses") ||
+  //       store.app.allowenses.renewAndCheckIsValidFor("read", "units")) &&
+  //     store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
+  // },
+  // {
+  //   name: "Налаштування",
+  //   type: "header",
+  //   isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
+  // },
+  // {
+  //   name: "Користувачі",
+  //   icon: "manage_accounts",
+  //   to: {name: "users"},
+  //   onClick: (pageName) => {
+  //   },
+  //   type: "item",
+  //   isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
+  // },
 ];
 
 function pageLoadAfterClickOnMenuItem(pageName) {
@@ -557,11 +568,6 @@ function pageLoadAfterClickOnMenuItem(pageName) {
     store.app.currentPages[pageName] != 1
   ) {
     store.app.currentPages[pageName] = 1;
-    store[pageName].receive();
-  } else {
-    if (store[pageName] && typeof store[pageName].receive === 'function') {
-      store[pageName].receive();
-    }
   }
 }
 
@@ -716,6 +722,7 @@ onBeforeMount(() => {
   height: calc(100vh - 51px);
   /* max-height: calc(100vh - 51px); 50px - height of toolbar */
   padding-left: 10px;
+  overflow-y: auto;
 }
 
 /* animations */

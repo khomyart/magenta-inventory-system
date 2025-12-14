@@ -6,6 +6,7 @@ use App\Helpers\AuthAPI;
 use App\Helpers\ErrorHandler;
 use App\Helpers\NbuCurrencyExchangeCoursesService;
 use App\Http\Resources\ServiceResource;
+use App\Models\OrderService;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -217,6 +218,11 @@ class ServiceController extends Controller
         $section = $this->getSectionModel()::find($id);
         if ($section == null) {
             return ErrorHandler::responseWith('Послугу не знайдено', 404);
+        }
+
+        // Check if item is referenced in orders
+        if (OrderService::where('service_id', $section->id)->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити: послуга використовується в замовленнях');
         }
 
         $section->delete();

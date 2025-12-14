@@ -30,7 +30,9 @@ export const useSizeStore = defineStore("size", {
       lastItemNumberInRow: 0,
     },
   }),
-  getters: {},
+  getters: {
+    sizes: (state) => state.simpleItems,
+  },
   actions: {
     create(payload) {
       this.dialogs.create.isLoading = true;

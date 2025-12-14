@@ -96,30 +96,13 @@
             </q-list>
           </q-menu>
         </q-btn>
+        <q-btn round flat icon="article" color="primary"
+               @click="$emit('copyValue', compositeArticle, 'Розширений артикль')">
+          <q-tooltip class="bg-black text-body2">Скопіювати розширений артикль</q-tooltip>
+        </q-btn>
       </div>
     </td>
-    <td class="separator-cell">
-      <div
-        :class="{
-          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
-        }"
-      ></div>
-    </td>
-    <td class="item-cell">
-      <div
-        :class="{
-          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
-        }"
-        style="cursor: pointer"
-        @click="
-          $emit('copyValue', props.itemInfo.group_id, 'Ідентифікатор групи')
-        "
-      >
-        <div class="item-text">
-          {{ props.itemInfo.group_id }}
-        </div>
-      </div>
-    </td>
+
     <td class="separator-cell">
       <div
         :class="{
@@ -377,6 +360,7 @@
       <div
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+          'text-primary': true,
         }"
         :style="{
           cursor:
@@ -414,6 +398,27 @@
         :class="{
           'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
         }"
+        style="cursor: pointer"
+        @click="$emit('copyValue', props.itemInfo.unit_name, 'Одиницю')"
+      >
+        <div class="item-text">
+          {{ props.itemInfo.unit_name }}
+        </div>
+      </div>
+    </td>
+
+    <td class="separator-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
+      ></div>
+    </td>
+    <td class="item-cell">
+      <div
+        :class="{
+          'bottom-border': (props.gap == 0 && props.isLast) || props.gap != 0,
+        }"
         :style="{
           borderRadius:
             props.gap == 0
@@ -424,11 +429,12 @@
                 : ``
               : `0 ${props.itemsBorderRadius}px ${props.itemsBorderRadius}px 0`,
         }"
-        style="cursor: pointer"
-        @click="$emit('copyValue', props.itemInfo.unit_name, 'Одиницю')"
+        @click="
+          $emit('copyValue', props.itemInfo.group_id, 'Ідентифікатор групи')
+        "
       >
         <div class="item-text">
-          {{ props.itemInfo.unit_name }}
+          {{ props.itemInfo.group_id }}
         </div>
       </div>
     </td>
@@ -562,6 +568,13 @@ const currencyIcon = computed(() => {
 
   return icon;
 });
+
+const compositeArticle = computed(() => {
+  let itemArticle = props.itemInfo.article ? props.itemInfo.article + ' ' : '';
+  let colorArticle = props.itemInfo.color_article ? props.itemInfo.color_article + ' ' : '';
+  let sizeArticle = props.itemInfo.size_name || '';
+  return itemArticle + colorArticle + sizeArticle;
+})
 
 const unconvertedPrice = computed(() => {
   return parseFloat(props.itemInfo.unconverted_price).toFixed(2);

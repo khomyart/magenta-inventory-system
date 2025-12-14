@@ -235,7 +235,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed } from "vue";
+import {reactive, onMounted, watch, computed, onBeforeMount, onBeforeUnmount} from "vue";
 import { useRouter } from "vue-router";
 import { useAppConfigStore } from "src/stores/appConfigStore";
 import { useServiceStore } from "stores/serviceStore";
@@ -435,4 +435,12 @@ onMounted(() => {
     }
   }
 });
+
+onBeforeUnmount(() => {
+  sectionStore.$reset();
+})
+
+onBeforeMount(() => {
+  sectionStore.receive()
+})
 </script>

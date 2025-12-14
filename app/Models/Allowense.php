@@ -14,4 +14,9 @@ class Allowense extends Model
     ];
 
     public $timestamps = false;
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'roles_allowenses', 'allowense_id', 'role_id');
+    }
 }

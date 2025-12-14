@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <div class="toolbar row q-mt-md">
-      <CreateOrderComponent v-if="allowenses.create" />
+      <CreateOrderComponent v-if="allowenses.create"/>
       <q-btn
         flat
         round
@@ -21,7 +21,7 @@
 
     <div class="content">
       <q-inner-loading :showing="sectionStore.data.isItemsLoading">
-        <q-spinner-puff size="50px" color="primary" />
+        <q-spinner-puff size="50px" color="primary"/>
       </q-inner-loading>
       <q-toolbar class="text-black filter q-px-none q-py-md bg-white">
         <SortingComponent
@@ -108,7 +108,8 @@
             @set-filter-order="setFilterOrder"
           />
           <!-- Display-only field -->
-          <div v-else class="filter-button" :style="{ width: computedFilterWidth.buttons[fieldsSequance[index]] + 'px' }">
+          <div v-else class="filter-button"
+               :style="{ width: computedFilterWidth.buttons[fieldsSequance[index]] + 'px' }">
             <div class="text-center text-grey-7" style="padding: 8px;">{{ fieldsDetails[index].label }}</div>
           </div>
         </template>
@@ -191,7 +192,7 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="warning" color="red" size="md" class="q-mr-sm" />
+            <q-icon name="warning" color="red" size="md" class="q-mr-sm"/>
             Видалення
           </div>
         </q-card-section>
@@ -218,7 +219,7 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="cancel" color="orange" size="md" class="q-mr-sm" />
+            <q-icon name="cancel" color="orange" size="md" class="q-mr-sm"/>
             Відміна замовлення
           </div>
         </q-card-section>
@@ -254,7 +255,7 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="task_alt" color="primary" size="md" class="q-mr-sm" />
+            <q-icon name="task_alt" color="primary" size="md" class="q-mr-sm"/>
             Підтвердження замовлення
           </div>
         </q-card-section>
@@ -325,7 +326,7 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="play_arrow" color="blue" size="md" class="q-mr-sm" />
+            <q-icon name="play_arrow" color="blue" size="md" class="q-mr-sm"/>
             Прийняти в роботу
           </div>
         </q-card-section>
@@ -352,7 +353,7 @@
       <q-card style="min-width: 500px;">
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="check_circle" color="green" size="md" class="q-mr-sm" />
+            <q-icon name="check_circle" color="green" size="md" class="q-mr-sm"/>
             Виконання замовлення
           </div>
         </q-card-section>
@@ -378,7 +379,7 @@
                 :disable="completeItem.involvement_level_2_user_id !== null || completeItem.involvement_level_3_user_id !== null"
               >
                 <template v-slot:append v-if="!userLoadingStates.level1 && !completeItem.involvement_level_1_user_id">
-                  <q-icon name="search" />
+                  <q-icon name="search"/>
                 </template>
               </q-select>
               <q-btn
@@ -411,7 +412,7 @@
                 :disable="completeItem.involvement_level_1_user_id !== null"
               >
                 <template v-slot:append v-if="!userLoadingStates.level2 && !completeItem.involvement_level_2_user_id">
-                  <q-icon name="search" />
+                  <q-icon name="search"/>
                 </template>
               </q-select>
               <q-btn
@@ -444,7 +445,7 @@
                 :disable="completeItem.involvement_level_1_user_id !== null"
               >
                 <template v-slot:append v-if="!userLoadingStates.level3 && !completeItem.involvement_level_3_user_id">
-                  <q-icon name="search" />
+                  <q-icon name="search"/>
                 </template>
               </q-select>
               <q-btn
@@ -484,7 +485,7 @@
       <q-card>
         <q-card-section>
           <div class="text-h6 flex items-center">
-            <q-icon name="payments" color="purple" size="md" class="q-mr-sm" />
+            <q-icon name="payments" color="purple" size="md" class="q-mr-sm"/>
             Внести оплату
           </div>
         </q-card-section>
@@ -495,13 +496,19 @@
           </div>
 
           <!-- Поточні внесені суми -->
-          <div v-if="paymentItem.amount_of_final_payment_on_card > 0 || paymentItem.amount_of_final_payment_via_terminal > 0 || paymentItem.amount_of_final_payment_as_cash > 0" class="q-mb-md q-pa-md bg-grey-2" style="border-radius: 8px;">
+          <div
+            v-if="paymentItem.amount_of_final_payment_on_card > 0 || paymentItem.amount_of_final_payment_via_terminal > 0 || paymentItem.amount_of_final_payment_as_cash > 0"
+            class="q-mb-md q-pa-md bg-grey-2" style="border-radius: 8px;">
             <div class="text-subtitle1 q-mb-sm">Вже внесено:</div>
             <div v-if="paymentItem.amount_of_final_payment_on_card > 0" class="text-body2">
-              Карткою онлайн: <span class="text-bold">{{ paymentItem.amount_of_final_payment_on_card.toFixed(2) }}</span>
+              Карткою онлайн: <span class="text-bold">{{
+                paymentItem.amount_of_final_payment_on_card.toFixed(2)
+              }}</span>
             </div>
             <div v-if="paymentItem.amount_of_final_payment_via_terminal > 0" class="text-body2">
-              Терміналом: <span class="text-bold">{{ paymentItem.amount_of_final_payment_via_terminal.toFixed(2) }}</span>
+              Терміналом: <span class="text-bold">{{
+                paymentItem.amount_of_final_payment_via_terminal.toFixed(2)
+              }}</span>
             </div>
             <div v-if="paymentItem.amount_of_final_payment_as_cash > 0" class="text-body2">
               Готівкою: <span class="text-bold">{{ paymentItem.amount_of_final_payment_as_cash.toFixed(2) }}</span>
@@ -598,7 +605,7 @@
       </q-card>
     </q-dialog>
 
-    <EditOrderComponent :order-data="editedOrder" />
+    <EditOrderComponent :order-data="editedOrder"/>
 
     <!-- Contact Details Dialog -->
     <ContactDetailsComponent
@@ -612,13 +619,13 @@
         <q-card-section>
           <div class="text-h6">Нотатки</div>
         </q-card-section>
-        <q-separator />
+        <q-separator/>
         <q-card-section style="max-height: 400px; overflow-y: auto;">
           <div style="white-space: pre-wrap; word-wrap: break-word;">{{ selectedNotes }}</div>
         </q-card-section>
-        <q-separator />
+        <q-separator/>
         <q-card-actions align="right">
-          <q-btn flat color="primary" label="Закрити" v-close-popup />
+          <q-btn flat color="primary" label="Закрити" v-close-popup/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -626,12 +633,12 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useAppConfigStore } from "src/stores/appConfigStore";
-import { useOrderStore } from "stores/orderStore";
-import { useUserStore } from "stores/userStore";
-import { useQuasar } from "quasar";
+import {reactive, onMounted, watch, computed, ref, onBeforeMount, onBeforeUnmount} from "vue";
+import {useRouter} from "vue-router";
+import {useAppConfigStore} from "src/stores/appConfigStore";
+import {useOrderStore} from "stores/orderStore";
+import {useUserStore} from "stores/userStore";
+import {useQuasar} from "quasar";
 import CreateOrderComponent from "components/order/CreateOrderComponent.vue";
 import EditOrderComponent from "components/order/EditOrderComponent.vue";
 import OrderComponent from "components/order/OrderComponent.vue";
@@ -649,26 +656,97 @@ const userStore = useUserStore();
 const router = useRouter();
 const $q = useQuasar();
 
-const fieldsSequance = ["id", "status", "completion_deadline", "advance_payment", "final_payment", "total_price", "remaining_to_pay", "fully_payed_at", "contact", "created_at", "completed_at", "notes"];
+const fieldsSequance = ["id", "status", "completion_deadline", "advance_payment", "final_payment", "total_price", "remaining_to_pay", "fully_payed_at", "contact", "created_at", "completed_at", "involved_users", "notes"];
 const fieldsDetails = [
-  { label: "Номер", searchBarLabel: "Номер замовлення", type: "number", orderButtonLabels: { up: "Від меншого", down: "Від більшого" }},
-  { label: "Статус", searchBarLabel: "Статус", type: "select", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }, options: [
-    { label: "Очікує", value: "pending" },
-    { label: "Підтверджено", value: "confirmed" },
-    { label: "В роботі", value: "in_progress" },
-    { label: "Виконано", value: "completed" },
-    { label: "Скасовано", value: "cancelled" }
-  ]},
-  { label: "Дедлайн", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["completion_deadline_from", "completion_deadline_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Аванс", searchBarLabel: "Сума авансу", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
-  { label: "Оплата", searchBarLabel: "Фінальна оплата", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
-  { label: "Сума", searchBarLabel: "Загальна сума", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
-  { label: "До сплати", searchBarLabel: "Залишок до сплати", type: "number", orderButtonLabels: { up: "Від меншої", down: "Від більшої" }},
-  { label: "Дата повної оплати", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["fully_payed_at_from", "fully_payed_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Контакт", searchBarLabel: "Ім'я або телефон", type: "text", orderButtonLabels: { up: "Від нового до старого", down: "Від старого до нового" }},
-  { label: "Створено", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["created_at_from", "created_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Завершено", searchBarLabel: ["Від", "До"], type: "date", additionalFieldsForFiltering: ["completed_at_from", "completed_at_to"], orderButtonLabels: { up: "Від ранніх", down: "Від пізніх" }},
-  { label: "Нотатки", searchBarLabel: "Нотатки", type: "text", orderButtonLabels: { up: "Від A до Я", down: "Від Я до А" }},
+  {
+    label: "Номер",
+    searchBarLabel: "Номер замовлення",
+    type: "number",
+    orderButtonLabels: {up: "Від меншого", down: "Від більшого"}
+  },
+  {
+    label: "Статус",
+    searchBarLabel: "Статус",
+    type: "select",
+    orderButtonLabels: {up: "Від A до Я", down: "Від Я до А"},
+    options: [
+      {label: "Очікує", value: "pending"},
+      {label: "Підтверджено", value: "confirmed"},
+      {label: "В роботі", value: "in_progress"},
+      {label: "Виконано", value: "completed"},
+      {label: "Скасовано", value: "cancelled"}
+    ]
+  },
+  {
+    label: "Дедлайн",
+    searchBarLabel: ["Від", "До"],
+    type: "date",
+    additionalFieldsForFiltering: ["completion_deadline_from", "completion_deadline_to"],
+    orderButtonLabels: {up: "Від ранніх", down: "Від пізніх"}
+  },
+  {
+    label: "Аванс",
+    searchBarLabel: "Сума авансу",
+    type: "number",
+    orderButtonLabels: {up: "Від меншої", down: "Від більшої"}
+  },
+  {
+    label: "Оплата",
+    searchBarLabel: "Фінальна оплата",
+    type: "number",
+    orderButtonLabels: {up: "Від меншої", down: "Від більшої"}
+  },
+  {
+    label: "Сума",
+    searchBarLabel: "Загальна сума",
+    type: "number",
+    orderButtonLabels: {up: "Від меншої", down: "Від більшої"}
+  },
+  {
+    label: "До сплати",
+    searchBarLabel: "Залишок до сплати",
+    type: "number",
+    orderButtonLabels: {up: "Від меншої", down: "Від більшої"}
+  },
+  {
+    label: "Дата повної оплати",
+    searchBarLabel: ["Від", "До"],
+    type: "date",
+    additionalFieldsForFiltering: ["fully_payed_at_from", "fully_payed_at_to"],
+    orderButtonLabels: {up: "Від ранніх", down: "Від пізніх"}
+  },
+  {
+    label: "Контакт",
+    searchBarLabel: "Ім'я або телефон",
+    type: "text",
+    orderButtonLabels: {up: "Від нового до старого", down: "Від старого до нового"}
+  },
+  {
+    label: "Створено",
+    searchBarLabel: ["Від", "До"],
+    type: "date",
+    additionalFieldsForFiltering: ["created_at_from", "created_at_to"],
+    orderButtonLabels: {up: "Від ранніх", down: "Від пізніх"}
+  },
+  {
+    label: "Завершено",
+    searchBarLabel: ["Від", "До"],
+    type: "date",
+    additionalFieldsForFiltering: ["completed_at_from", "completed_at_to"],
+    orderButtonLabels: {up: "Від ранніх", down: "Від пізніх"}
+  },
+  {
+    label: "Виконавці",
+    searchBarLabel: "Ім'я виконавця",
+    type: "text",
+    orderButtonLabels: {up: "Від A до Я", down: "Від Я до А"}
+  },
+  {
+    label: "Нотатки",
+    searchBarLabel: "Нотатки",
+    type: "text",
+    orderButtonLabels: {up: "Від A до Я", down: "Від Я до А"}
+  },
 ];
 
 const allowenses = {
@@ -677,8 +755,8 @@ const allowenses = {
   delete: appStore.allowenses.isValidFor("delete", currentSection),
 };
 
-let deletedItem = reactive({ id: "" });
-let cancelledItem = reactive({ id: "", status: "", returnItems: false });
+let deletedItem = reactive({id: ""});
+let cancelledItem = reactive({id: "", status: "", returnItems: false});
 let confirmedItem = reactive({
   id: "",
   enterAdvance: true,
@@ -686,7 +764,7 @@ let confirmedItem = reactive({
   amount_of_advance_payment_via_terminal: 0,
   amount_of_advance_payment_as_cash: 0
 });
-let startWorkItem = reactive({ id: "" });
+let startWorkItem = reactive({id: ""});
 let completeItem = reactive({
   id: "",
   involvement_level_1_user_id: null,
@@ -729,30 +807,48 @@ let tempFieldWidths = reactive({
   contact: 0,
   created_at: 0,
   completed_at: 0,
+  involved_users: 0,
   notes: 0,
 });
 
-function clearUpdatedItemId() { setTimeout(() => { sectionStore.data.updatedItemId = 0; }, 2000); }
-function copyValue(value, paramName) { navigator.clipboard.writeText(value); $q.notify({ position: "top", color: "primary", message: `${paramName} зкопійовано: "${value}"`, group: false }); }
+function clearUpdatedItemId() {
+  setTimeout(() => {
+    sectionStore.data.updatedItemId = 0;
+  }, 2000);
+}
+
+function copyValue(value, paramName) {
+  navigator.clipboard.writeText(value);
+  $q.notify({position: "top", color: "primary", message: `${paramName} зкопійовано: "${value}"`, group: false});
+}
+
 function showUpdateDialog(item) {
   editedOrder.value = item;
   sectionStore.dialogs.update.isShown = true;
 }
+
 function showContactDetails(contact) {
   selectedContact.value = contact;
   showContactDialog.value = true;
 }
+
 function showNotesDialog(notes) {
   selectedNotes.value = notes;
   showNotesDialogState.value = true;
 }
-function showRemoveDialog(id) { deletedItem.id = id; sectionStore.dialogs.delete.isShown = true; }
+
+function showRemoveDialog(id) {
+  deletedItem.id = id;
+  sectionStore.dialogs.delete.isShown = true;
+}
+
 function showCancelDialog(item) {
   cancelledItem.id = item.id;
   cancelledItem.status = item.status;
   cancelledItem.returnItems = false;
   sectionStore.dialogs.cancel.isShown = true;
 }
+
 function showConfirmDialog(item) {
   confirmedItem.id = item.id;
 
@@ -769,10 +865,12 @@ function showConfirmDialog(item) {
 
   sectionStore.dialogs.confirm.isShown = true;
 }
+
 function showStartWorkDialog(item) {
   startWorkItem.id = item.id;
   sectionStore.dialogs.startWork.isShown = true;
 }
+
 function showCompleteDialog(item) {
   completeItem.id = item.id;
   completeItem.involvement_level_1_user_id = item.involvement_level_1_user_id || null;
@@ -781,6 +879,7 @@ function showCompleteDialog(item) {
   userStore.fetchUsers();
   sectionStore.dialogs.complete.isShown = true;
 }
+
 function showPaymentDialog(item) {
   paymentItem.id = item.id;
   paymentItem.total_price = item.total_price;
@@ -795,6 +894,7 @@ function showPaymentDialog(item) {
   paymentItem.amount_of_final_payment_as_cash_new = 0;
   sectionStore.dialogs.payment.isShown = true;
 }
+
 function fillRemainingAmount(paymentType) {
   // Calculate current remaining amount
   const totalPaid =
@@ -845,6 +945,7 @@ function userFilterLevel3(val, update, abort) {
     userLoadingStates.level3 = false;
   });
 }
+
 function clearFilter(fields, filterType = "all") {
   let filters = appStore.filters;
   if (!Array.isArray(fields)) {
@@ -876,6 +977,7 @@ function clearFilter(fields, filterType = "all") {
     completed_at_from: 'date_from',
     completed_at_to: 'date_to',
     completed_at_is_null: 'boolean',
+    involved_users: 'text',
     notes: 'text',
   };
 
@@ -919,7 +1021,11 @@ function clearFilter(fields, filterType = "all") {
     }
   });
 }
-function onChangedFieldFilterMode(field) { if (appStore.filters.data[currentSection].selectedParams[field].value) sectionStore.receive(); }
+
+function onChangedFieldFilterMode(field) {
+  if (appStore.filters.data[currentSection].selectedParams[field].value) sectionStore.receive();
+}
+
 function setFilterOrder(field, fieldOrder) {
   let order = appStore.filters.data[currentSection].selectedParams.order;
   if (order.field === field && order.value === fieldOrder) {
@@ -961,6 +1067,7 @@ const computedFilterWidth = computed(() => {
       contact: (dynamicWidths.contact || 200) - padding,
       created_at: (dynamicWidths.created_at || 150) - padding,
       completed_at: (dynamicWidths.completed_at || 150) - padding,
+      involved_users: (dynamicWidths.involved_users || 200) - padding,
       notes: (dynamicWidths.notes || 150) - padding,
     },
     fields: {
@@ -975,6 +1082,7 @@ const computedFilterWidth = computed(() => {
       contact: dynamicWidths.contact || 200,
       created_at: dynamicWidths.created_at || 150,
       completed_at: dynamicWidths.completed_at || 150,
+      involved_users: dynamicWidths.involved_users || 200,
       notes: dynamicWidths.notes || 150,
       separator: separator,
       lastSeparator: separator / 2 - 2,
@@ -982,8 +1090,13 @@ const computedFilterWidth = computed(() => {
   };
 });
 
-watch(() => appStore.currentPages[currentSection], (page) => { router.push(`/${currentSection}/${page}`); sectionStore.receive(); });
-watch(() => appStore.amountOfItemsPerPages[currentSection], () => { if (appStore.currentPages[currentSection] !== 1) appStore.currentPages[currentSection] = 1; else sectionStore.receive(); });
+watch(() => appStore.currentPages[currentSection], (page) => {
+  router.push(`/${currentSection}/${page}`);
+  sectionStore.receive();
+});
+watch(() => appStore.amountOfItemsPerPages[currentSection], () => {
+  if (appStore.currentPages[currentSection] !== 1) appStore.currentPages[currentSection] = 1; else sectionStore.receive();
+});
 watch(() => [
   appStore.filters.data[currentSection].selectedParams.order.combined,
   appStore.filters.data[currentSection].selectedParams.id?.value,
@@ -1005,6 +1118,7 @@ watch(() => [
   appStore.filters.data[currentSection].selectedParams.completed_at_from?.value,
   appStore.filters.data[currentSection].selectedParams.completed_at_to?.value,
   appStore.filters.data[currentSection].selectedParams.completed_at_is_null?.value,
+  appStore.filters.data[currentSection].selectedParams.involved_users?.value,
   appStore.filters.data[currentSection].selectedParams.notes?.value,
 ], () => {
   sectionStore.receive();
@@ -1019,10 +1133,10 @@ onMounted(() => {
 
   // Initialize new filter parameters
   if (!filterParams.id) {
-    filterParams.id = { value: "", filterMode: numberFilterMode };
+    filterParams.id = {value: "", filterMode: numberFilterMode};
   }
   if (!filterParams.status) {
-    filterParams.status = { value: "", filterMode: selectFilterMode };
+    filterParams.status = {value: "", filterMode: selectFilterMode};
   } else {
     // Ensure status has correct filterMode (select type)
     if (filterParams.status.filterMode?.type !== 'select') {
@@ -1030,22 +1144,25 @@ onMounted(() => {
     }
   }
   if (!filterParams.total_price) {
-    filterParams.total_price = { value: "", filterMode: numberFilterMode };
+    filterParams.total_price = {value: "", filterMode: numberFilterMode};
   }
   if (!filterParams.contact) {
-    filterParams.contact = { value: "", filterMode: defaultFilterMode };
+    filterParams.contact = {value: "", filterMode: defaultFilterMode};
+  }
+  if (!filterParams.involved_users) {
+    filterParams.involved_users = {value: "", filterMode: defaultFilterMode};
   }
   if (!filterParams.notes) {
-    filterParams.notes = { value: "", filterMode: defaultFilterMode };
+    filterParams.notes = {value: "", filterMode: defaultFilterMode};
   }
   if (!filterParams.advance_payment) {
-    filterParams.advance_payment = { value: "", filterMode: numberFilterMode };
+    filterParams.advance_payment = {value: "", filterMode: numberFilterMode};
   }
   if (!filterParams.final_payment) {
-    filterParams.final_payment = { value: "", filterMode: numberFilterMode };
+    filterParams.final_payment = {value: "", filterMode: numberFilterMode};
   }
   if (!filterParams.remaining_to_pay) {
-    filterParams.remaining_to_pay = { value: "", filterMode: numberFilterMode };
+    filterParams.remaining_to_pay = {value: "", filterMode: numberFilterMode};
   }
 
   // Initialize date filter parameters
@@ -1053,40 +1170,40 @@ onMounted(() => {
   const lessFilterMode = appStore.filters.availableParams.items[3]; // "less" mode for "to" dates
 
   if (!filterParams.completion_deadline_from) {
-    filterParams.completion_deadline_from = { value: "", filterMode: moreFilterMode };
+    filterParams.completion_deadline_from = {value: "", filterMode: moreFilterMode};
   }
   if (!filterParams.completion_deadline_to) {
-    filterParams.completion_deadline_to = { value: "", filterMode: lessFilterMode };
+    filterParams.completion_deadline_to = {value: "", filterMode: lessFilterMode};
   }
   if (!filterParams.completion_deadline_is_null) {
-    filterParams.completion_deadline_is_null = { value: false };
+    filterParams.completion_deadline_is_null = {value: false};
   }
   if (!filterParams.created_at_from) {
-    filterParams.created_at_from = { value: "", filterMode: moreFilterMode };
+    filterParams.created_at_from = {value: "", filterMode: moreFilterMode};
   }
   if (!filterParams.created_at_to) {
-    filterParams.created_at_to = { value: "", filterMode: lessFilterMode };
+    filterParams.created_at_to = {value: "", filterMode: lessFilterMode};
   }
   if (!filterParams.created_at_is_null) {
-    filterParams.created_at_is_null = { value: false };
+    filterParams.created_at_is_null = {value: false};
   }
   if (!filterParams.completed_at_from) {
-    filterParams.completed_at_from = { value: "", filterMode: moreFilterMode };
+    filterParams.completed_at_from = {value: "", filterMode: moreFilterMode};
   }
   if (!filterParams.completed_at_to) {
-    filterParams.completed_at_to = { value: "", filterMode: lessFilterMode };
+    filterParams.completed_at_to = {value: "", filterMode: lessFilterMode};
   }
   if (!filterParams.completed_at_is_null) {
-    filterParams.completed_at_is_null = { value: false };
+    filterParams.completed_at_is_null = {value: false};
   }
   if (!filterParams.fully_payed_at_from) {
-    filterParams.fully_payed_at_from = { value: "", filterMode: moreFilterMode };
+    filterParams.fully_payed_at_from = {value: "", filterMode: moreFilterMode};
   }
   if (!filterParams.fully_payed_at_to) {
-    filterParams.fully_payed_at_to = { value: "", filterMode: lessFilterMode };
+    filterParams.fully_payed_at_to = {value: "", filterMode: lessFilterMode};
   }
   if (!filterParams.fully_payed_at_is_null) {
-    filterParams.fully_payed_at_is_null = { value: false };
+    filterParams.fully_payed_at_is_null = {value: false};
   }
 
   // Initialize width configuration for new fields if not exists
@@ -1098,6 +1215,7 @@ onMounted(() => {
   if (!defaultWidths.total_price) defaultWidths.total_price = 120;
   if (!defaultWidths.contact) defaultWidths.contact = 200;
   if (!defaultWidths.notes) defaultWidths.notes = 150;
+  if (!defaultWidths.involved_users) defaultWidths.involved_users = 200;
   if (!defaultWidths.advance_payment) defaultWidths.advance_payment = 120;
   if (!defaultWidths.final_payment) defaultWidths.final_payment = 120;
   if (!defaultWidths.remaining_to_pay) defaultWidths.remaining_to_pay = 120;
@@ -1108,6 +1226,7 @@ onMounted(() => {
   if (!dynamicWidths.status) dynamicWidths.status = 150;
   if (!dynamicWidths.total_price) dynamicWidths.total_price = 120;
   if (!dynamicWidths.contact) dynamicWidths.contact = 200;
+  if (!dynamicWidths.involved_users) dynamicWidths.involved_users = 200;
   if (!dynamicWidths.notes) dynamicWidths.notes = 150;
   if (!dynamicWidths.advance_payment) dynamicWidths.advance_payment = 120;
   if (!dynamicWidths.final_payment) dynamicWidths.final_payment = 120;
@@ -1211,4 +1330,12 @@ onMounted(() => {
     }
   }
 });
+
+onBeforeUnmount(() => {
+  sectionStore.$reset();
+})
+
+onBeforeMount(() => {
+  sectionStore.receive()
+})
 </script>

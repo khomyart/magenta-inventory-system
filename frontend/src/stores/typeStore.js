@@ -30,7 +30,9 @@ export const useTypeStore = defineStore("type", {
       lastItemNumberInRow: 0,
     },
   }),
-  getters: {},
+  getters: {
+    types: (state) => state.simpleItems,
+  },
   actions: {
     create(payload) {
       this.dialogs.create.isLoading = true;

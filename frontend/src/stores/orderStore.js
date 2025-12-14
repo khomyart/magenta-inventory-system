@@ -228,6 +228,8 @@ export const useOrderStore = defineStore("order", {
           fully_payed_at_is_null_filter_value: appConfigStore.filters.data[sectionName].selectedParams.fully_payed_at_is_null?.value === true ? true : undefined,
           notes_filter_value: appConfigStore.filters.data[sectionName].selectedParams.notes?.value,
           notes_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.notes?.filterMode.value,
+          involved_users_filter_value: appConfigStore.filters.data[sectionName].selectedParams.involved_users?.value,
+          involved_users_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.involved_users?.filterMode.value,
           advance_payment_filter_value: appConfigStore.filters.data[sectionName].selectedParams.advance_payment?.value,
           advance_payment_filter_mode: appConfigStore.filters.data[sectionName].selectedParams.advance_payment?.filterMode.value,
           final_payment_filter_value: appConfigStore.filters.data[sectionName].selectedParams.final_payment?.value,

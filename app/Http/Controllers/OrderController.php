@@ -117,6 +117,8 @@ class OrderController extends Controller
             'fully_payed_at_is_null_filter_value' => ['nullable', 'in:true,false,1,0'],
             'notes_filter_value' => ['string', 'nullable'],
             'notes_filter_mode' => ['string', Rule::in($stringFilters), 'nullable'],
+            'involved_users_filter_value' => ['string', 'nullable'],
+            'involved_users_filter_mode' => ['string', Rule::in($stringFilters), 'nullable'],
         ];
     }
 
@@ -139,6 +141,7 @@ class OrderController extends Controller
             'fully_payed_at_from',
             'fully_payed_at_to',
             'notes',
+            'involved_users',
         ];
     }
 
@@ -278,6 +281,9 @@ class OrderController extends Controller
             'orderItems.item.unit',
             'orderItems.item.images',
             'orderServices.service',
+            'involvementLevel1User',
+            'involvementLevel2User',
+            'involvementLevel3User',
         ]);
 
         // Check for is_null filters first
@@ -351,6 +357,41 @@ class OrderController extends Controller
                                     ->where('phone', 'not like', "%{$searchValue}%");
                             })
                                 ->orWhereNull('contact_id'); // Include orders without contacts
+                        });
+                    }
+
+                    continue;
+                }
+
+                // Handle involved_users field (search by user name across all involvement levels)
+                if ($field === 'involved_users') {
+                    if (empty($searchValue)) {
+                        continue;
+                    }
+                    if ($searchOperator === 'like') {
+                        $section->where(function ($query) use ($searchValue) {
+                            $query->whereHas('involvementLevel1User', function ($subQuery) use ($searchValue) {
+                                $subQuery->where('name', 'like', "%{$searchValue}%");
+                            })
+                                ->orWhereHas('involvementLevel2User', function ($subQuery) use ($searchValue) {
+                                    $subQuery->where('name', 'like', "%{$searchValue}%");
+                                })
+                                ->orWhereHas('involvementLevel3User', function ($subQuery) use ($searchValue) {
+                                    $subQuery->where('name', 'like', "%{$searchValue}%");
+                                });
+                        });
+                    } elseif ($searchOperator === 'not like') {
+                        // Show orders where involved users do NOT contain search value in any level
+                        $section->where(function ($query) use ($searchValue) {
+                            $query->whereDoesntHave('involvementLevel1User', function ($subQuery) use ($searchValue) {
+                                $subQuery->where('name', 'like', "%{$searchValue}%");
+                            })
+                                ->whereDoesntHave('involvementLevel2User', function ($subQuery) use ($searchValue) {
+                                    $subQuery->where('name', 'like', "%{$searchValue}%");
+                                })
+                                ->whereDoesntHave('involvementLevel3User', function ($subQuery) use ($searchValue) {
+                                    $subQuery->where('name', 'like', "%{$searchValue}%");
+                                });
                         });
                     }
 
@@ -649,7 +690,7 @@ class OrderController extends Controller
         })->toArray();
 
         // Перевірка зміни товарів або послуг - дозволено тільки для статусів 'pending' та 'confirmed'
-        if (! in_array($currentStatus, ['pending', 'confirmed'])) {
+        if (!in_array($currentStatus, ['pending', 'confirmed'])) {
             $newOrderItems = $data['order_items'] ?? [];
             $newOrderServices = $data['order_services'] ?? [];
 
@@ -666,7 +707,7 @@ class OrderController extends Controller
         }
 
         // Перевірка зміни контакту - дозволено тільки для статусів 'pending' та 'confirmed'
-        if (! in_array($currentStatus, ['pending', 'confirmed'])) {
+        if (!in_array($currentStatus, ['pending', 'confirmed'])) {
             $oldContactId = $order->contact_id;
             $newContactId = $data['contact_id'] ?? null;
 
@@ -700,6 +741,9 @@ class OrderController extends Controller
         // Automatically set fully_payed_at if total payment covers the total price
         if ($totalPayment >= $totalPrice && $totalPrice > 0 && ! $order->fully_payed_at && ! isset($data['fully_payed_at'])) {
             $data['fully_payed_at'] = now();
+        }
+        if ($totalPrice > $totalPayment && $totalPrice > 0 && $order->fully_payed_at && isset($data['fully_payed_at'])) {
+            $data['fully_payed_at'] = null;
         }
 
         $targetStatus = $currentStatus;

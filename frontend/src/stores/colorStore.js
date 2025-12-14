@@ -30,7 +30,9 @@ export const useColorStore = defineStore("color", {
       updatedItemId: 0,
     },
   }),
-  getters: {},
+  getters: {
+    colors: (state) => state.simpleItems,
+  },
   actions: {
     create(payload) {
       this.dialogs.create.isLoading = true;

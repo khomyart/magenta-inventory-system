@@ -289,7 +289,7 @@
 </template>
 
 <script setup>
-import {reactive, onMounted, watch, computed} from "vue";
+import {reactive, onMounted, watch, computed, onBeforeMount, onBeforeUnmount} from "vue";
 import {useRouter} from "vue-router";
 import {useAppConfigStore} from "src/stores/appConfigStore";
 import {useUserStore} from "stores/userStore";
@@ -530,6 +530,7 @@ const computedFilterWidth = computed(() => {
   };
 });
 
+
 watch([() => appStore.currentPages[currentSection]], ([currentPage]) => {
   router.push(`/${currentSection}/${currentPage}`);
   sectionStore.receive();
@@ -575,12 +576,11 @@ onMounted(() => {
     router.currentRoute.value.params.page
   );
   /*
-      setting up default values for filter fields width according to config
-    */
+    setting up default values for filter fields width according to config
+  */
   let contentElement = document.querySelector(".content");
   //get .content div padding
-  let contentPaddingX =
-    2 +
+  let contentPaddingX = 2 +
     parseFloat(getComputedStyle(contentElement).paddingLeft) +
     parseFloat(getComputedStyle(contentElement).paddingRight);
 
@@ -732,6 +732,14 @@ onMounted(() => {
     }
   }
 });
+
+onBeforeUnmount(() => {
+  sectionStore.$reset();
+})
+
+onBeforeMount(() => {
+  sectionStore.receive()
+})
 </script>
 
 <style></style>

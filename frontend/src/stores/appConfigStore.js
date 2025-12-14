@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 17,
+    version: 18,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -702,6 +702,7 @@ export const useAppConfigStore = defineStore("appConfig", {
               remaining_to_pay: 120,
               fully_payed_at: 165,
               contact: 150,
+              involved_users: 200,
               created_at: 140,
               completed_at: 133,
               notes: 176,
@@ -716,6 +717,7 @@ export const useAppConfigStore = defineStore("appConfig", {
               remaining_to_pay: 120,
               fully_payed_at: 165,
               contact: 150,
+              involved_users: 200,
               created_at: 140,
               completed_at: 133,
               notes: 176,
@@ -747,7 +749,7 @@ export const useAppConfigStore = defineStore("appConfig", {
             completed_at_to: { value: "", filterMode: { label: "Менше", value: "less", shortName: "LESS" }},
             completed_at_is_null: { value: false },
             notes: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
-
+            involved_users: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
           },
         },
       },

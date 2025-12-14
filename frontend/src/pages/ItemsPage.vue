@@ -89,6 +89,7 @@
           :filterIn="currentSection"
           :sectionStore="sectionStore"
         />
+        <div style="width: 40px;"></div>
         <div class="filter-separator">
           <div class="vertical-line"></div>
         </div>
@@ -118,7 +119,7 @@
       </q-toolbar>
       <table class="items">
         <tr>
-          <td :width="60"></td>
+          <td :width="100"></td>
           <td :width="computedFilterWidth.fields.separator"></td>
           <template v-for="(item, index) in fieldsSequance" :key="index">
             <td
@@ -310,7 +311,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, computed, ref, onUpdated } from "vue";
+import {reactive, onMounted, watch, computed, ref, onUpdated, onBeforeUnmount, onBeforeMount} from "vue";
 import { useRouter } from "vue-router";
 import { useItemStore } from "src/stores/itemStore";
 import { useAppConfigStore } from "src/stores/appConfigStore";
@@ -350,15 +351,6 @@ const fieldsSequance = [
   "units",
 ];
 const fieldsDetails = [
-  {
-    label: "ID групи",
-    searchBarLabel: "Значення ID групи",
-    type: "universal",
-    orderButtonLabels: {
-      up: "Від 0 до 9, від A до Z, від А до Я",
-      down: "Від Я до А, від Z до A, від 9 до 0",
-    },
-  },
   {
     label: "Артикль",
     searchBarLabel: "Значення артиклю",
@@ -449,6 +441,15 @@ const fieldsDetails = [
       down: "Від Я до А, від Z до A, від 9 до 0",
     },
   },
+  {
+    label: "ID групи",
+    searchBarLabel: "Значення ID групи",
+    type: "universal",
+    orderButtonLabels: {
+      up: "Від 0 до 9, від A до Z, від А до Я",
+      down: "Від Я до А, від Z до A, від 9 до 0",
+    },
+  }
 ];
 
 const allowenses = {
@@ -847,6 +848,14 @@ onMounted(() => {
     }
   }
 });
+
+onBeforeUnmount(() => {
+  sectionStore.$reset();
+})
+
+onBeforeMount(() => {
+  sectionStore.receive()
+})
 </script>
 
 <style scoped>

@@ -287,7 +287,12 @@ class ContactsController extends Controller
         $section = $sectionModel::query()->find($id);
 
         if ($section == null) {
-            return ErrorHandler::responseWith('Витрату не знайдено');
+            return ErrorHandler::responseWith('Контакт не знайдено');
+        }
+
+        // Check if contact is used in any orders
+        if ($section->orders()->exists()) {
+            return ErrorHandler::responseWith('Неможливо видалити контакт, оскільки він використовується в замовленнях');
         }
 
         $section->delete();

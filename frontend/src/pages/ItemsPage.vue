@@ -338,7 +338,6 @@ const router = useRouter();
 const $q = useQuasar();
 
 const fieldsSequance = [
-  "group_id",
   "article",
   "title",
   "description",
@@ -349,6 +348,7 @@ const fieldsSequance = [
   "color",
   "amount",
   "units",
+  "group_id"
 ];
 const fieldsDetails = [
   {

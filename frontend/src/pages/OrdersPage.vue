@@ -374,7 +374,7 @@
                 hide-dropdown-icon
                 use-input
                 @filter="userFilterLevel1"
-                label="Повна (8%)"
+                label="Повна (11%)"
                 :loading="userLoadingStates.level1"
                 :disable="completeItem.involvement_level_2_user_id !== null || completeItem.involvement_level_3_user_id !== null"
               >
@@ -407,7 +407,7 @@
                 hide-dropdown-icon
                 use-input
                 @filter="userFilterLevel2"
-                label="Часткова (5%)"
+                label="Часткова (8%)"
                 :loading="userLoadingStates.level2"
                 :disable="completeItem.involvement_level_1_user_id !== null"
               >
@@ -440,7 +440,7 @@
                 hide-dropdown-icon
                 use-input
                 @filter="userFilterLevel3"
-                label="Дотична (3%)"
+                label="Дотична (5%)"
                 :loading="userLoadingStates.level3"
                 :disable="completeItem.involvement_level_1_user_id !== null"
               >

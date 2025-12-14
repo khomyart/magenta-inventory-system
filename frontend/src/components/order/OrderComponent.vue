@@ -205,13 +205,13 @@ const involvedUsers = computed(() => {
   const users = [];
 
   if (props.itemInfo.involvement_level_1_user) {
-    users.push(`${props.itemInfo.involvement_level_1_user.name} (8%)`);
+    users.push(`${props.itemInfo.involvement_level_1_user.name} (11%)`);
   }
   if (props.itemInfo.involvement_level_2_user) {
-    users.push(`${props.itemInfo.involvement_level_2_user.name} (5%)`);
+    users.push(`${props.itemInfo.involvement_level_2_user.name} (8%)`);
   }
   if (props.itemInfo.involvement_level_3_user) {
-    users.push(`${props.itemInfo.involvement_level_3_user.name} (3%)`);
+    users.push(`${props.itemInfo.involvement_level_3_user.name} (5%)`);
   }
 
   return users.length > 0 ? users.join(', ') : '-';

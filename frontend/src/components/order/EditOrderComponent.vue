@@ -953,7 +953,7 @@ function userFilterLevel3(val, update, abort) {
                 clearable
                 use-input
                 @filter="userFilterLevel1"
-                label="Повна (8%)"
+                label="Повна (11%)"
                 :loading="userLoadingStates.level1"
                 :disable="editedItem.involvement_level_2_user_id !== null || editedItem.involvement_level_3_user_id !== null"
               >
@@ -986,7 +986,7 @@ function userFilterLevel3(val, update, abort) {
                 clearable
                 use-input
                 @filter="userFilterLevel2"
-                label="Часткова (5%)"
+                label="Часткова (8%)"
                 :loading="userLoadingStates.level2"
                 :disable="editedItem.involvement_level_1_user_id !== null"
               >
@@ -1019,7 +1019,7 @@ function userFilterLevel3(val, update, abort) {
                 clearable
                 use-input
                 @filter="userFilterLevel3"
-                label="Дотична (3%)"
+                label="Дотична (5%)"
                 :loading="userLoadingStates.level3"
                 :disable="editedItem.involvement_level_1_user_id !== null"
               >

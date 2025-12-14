@@ -22,7 +22,7 @@ class UserInvolvementCalculatorTest extends TestCase
     }
 
     /**
-     * Test user involvement with level 1 (8%)
+     * Test user involvement with level 1 (11%)
      */
     public function test_calculate_user_involvement_with_level_1(): void
     {
@@ -45,15 +45,15 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertEquals($user->id, $result[0]['user_id']);
         $this->assertEquals('John Doe', $result[0]['user_name']);
         $this->assertEquals(1, $result[0]['involvement_level']);
-        $this->assertEquals(8, $result[0]['involvement_percentage']);
+        $this->assertEquals(11, $result[0]['involvement_percentage']);
         $this->assertEquals(1, $result[0]['orders_count']);
         $this->assertEquals(10000, $result[0]['total_orders_amount']);
-        // 10000 * 8% = 800
-        $this->assertEquals(800, $result[0]['earnings']);
+        // 10000 * 11% = 1100
+        $this->assertEquals(1100, $result[0]['earnings']);
     }
 
     /**
-     * Test user involvement with level 2 (5%)
+     * Test user involvement with level 2 (8%)
      */
     public function test_calculate_user_involvement_with_level_2(): void
     {
@@ -75,13 +75,13 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertEquals($user->id, $result[0]['user_id']);
         $this->assertEquals(2, $result[0]['involvement_level']);
-        $this->assertEquals(5, $result[0]['involvement_percentage']);
-        // 10000 * 5% = 500
-        $this->assertEquals(500, $result[0]['earnings']);
+        $this->assertEquals(8, $result[0]['involvement_percentage']);
+        // 10000 * 8% = 800
+        $this->assertEquals(800, $result[0]['earnings']);
     }
 
     /**
-     * Test user involvement with level 3 (3%)
+     * Test user involvement with level 3 (5%)
      */
     public function test_calculate_user_involvement_with_level_3(): void
     {
@@ -103,9 +103,9 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertEquals($user->id, $result[0]['user_id']);
         $this->assertEquals(3, $result[0]['involvement_level']);
-        $this->assertEquals(3, $result[0]['involvement_percentage']);
-        // 10000 * 3% = 300
-        $this->assertEquals(300, $result[0]['earnings']);
+        $this->assertEquals(5, $result[0]['involvement_percentage']);
+        // 10000 * 5% = 500
+        $this->assertEquals(500, $result[0]['earnings']);
     }
 
     /**
@@ -141,8 +141,8 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertEquals(2, $result[0]['orders_count']);
         $this->assertEquals(8000, $result[0]['total_orders_amount']); // 5000 + 3000
-        // (5000 + 3000) * 8% = 640
-        $this->assertEquals(640, $result[0]['earnings']);
+        // (5000 + 3000) * 11% = 880
+        $this->assertEquals(880, $result[0]['earnings']);
     }
 
     /**
@@ -154,7 +154,7 @@ class UserInvolvementCalculatorTest extends TestCase
         $user2 = User::factory()->create(['name' => 'User 2']);
         $user3 = User::factory()->create(['name' => 'User 3']);
 
-        // User 1: 10000 * 8% = 800
+        // User 1: 10000 * 11% = 1100
         Order::factory()->create([
             'status' => 'completed',
             'fully_payed_at' => now(),
@@ -163,7 +163,7 @@ class UserInvolvementCalculatorTest extends TestCase
             'amount_of_advance_payment_on_card' => 10000,
         ]);
 
-        // User 2: 30000 * 5% = 1500
+        // User 2: 30000 * 8% = 2400
         Order::factory()->create([
             'status' => 'completed',
             'fully_payed_at' => now(),
@@ -172,7 +172,7 @@ class UserInvolvementCalculatorTest extends TestCase
             'amount_of_advance_payment_on_card' => 30000,
         ]);
 
-        // User 3: 20000 * 3% = 600
+        // User 3: 20000 * 5% = 1000
         Order::factory()->create([
             'status' => 'completed',
             'fully_payed_at' => now(),
@@ -187,13 +187,13 @@ class UserInvolvementCalculatorTest extends TestCase
         $result = $this->calculator->calculateUserInvolvement($startDate, $endDate);
 
         $this->assertCount(3, $result);
-        // Should be sorted by earnings descending: User2(1500), User1(800), User3(600)
+        // Should be sorted by earnings descending: User2(2400), User1(1100), User3(1000)
         $this->assertEquals($user2->id, $result[0]['user_id']);
-        $this->assertEquals(1500, $result[0]['earnings']);
+        $this->assertEquals(2400, $result[0]['earnings']);
         $this->assertEquals($user1->id, $result[1]['user_id']);
-        $this->assertEquals(800, $result[1]['earnings']);
+        $this->assertEquals(1100, $result[1]['earnings']);
         $this->assertEquals($user3->id, $result[2]['user_id']);
-        $this->assertEquals(600, $result[2]['earnings']);
+        $this->assertEquals(1000, $result[2]['earnings']);
     }
 
     /**
@@ -230,8 +230,8 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertEquals('Test User', $result['user_name']);
         $this->assertEquals(2, $result['orders_count']);
         $this->assertEquals(15000, $result['total_orders_amount']); // 5000 + 10000
-        // (5000 * 8%) + (10000 * 5%) = 400 + 500 = 900
-        $this->assertEquals(900, $result['earnings']);
+        // (5000 * 11%) + (10000 * 8%) = 550 + 800 = 1350
+        $this->assertEquals(1350, $result['earnings']);
     }
 
     /**
@@ -302,8 +302,8 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertEquals(1, $result[0]['orders_count']);
         $this->assertEquals(5000, $result[0]['total_orders_amount']);
-        // 5000 * 8% = 400
-        $this->assertEquals(400, $result[0]['earnings']);
+        // 5000 * 11% = 550
+        $this->assertEquals(550, $result[0]['earnings']);
     }
 
     /**
@@ -335,7 +335,7 @@ class UserInvolvementCalculatorTest extends TestCase
         $this->assertCount(1, $result);
         // Total: 1000 + 500 + 300 + 2000 + 1000 + 200 = 5000
         $this->assertEquals(5000, $result[0]['total_orders_amount']);
-        // 5000 * 8% = 400
-        $this->assertEquals(400, $result[0]['earnings']);
+        // 5000 * 11% = 550
+        $this->assertEquals(550, $result[0]['earnings']);
     }
 }

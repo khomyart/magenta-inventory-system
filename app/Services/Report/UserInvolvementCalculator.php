@@ -11,9 +11,9 @@ class UserInvolvementCalculator
     /**
      * Involvement level percentages
      */
-    private const LEVEL_1_PERCENTAGE = 8; // Full involvement
-    private const LEVEL_2_PERCENTAGE = 5; // Partial involvement
-    private const LEVEL_3_PERCENTAGE = 3; // Tangent involvement
+    private const LEVEL_1_PERCENTAGE = 11; // Full involvement
+    private const LEVEL_2_PERCENTAGE = 8; // Partial involvement
+    private const LEVEL_3_PERCENTAGE = 5; // Tangent involvement
 
     /**
      * Calculate user involvement statistics for the specified period
@@ -29,7 +29,7 @@ class UserInvolvementCalculator
         $userInvolvement = [];
 
         foreach ($orders as $order) {
-            // Level 1 user (8%)
+            // Level 1 user (11%)
             if ($order->involvement_level_1_user_id) {
                 $userId = $order->involvement_level_1_user_id;
                 $this->addUserInvolvement(
@@ -41,7 +41,7 @@ class UserInvolvementCalculator
                 );
             }
 
-            // Level 2 user (5%)
+            // Level 2 user (8%)
             if ($order->involvement_level_2_user_id) {
                 $userId = $order->involvement_level_2_user_id;
                 $this->addUserInvolvement(
@@ -53,7 +53,7 @@ class UserInvolvementCalculator
                 );
             }
 
-            // Level 3 user (3%)
+            // Level 3 user (5%)
             if ($order->involvement_level_3_user_id) {
                 $userId = $order->involvement_level_3_user_id;
                 $this->addUserInvolvement(

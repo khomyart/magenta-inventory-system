@@ -104,6 +104,7 @@ export const useReportStore = defineStore("report", {
       if (!state.report?.summary) return null;
       return {
         total: state.report.summary.total_revenue,
+        breakdown: state.report.summary.revenue_breakdown,
         orders_count: state.report.summary.completed_orders_count,
       };
     },
@@ -115,6 +116,7 @@ export const useReportStore = defineStore("report", {
       if (!state.report?.summary) return null;
       return {
         total: state.report.summary.total_expenses,
+        breakdown: state.report.summary.expenses_breakdown,
         spends_count: state.report.summary.spends_count,
       };
     },

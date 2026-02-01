@@ -8,7 +8,9 @@ const sectionStore = useSpendStore();
 const appStore = useAppConfigStore();
 function showCreateDialog() {
   newItem.title = "";
-  newItem.price = "";
+  newItem.amount_on_card = 0;
+  newItem.amount_via_terminal = 0;
+  newItem.amount_as_cash = 0;
   newItem.currency = "UAH";
   newItem.happened_at = "";
   newItem.is_hidden = false;
@@ -17,7 +19,9 @@ function showCreateDialog() {
 
 let newItem = reactive({
   title: "",
-  price: "",
+  amount_on_card: 0,
+  amount_via_terminal: 0,
+  amount_as_cash: 0,
   currency: "",
   happened_at: "",
   is_hidden: false
@@ -64,25 +68,46 @@ const setCurrentDate = () => {
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
           />
-          <q-input
-            outlined
-            class="col-6"
-            v-model="newItem.price"
-            label="Ціна"
-            type="number"
-            step="0.01"
-            :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-                (val) => val >= 0.1 || 'Не менше 0.1',
-              ]"
-          />
           <q-select
             hide-dropdown-icon
             outlined
             v-model="newItem.currency"
             label="Валюта"
             :options="['UAH', 'USD', 'EUR']"
-            class="col-6"
+            class="col-12"
+          />
+          <q-input
+            outlined
+            class="col-4"
+            v-model="newItem.amount_on_card"
+            label="Картка"
+            type="number"
+            step="0.01"
+            :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
+          />
+          <q-input
+            outlined
+            class="col-4"
+            v-model="newItem.amount_via_terminal"
+            label="Рахунок"
+            type="number"
+            step="0.01"
+            :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
+          />
+          <q-input
+            outlined
+            class="col-4"
+            v-model="newItem.amount_as_cash"
+            label="Готівка"
+            type="number"
+            step="0.01"
+            :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
           />
           <DateTimeInputComponent label="Дата витрати" class="full-width" v-model="newItem.happened_at" use-rules>
           </DateTimeInputComponent>

@@ -103,6 +103,19 @@ const priceForCopying = computed(() => {
 
   return priceForCopying;
 });
+
+const paymentDetails = computed(() => {
+  const details = [];
+  const card = parseFloat(props.itemInfo.amount_on_card) || 0;
+  const terminal = parseFloat(props.itemInfo.amount_via_terminal) || 0;
+  const cash = parseFloat(props.itemInfo.amount_as_cash) || 0;
+
+  if (card > 0) details.push(`Картка: ${currencyIcon.value}${card.toFixed(2)}`);
+  if (terminal > 0) details.push(`Рахунок: ${currencyIcon.value}${terminal.toFixed(2)}`);
+  if (cash > 0) details.push(`Готівка: ${currencyIcon.value}${cash.toFixed(2)}`);
+
+  return details.length > 0 ? details.join('\n') : 'Деталі відсутні';
+});
 </script>
 
 <template>
@@ -214,6 +227,10 @@ const priceForCopying = computed(() => {
       >
         <div class="item-text">
           {{ `${currencyIcon}${unconvertedPrice} ${convertedPrice}` }}
+          <q-tooltip max-width="300px" class="bg-black text-body2">
+            <div class="text-bold q-mb-xs">Деталізація вартості:</div>
+            <div style="white-space: pre-wrap;">{{ paymentDetails }}</div>
+          </q-tooltip>
         </div>
       </div>
     </td>

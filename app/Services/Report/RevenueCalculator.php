@@ -14,18 +14,27 @@ class RevenueCalculator
      *
      * @param Carbon $startDate Start date of the period
      * @param Carbon $endDate End date of the period
-     * @return array Array with 'total', 'by_day', and 'orders_count' keys
+     * @return array Array with 'total', 'breakdown', 'by_day', and 'orders_count' keys
      */
     public function calculateRevenue(Carbon $startDate, Carbon $endDate): array
     {
         $orders = $this->getCompletedAndPaidOrders($startDate, $endDate);
 
         $totalRevenue = 0;
+        $breakdown = [
+            'cash' => 0,
+            'card' => 0,
+            'terminal' => 0,
+        ];
         $revenueByDay = [];
 
         foreach ($orders as $order) {
             $orderRevenue = $this->calculateOrderRevenue($order);
             $totalRevenue += $orderRevenue;
+
+            $breakdown['cash'] += ($order->amount_of_advance_payment_as_cash ?? 0) + ($order->amount_of_final_payment_as_cash ?? 0);
+            $breakdown['card'] += ($order->amount_of_advance_payment_on_card ?? 0) + ($order->amount_of_final_payment_on_card ?? 0);
+            $breakdown['terminal'] += ($order->amount_of_advance_payment_via_terminal ?? 0) + ($order->amount_of_final_payment_via_terminal ?? 0);
 
             // Group revenue by day (using completed_at date)
             $date = Carbon::parse($order->completed_at)->format('Y-m-d');
@@ -37,6 +46,7 @@ class RevenueCalculator
 
         return [
             'total' => $totalRevenue,
+            'breakdown' => $breakdown,
             'by_day' => $revenueByDay,
             'orders_count' => $orders->count(),
         ];

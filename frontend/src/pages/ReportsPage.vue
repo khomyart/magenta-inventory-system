@@ -140,6 +140,13 @@
               <div class="text-h4 text-positive q-mt-sm">
                 {{ formatCurrency(reportStore.revenue?.total || 0) }}
               </div>
+              <div class="q-mt-sm text-caption text-grey-8">
+                <div v-if="reportStore.revenue?.breakdown">
+                  <div>Картка: {{ formatCurrency(reportStore.revenue.breakdown.card || 0) }}</div>
+                  <div>Термінал: {{ formatCurrency(reportStore.revenue.breakdown.terminal || 0) }}</div>
+                  <div>Готівка: {{ formatCurrency(reportStore.revenue.breakdown.cash || 0) }}</div>
+                </div>
+              </div>
               <div class="text-caption text-grey-7 q-mt-xs">
                 Замовлень: {{ reportStore.revenue?.orders_count || 0 }}
               </div>
@@ -154,6 +161,13 @@
               <div class="text-overline text-grey-7">Витрати</div>
               <div class="text-h4 text-negative q-mt-sm">
                 {{ formatCurrency(reportStore.expenses?.total || 0) }}
+              </div>
+              <div class="q-mt-sm text-caption text-grey-8">
+                <div v-if="reportStore.expenses?.breakdown">
+                  <div>Картка: {{ formatCurrency(reportStore.expenses.breakdown.card || 0) }}</div>
+                  <div>Рахунок: {{ formatCurrency(reportStore.expenses.breakdown.terminal || 0) }}</div>
+                  <div>Готівка: {{ formatCurrency(reportStore.expenses.breakdown.cash || 0) }}</div>
+                </div>
               </div>
               <div class="text-caption text-grey-7 q-mt-xs">
                 Записів: {{ reportStore.expenses?.spends_count || 0 }}
@@ -176,6 +190,28 @@
                 "
               >
                 {{ formatCurrency(reportStore.profit?.total || 0) }}
+              </div>
+              <div class="q-mt-sm text-caption text-grey-8">
+                <div v-if="reportStore.revenue?.breakdown && reportStore.expenses?.breakdown">
+                  <div>
+                    Картка:
+                    <span :class="(reportStore.revenue.breakdown.card - reportStore.expenses.breakdown.card) >= 0 ? 'text-green' : 'text-red'">
+                      {{ formatCurrency(reportStore.revenue.breakdown.card - reportStore.expenses.breakdown.card) }}
+                    </span>
+                  </div>
+                  <div>
+                    Рахунок/Термінал:
+                    <span :class="(reportStore.revenue.breakdown.terminal - reportStore.expenses.breakdown.terminal) >= 0 ? 'text-green' : 'text-red'">
+                      {{ formatCurrency(reportStore.revenue.breakdown.terminal - reportStore.expenses.breakdown.terminal) }}
+                    </span>
+                  </div>
+                  <div>
+                    Готівка:
+                    <span :class="(reportStore.revenue.breakdown.cash - reportStore.expenses.breakdown.cash) >= 0 ? 'text-green' : 'text-red'">
+                      {{ formatCurrency(reportStore.revenue.breakdown.cash - reportStore.expenses.breakdown.cash) }}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div class="text-caption text-grey-7 q-mt-xs">
                 Маржа:

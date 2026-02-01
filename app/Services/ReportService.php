@@ -104,7 +104,9 @@ class ReportService
             ],
             'summary' => [
                 'total_revenue' => round($revenueData['total'], 2),
+                'revenue_breakdown' => $revenueData['breakdown'] ?? [],
                 'total_expenses' => round($expensesData['total'], 2),
+                'expenses_breakdown' => $expensesData['breakdown'] ?? [],
                 'total_profit' => round($profitData['total'], 2),
                 'profit_margin_percentage' => $profitMargin,
                 'total_orders' => $orderStatistics['total'],
@@ -136,16 +138,16 @@ class ReportService
     public function getReportSummary(Carbon $startDate, Carbon $endDate): array
     {
         // Calculate totals
-        $totalRevenue = $this->revenueCalculator->getTotalRevenue($startDate, $endDate);
+        $revenueData = $this->revenueCalculator->calculateRevenue($startDate, $endDate);
         $expensesData = $this->expenseCalculator->calculateExpenses($startDate, $endDate);
-        $totalProfit = $totalRevenue - $expensesData['total'];
+        $totalProfit = $revenueData['total'] - $expensesData['total'];
 
         // Get order statistics
         $orderStatistics = $this->orderStatisticsCalculator->getOrdersDistribution($startDate, $endDate);
         $averageOrderValue = $this->orderStatisticsCalculator->calculateAverageOrderValue($startDate, $endDate);
 
         // Calculate profit margin
-        $profitMargin = $this->profitCalculator->calculateProfitMargin($totalProfit, $totalRevenue);
+        $profitMargin = $this->profitCalculator->calculateProfitMargin($totalProfit, $revenueData['total']);
 
         return [
             'period' => [
@@ -153,8 +155,10 @@ class ReportService
                 'end_date' => $endDate->format('Y-m-d H:i'),
             ],
             'summary' => [
-                'total_revenue' => round($totalRevenue, 2),
+                'total_revenue' => round($revenueData['total'], 2),
+                'revenue_breakdown' => $revenueData['breakdown'] ?? [],
                 'total_expenses' => round($expensesData['total'], 2),
+                'expenses_breakdown' => $expensesData['breakdown'] ?? [],
                 'total_profit' => round($totalProfit, 2),
                 'profit_margin_percentage' => $profitMargin,
                 'total_orders' => $orderStatistics['total'],

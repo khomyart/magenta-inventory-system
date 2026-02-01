@@ -13,28 +13,38 @@ class ExpenseCalculator
      *
      * @param Carbon $startDate Start date of the period
      * @param Carbon $endDate End date of the period
-     * @return array Array with 'total', 'by_day', and 'spends_count' keys
+     * @return array Array with 'total', 'breakdown', 'by_day', and 'spends_count' keys
      */
     public function calculateExpenses(Carbon $startDate, Carbon $endDate): array
     {
         $spends = $this->getSpends($startDate, $endDate);
 
         $totalExpenses = 0;
+        $breakdown = [
+            'cash' => 0,
+            'card' => 0,
+            'terminal' => 0,
+        ];
         $expensesByDay = [];
 
         foreach ($spends as $spend) {
-            $totalExpenses += $spend->price;
+            $totalExpenses += $spend->total_price;
+
+            $breakdown['cash'] += $spend->amount_as_cash ?? 0;
+            $breakdown['card'] += $spend->amount_on_card ?? 0;
+            $breakdown['terminal'] += $spend->amount_via_terminal ?? 0;
 
             // Group expenses by day (using happened_at date)
             $date = Carbon::parse($spend->happened_at)->format('Y-m-d');
             if (! isset($expensesByDay[$date])) {
                 $expensesByDay[$date] = 0;
             }
-            $expensesByDay[$date] += $spend->price;
+            $expensesByDay[$date] += $spend->total_price;
         }
 
         return [
             'total' => $totalExpenses,
+            'breakdown' => $breakdown,
             'by_day' => $expensesByDay,
             'spends_count' => $spends->count(),
         ];

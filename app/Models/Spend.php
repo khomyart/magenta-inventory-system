@@ -11,7 +11,7 @@ class Spend extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'price', 'currency', 'happened_at', 'is_hidden', 'created_by_user_id',
+        'title', 'total_price', 'amount_on_card', 'amount_via_terminal', 'amount_as_cash', 'currency', 'happened_at', 'is_hidden', 'created_by_user_id',
     ];
 
     protected $casts = [

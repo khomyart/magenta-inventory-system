@@ -53,6 +53,12 @@ class RevenueCalculatorTest extends TestCase
 
         // Total: (1000+500+300+2000+1000+200) + (500+1500) = 5000 + 2000 = 7000
         $this->assertEquals(7000, $result['total']);
+        // Cash: 300 + 200 = 500
+        $this->assertEquals(500, $result['breakdown']['cash']);
+        // Card: 1000 + 2000 + 500 + 1500 = 5000
+        $this->assertEquals(5000, $result['breakdown']['card']);
+        // Terminal: 500 + 1000 = 1500
+        $this->assertEquals(1500, $result['breakdown']['terminal']);
         $this->assertEquals(2, $result['orders_count']);
         $this->assertIsArray($result['by_day']);
     }

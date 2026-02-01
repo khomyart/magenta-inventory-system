@@ -843,7 +843,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_advance_payment_on_card"
-            label="Карткою онлайн"
+            label="Картка"
             type="number"
             step="0.01"
             class="col-4"
@@ -852,7 +852,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_advance_payment_via_terminal"
-            label="Терміналом"
+            label="Термінал"
             type="number"
             step="0.01"
             class="col-4"
@@ -861,7 +861,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_advance_payment_as_cash"
-            label="Готівкою"
+            label="Готівка"
             type="number"
             step="0.01"
             class="col-4"
@@ -872,7 +872,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_final_payment_on_card"
-            label="Карткою онлайн"
+            label="Картка"
             type="number"
             step="0.01"
             class="col-4"
@@ -881,7 +881,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_final_payment_via_terminal"
-            label="Терміналом"
+            label="Термінал"
             type="number"
             step="0.01"
             class="col-4"
@@ -890,7 +890,7 @@ function userFilterLevel3(val, update, abort) {
           <q-input
             outlined
             v-model.number="editedItem.amount_of_final_payment_as_cash"
-            label="Готівкою"
+            label="Готівка"
             type="number"
             step="0.01"
             class="col-4"

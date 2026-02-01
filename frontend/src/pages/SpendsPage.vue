@@ -169,25 +169,46 @@
                 (val) => val.length <= 255 || 'Не більше 255 символів',
               ]"
             />
-            <q-input
-              outlined
-              class="col-6"
-              v-model="updatedItem.price"
-              label="Ціна"
-              type="number"
-              step="0.01"
-              :rules="[
-                (val) => (val !== null && val !== '') || 'Вкажіть ціну',
-                (val) => val >= 0.1 || 'Не менше 0.1',
-              ]"
-            />
             <q-select
               hide-dropdown-icon
               outlined
               v-model="updatedItem.currency"
               label="Валюта"
               :options="['UAH', 'USD', 'EUR']"
-              class="col-6"
+              class="col-12"
+            />
+            <q-input
+              outlined
+              class="col-4"
+              v-model="updatedItem.amount_on_card"
+              label="Картка"
+              type="number"
+              step="0.01"
+              :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
+            />
+            <q-input
+              outlined
+              class="col-4"
+              v-model="updatedItem.amount_via_terminal"
+              label="Рахунок"
+              type="number"
+              step="0.01"
+              :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
+            />
+            <q-input
+              outlined
+              class="col-4"
+              v-model="updatedItem.amount_as_cash"
+              label="Готівка"
+              type="number"
+              step="0.01"
+              :rules="[
+                (val) => val >= 0 || 'Не менше 0',
+              ]"
             />
             <DateTimeInputComponent label="Дата витрати" class="full-width" v-model="updatedItem.happened_at" use-rules>
             </DateTimeInputComponent>
@@ -352,7 +373,9 @@ const allowenses = {
 let updatedItem = reactive({
   id: "",
   title: "",
-  price: "",
+  amount_on_card: 0,
+  amount_via_terminal: 0,
+  amount_as_cash: 0,
   currency: "",
   happened_at: "",
   is_hidden: false
@@ -390,7 +413,9 @@ function showUpdateDialog(item) {
   updatedItem.id = item.id;
   updatedItem.title = item.title;
   updatedItem.currency = item.currency;
-  updatedItem.price = item.unconverted_price;
+  updatedItem.amount_on_card = item.amount_on_card;
+  updatedItem.amount_via_terminal = item.amount_via_terminal;
+  updatedItem.amount_as_cash = item.amount_as_cash;
   updatedItem.happened_at = getClientTime(item.happened_at, "ua", true);
   if (allowenses.hide) {
     updatedItem.is_hidden = !!item.is_hidden;

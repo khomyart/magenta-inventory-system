@@ -18,7 +18,7 @@ class SpendFactory extends Factory
     {
         return [
             'title' => $this->faker->sentence(3),
-            'price' => $this->faker->randomFloat(2, 10, 5000),
+            'total_price' => $this->faker->randomFloat(2, 10, 5000),
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,

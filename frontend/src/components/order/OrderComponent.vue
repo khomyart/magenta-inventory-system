@@ -120,9 +120,9 @@ const advancePaymentDetails = computed(() => {
   const terminal = parseFloat(props.itemInfo.amount_of_advance_payment_via_terminal) || 0;
   const cash = parseFloat(props.itemInfo.amount_of_advance_payment_as_cash) || 0;
 
-  if (card > 0) details.push(`Карткою онлайн: ${currencyIcon.value}${card.toFixed(2)}`);
-  if (terminal > 0) details.push(`Терміналом: ${currencyIcon.value}${terminal.toFixed(2)}`);
-  if (cash > 0) details.push(`Готівкою: ${currencyIcon.value}${cash.toFixed(2)}`);
+  if (card > 0) details.push(`Картка: ${currencyIcon.value}${card.toFixed(2)}`);
+  if (terminal > 0) details.push(`Термінал: ${currencyIcon.value}${terminal.toFixed(2)}`);
+  if (cash > 0) details.push(`Готівка: ${currencyIcon.value}${cash.toFixed(2)}`);
 
   return details.length > 0 ? details.join('\n') : 'Немає авансових платежів';
 });
@@ -133,9 +133,9 @@ const finalPaymentDetails = computed(() => {
   const terminal = parseFloat(props.itemInfo.amount_of_final_payment_via_terminal) || 0;
   const cash = parseFloat(props.itemInfo.amount_of_final_payment_as_cash) || 0;
 
-  if (card > 0) details.push(`Карткою онлайн: ${currencyIcon.value}${card.toFixed(2)}`);
-  if (terminal > 0) details.push(`Терміналом: ${currencyIcon.value}${terminal.toFixed(2)}`);
-  if (cash > 0) details.push(`Готівкою: ${currencyIcon.value}${cash.toFixed(2)}`);
+  if (card > 0) details.push(`Картка: ${currencyIcon.value}${card.toFixed(2)}`);
+  if (terminal > 0) details.push(`Термінал: ${currencyIcon.value}${terminal.toFixed(2)}`);
+  if (cash > 0) details.push(`Готівка: ${currencyIcon.value}${cash.toFixed(2)}`);
 
   return details.length > 0 ? details.join('\n') : 'Немає фінальних платежів';
 });

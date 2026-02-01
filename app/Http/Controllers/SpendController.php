@@ -31,7 +31,9 @@ class SpendController extends Controller
     {
         $fields = [
             'title' => ['required', 'string', 'max:255'],
-            'price' => ['required', 'numeric', 'gte:0.1'],
+            'amount_on_card' => ['required', 'numeric', 'gte:0'],
+            'amount_via_terminal' => ['required', 'numeric', 'gte:0'],
+            'amount_as_cash' => ['required', 'numeric', 'gte:0'],
             'currency' => ['required', Rule::in(['UAH', 'USD', 'EUR'])],
             'happened_at' => ['required', 'date_format:Y-m-d H:i'],
         ];
@@ -179,9 +181,13 @@ class SpendController extends Controller
                             $section->where('currency', '=', $currencyForSearching);
                         }
                         if ($amountOfMoney > 0) {
-                            $section->where('price', $searchOperator, $amountOfMoney);
+                            $section->where('total_price', $searchOperator, $amountOfMoney);
                         }
 
+                        continue;
+                    } else {
+                         // If no currency symbol, just search by amount
+                        $section->where('total_price', $searchOperator, $searchValue);
                         continue;
                     }
                 }
@@ -204,7 +210,11 @@ class SpendController extends Controller
 
         //ordering a query
         if (! empty($data['orderField']) && ! empty($data['orderValue'])) {
-            $section = $section->orderBy($data['orderField'], $data['orderValue']);
+            $orderField = $data['orderField'];
+            if ($orderField === 'price') {
+                $orderField = 'total_price';
+            }
+            $section = $section->orderBy($orderField, $data['orderValue']);
         } else {
             $section = $section->latest();
         }
@@ -238,8 +248,18 @@ class SpendController extends Controller
             return ErrorHandler::responseWith($e->getMessage());
         }
 
+        $data['total_price'] = $data['amount_on_card'] + $data['amount_via_terminal'] + $data['amount_as_cash'];
+
+        if ($data['total_price'] < 0.1) {
+            return ErrorHandler::responseWith('Сума повинна бути більше 0');
+        }
+
         $data['created_by_user_id'] = $this->authAPI->user->id;
         $spend = $sectionModel::create($data);
+
+        $today = Carbon::today()->format('Ymd');
+        SpendResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
+        SpendResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
 
         return response()->json(['spend' => SpendResource::make($spend->load('user'))]);
     }
@@ -277,10 +297,20 @@ class SpendController extends Controller
             return ErrorHandler::responseWith($e->getMessage());
         }
 
+        $data['total_price'] = $data['amount_on_card'] + $data['amount_via_terminal'] + $data['amount_as_cash'];
+
+        if ($data['total_price'] < 0.1) {
+             return ErrorHandler::responseWith('Сума повинна бути більше 0');
+        }
+
         foreach ($data as $field => $value) {
             $section->$field = $value;
         }
         $section->save();
+
+        $today = Carbon::today()->format('Ymd');
+        SpendResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
+        SpendResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
 
         return response()->json(['spend' => SpendResource::make($section->load('user'))]);
     }

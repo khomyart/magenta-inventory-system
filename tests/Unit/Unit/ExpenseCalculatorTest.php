@@ -27,14 +27,20 @@ class ExpenseCalculatorTest extends TestCase
     {
         // Create spends
         Spend::factory()->create([
-            'price' => 1000,
+            'total_price' => 1000,
+            'amount_as_cash' => 500,
+            'amount_on_card' => 300,
+            'amount_via_terminal' => 200,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,
         ]);
 
         Spend::factory()->create([
-            'price' => 2000,
+            'total_price' => 2000,
+            'amount_as_cash' => 1000,
+            'amount_on_card' => 1000,
+            'amount_via_terminal' => 0,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,
@@ -47,6 +53,10 @@ class ExpenseCalculatorTest extends TestCase
 
         // Total: 1000 + 2000 = 3000
         $this->assertEquals(3000, $result['total']);
+        // Breakdown: Cash (500+1000=1500), Card (300+1000=1300), Terminal (200+0=200)
+        $this->assertEquals(1500, $result['breakdown']['cash']);
+        $this->assertEquals(1300, $result['breakdown']['card']);
+        $this->assertEquals(200, $result['breakdown']['terminal']);
         $this->assertEquals(2, $result['spends_count']);
         $this->assertIsArray($result['by_day']);
     }
@@ -58,7 +68,7 @@ class ExpenseCalculatorTest extends TestCase
     {
         // Hidden spend - should be included
         Spend::factory()->create([
-            'price' => 5000,
+            'total_price' => 5000,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => true,
@@ -66,7 +76,7 @@ class ExpenseCalculatorTest extends TestCase
 
         // Visible spend - should be included
         Spend::factory()->create([
-            'price' => 3000,
+            'total_price' => 3000,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,
@@ -91,14 +101,14 @@ class ExpenseCalculatorTest extends TestCase
         $yesterday = Carbon::now()->subDay();
 
         Spend::factory()->create([
-            'price' => 1000,
+            'total_price' => 1000,
             'currency' => 'UAH',
             'happened_at' => $today,
             'is_hidden' => false,
         ]);
 
         Spend::factory()->create([
-            'price' => 2000,
+            'total_price' => 2000,
             'currency' => 'UAH',
             'happened_at' => $yesterday,
             'is_hidden' => false,
@@ -120,14 +130,14 @@ class ExpenseCalculatorTest extends TestCase
     public function test_get_total_expenses(): void
     {
         Spend::factory()->create([
-            'price' => 1500,
+            'total_price' => 1500,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,
         ]);
 
         Spend::factory()->create([
-            'price' => 2500,
+            'total_price' => 2500,
             'currency' => 'UAH',
             'happened_at' => now(),
             'is_hidden' => false,

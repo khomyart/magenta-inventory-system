@@ -274,7 +274,7 @@
             <q-input
               outlined
               v-model.number="confirmedItem.amount_of_advance_payment_on_card"
-              label="Карткою онлайн"
+              label="Картка"
               type="number"
               step="0.01"
               min="0"
@@ -283,7 +283,7 @@
             <q-input
               outlined
               v-model.number="confirmedItem.amount_of_advance_payment_via_terminal"
-              label="Терміналом"
+              label="Термінал"
               type="number"
               step="0.01"
               min="0"
@@ -292,7 +292,7 @@
             <q-input
               outlined
               v-model.number="confirmedItem.amount_of_advance_payment_as_cash"
-              label="Готівкою"
+              label="Готівка"
               type="number"
               step="0.01"
               min="0"
@@ -501,17 +501,17 @@
             class="q-mb-md q-pa-md bg-grey-2" style="border-radius: 8px;">
             <div class="text-subtitle1 q-mb-sm">Вже внесено:</div>
             <div v-if="paymentItem.amount_of_final_payment_on_card > 0" class="text-body2">
-              Карткою онлайн: <span class="text-bold">{{
+              Картка: <span class="text-bold">{{
                 paymentItem.amount_of_final_payment_on_card.toFixed(2)
               }}</span>
             </div>
             <div v-if="paymentItem.amount_of_final_payment_via_terminal > 0" class="text-body2">
-              Терміналом: <span class="text-bold">{{
+              Термінал: <span class="text-bold">{{
                 paymentItem.amount_of_final_payment_via_terminal.toFixed(2)
               }}</span>
             </div>
             <div v-if="paymentItem.amount_of_final_payment_as_cash > 0" class="text-body2">
-              Готівкою: <span class="text-bold">{{ paymentItem.amount_of_final_payment_as_cash.toFixed(2) }}</span>
+              Готівка: <span class="text-bold">{{ paymentItem.amount_of_final_payment_as_cash.toFixed(2) }}</span>
             </div>
           </div>
 
@@ -521,7 +521,7 @@
             <q-input
               outlined
               v-model.number="paymentItem.amount_of_final_payment_on_card_new"
-              label="Карткою онлайн"
+              label="Картка"
               type="number"
               step="0.01"
               min="0"
@@ -542,7 +542,7 @@
             <q-input
               outlined
               v-model.number="paymentItem.amount_of_final_payment_via_terminal_new"
-              label="Терміналом"
+              label="Термінал"
               type="number"
               step="0.01"
               min="0"
@@ -563,7 +563,7 @@
             <q-input
               outlined
               v-model.number="paymentItem.amount_of_final_payment_as_cash_new"
-              label="Готівкою"
+              label="Готівка"
               type="number"
               step="0.01"
               min="0"

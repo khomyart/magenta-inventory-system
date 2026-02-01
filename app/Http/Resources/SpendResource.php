@@ -23,12 +23,15 @@ class SpendResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'unconverted_price' => (float) $this->price,
+            'unconverted_price' => (float) $this->total_price,
             'converted_price_to_uah' => match ($this->currency) {
-                'USD' => $this->price * self::$dollarCurrencyExchangeCoefficient,
-                'EUR' => $this->price * self::$euroCurrencyExchangeCoefficient,
+                'USD' => $this->total_price * self::$dollarCurrencyExchangeCoefficient,
+                'EUR' => $this->total_price * self::$euroCurrencyExchangeCoefficient,
                 default => null
             },
+            'amount_on_card' => (float) $this->amount_on_card,
+            'amount_via_terminal' => (float) $this->amount_via_terminal,
+            'amount_as_cash' => (float) $this->amount_as_cash,
             'currency' => $this->currency,
             'created_by_user' => $this->whenLoaded('user', $this->user),
             'is_hidden' => $this->when(self::$isUserAllowedToSeeHidden, $this->is_hidden),

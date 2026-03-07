@@ -194,15 +194,9 @@
               <div class="q-mt-sm text-caption text-grey-8">
                 <div v-if="reportStore.revenue?.breakdown && reportStore.expenses?.breakdown">
                   <div>
-                    Картка:
-                    <span :class="(reportStore.revenue.breakdown.card - reportStore.expenses.breakdown.card) >= 0 ? 'text-green' : 'text-red'">
-                      {{ formatCurrency(reportStore.revenue.breakdown.card - reportStore.expenses.breakdown.card) }}
-                    </span>
-                  </div>
-                  <div>
-                    Рахунок/Термінал:
-                    <span :class="(reportStore.revenue.breakdown.terminal - reportStore.expenses.breakdown.terminal) >= 0 ? 'text-green' : 'text-red'">
-                      {{ formatCurrency(reportStore.revenue.breakdown.terminal - reportStore.expenses.breakdown.terminal) }}
+                    Електронні гроші:
+                    <span :class="((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal)) >= 0 ? 'text-green' : 'text-red'">
+                      {{ formatCurrency((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal)) }}
                     </span>
                   </div>
                   <div>

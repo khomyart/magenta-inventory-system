@@ -19,72 +19,6 @@
           </transition>
         </q-toolbar-title>
 
-        <!--<q-separator vertical />
-        <q-btn
-          color="positive"
-          flat
-          icon-right="arrow_downward"
-          size="13px"
-          square
-          stretch
-        >
-          <span class="toolbar-icon-number"> 350 </span>
-          <q-tooltip
-            :offset="[10, 10]"
-            class="bg-white"
-            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
-          >
-            <div class="toolbar-tooltip-content">
-              <div class="toolbar-tooltip-content-header">Надходження</div>
-              <q-separator></q-separator>
-              <div class="toolbar-tooltip-content-body"></div>
-            </div>
-          </q-tooltip>
-        </q-btn>
-        <q-separator vertical />
-        <q-btn
-          color="negative"
-          flat
-          icon-right="arrow_upward"
-          size="13px"
-          square
-          stretch
-        >
-          <span class="toolbar-icon-number"> 210 </span>
-          <q-tooltip
-            :offset="[10, 10]"
-            class="bg-white"
-            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
-          >
-            <div class="toolbar-tooltip-content">
-              <div class="toolbar-tooltip-content-header">Витрати</div>
-              <q-separator></q-separator>
-              <div class="toolbar-tooltip-content-body"></div>
-            </div>
-          </q-tooltip>
-        </q-btn>
-        <q-btn
-          color="negative"
-          flat
-          icon-right="priority_high"
-          size="13px"
-          square
-          stretch
-        >
-          <span class="toolbar-icon-number"> 3 </span>
-          <q-tooltip
-            :offset="[10, 10]"
-            class="bg-white"
-            style="padding: 0; border: 1px solid rgb(192, 192, 192)"
-          >
-            <div class="toolbar-tooltip-content">
-              <div class="toolbar-tooltip-content-header">Нестача</div>
-              <q-separator></q-separator>
-              <div class="toolbar-tooltip-content-body"></div>
-            </div>
-          </q-tooltip>
-        </q-btn>
-        <q-separator vertical /> -->
         <q-space></q-space>
         <q-btn color="primary" icon="settings" flat round class="q-mr-sm">
           <q-menu :offset="[0, 12]" style="min-width: 200px; text-align: left">
@@ -324,7 +258,8 @@ import SettingsComponent from "src/components/main/SettingsComponent.vue";
 import {useSpendStore} from "stores/spendStore";
 import {useContactStore} from "stores/contactStore";
 import {useServiceStore} from "stores/serviceStore";
-import {useOrderStore} from "stores/orderStore";
+import {useOrderStore} from "src/stores/orderStore";
+import {useBusinessAccountTransactionStore} from "src/stores/businessAccountTransactionStore";
 
 const enableRoleValidation = true;
 
@@ -337,6 +272,7 @@ const store = {
   contacts: useContactStore(),
   services: useServiceStore(),
   orders: useOrderStore(),
+  business_account_transactions: useBusinessAccountTransactionStore(),
   types: useTypeStore(),
   sizes: useSizeStore(),
   genders: useGenderStore(),
@@ -357,7 +293,18 @@ const menuItems = [
       store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
       store.app.allowenses.renewAndCheckIsValidFor("read", "services") ||
       store.app.allowenses.renewAndCheckIsValidFor("read", "orders") ||
-      store.app.allowenses.renewAndCheckIsValidFor("read", "reports")
+      store.app.allowenses.renewAndCheckIsValidFor("read", "reports") ||
+      store.app.allowenses.renewAndCheckIsValidFor("read", "business_account_transactions")
+  },
+  {
+    name: "Транзакції",
+    icon: "swap_horiz",
+    to: { name: "business_account_transactions" },
+    onClick: (pageName) => {
+      pageLoadAfterClickOnMenuItem(pageName);
+    },
+    type: "item",
+    isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "business_account_transactions"),
   },
   {
     name: "Послуги",
@@ -416,7 +363,8 @@ const menuItems = [
         store.app.allowenses.renewAndCheckIsValidFor("read", "contacts") ||
         store.app.allowenses.renewAndCheckIsValidFor("read", "services") ||
         store.app.allowenses.renewAndCheckIsValidFor("read", "orders") ||
-        store.app.allowenses.renewAndCheckIsValidFor("read", "reports")) &&
+        store.app.allowenses.renewAndCheckIsValidFor("read", "reports") ||
+        store.app.allowenses.renewAndCheckIsValidFor("read", "business_account_transactions")) &&
       (store.app.allowenses.renewAndCheckIsValidFor("read", "items") ||
         store.app.allowenses.renewAndCheckIsValidFor("read", "logs")),
   },
@@ -530,31 +478,6 @@ const menuItems = [
     type: "item",
     isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "units"),
   },
-  // {
-  //   type: "separator",
-  //   isAllowed:
-  //     (store.app.allowenses.renewAndCheckIsValidFor("read", "types") ||
-  //       store.app.allowenses.renewAndCheckIsValidFor("read", "sizes") ||
-  //       store.app.allowenses.renewAndCheckIsValidFor("read", "genders") ||
-  //       store.app.allowenses.renewAndCheckIsValidFor("read", "colors") ||
-  //       store.app.allowenses.renewAndCheckIsValidFor("read", "warehouses") ||
-  //       store.app.allowenses.renewAndCheckIsValidFor("read", "units")) &&
-  //     store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  // },
-  // {
-  //   name: "Налаштування",
-  //   type: "header",
-  //   isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  // },
-  // {
-  //   name: "Користувачі",
-  //   icon: "manage_accounts",
-  //   to: {name: "users"},
-  //   onClick: (pageName) => {
-  //   },
-  //   type: "item",
-  //   isAllowed: store.app.allowenses.renewAndCheckIsValidFor("read", "users"),
-  // },
 ];
 
 function pageLoadAfterClickOnMenuItem(pageName) {

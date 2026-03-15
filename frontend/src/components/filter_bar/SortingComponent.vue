@@ -104,11 +104,11 @@ function clearAllFilters() {
   // Define numeric fields that should use "more" filter mode
   const numericFields = ['price', 'amount', 'id', 'total_price', 'advance_payment', 'final_payment', 'remaining_to_pay'];
   // Define select fields that should use "equal" filter mode
-  const selectFields = ['status'];
+  const selectFields = ['status', 'type'];
   // Define date "from" fields that should use "more" filter mode
-  const dateFromFields = ['completion_deadline_from', 'created_at_from', 'completed_at_from', 'fully_payed_at_from'];
+  const dateFromFields = ['completion_deadline_from', 'created_at_from', 'completed_at_from', 'fully_payed_at_from', 'happened_at_from'];
   // Define date "to" fields that should use "less" filter mode
-  const dateToFields = ['completion_deadline_to', 'created_at_to', 'completed_at_to', 'fully_payed_at_to'];
+  const dateToFields = ['completion_deadline_to', 'created_at_to', 'completed_at_to', 'fully_payed_at_to', 'happened_at_to'];
   // Define boolean fields (is_null) that should be reset to false
   const booleanFields = ['completion_deadline_is_null', 'created_at_is_null', 'completed_at_is_null', 'fully_payed_at_is_null'];
 

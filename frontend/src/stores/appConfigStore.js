@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useAppConfigStore = defineStore("appConfig", {
   state: () => ({
-    version: 18,
+    version: 21,
     //axios has its own config
     backendUrl: import.meta.env.VITE_BACKEND_ADDRESS,
     imagesStoreUrl: import.meta.env.VITE_IMAGES_ADDRESS,
@@ -752,6 +752,39 @@ export const useAppConfigStore = defineStore("appConfig", {
             involved_users: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
           },
         },
+        business_account_transactions: {
+          width: {
+            default: {
+              title: 200,
+              type: 100,
+              total_price: 150,
+              happened_at: 150,
+              created_at: 150,
+              created_by_user: 150,
+            },
+            dynamic: {
+              title: 200,
+              type: 100,
+              total_price: 150,
+              happened_at: 150,
+              created_at: 150,
+              created_by_user: 150,
+            },
+          },
+          selectedParams: {
+            order: { field: "", value: "", combined: "" },
+            title: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
+            type: { value: "", filterMode: { label: "Дорівнює", value: "equal", shortName: "EQL" }},
+            total_price: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            happened_at: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            happened_at_from: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            happened_at_to: { value: "", filterMode: { label: "Менше", value: "less", shortName: "LESS" }},
+            created_at: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            created_at_from: { value: "", filterMode: { label: "Більше", value: "more", shortName: "MORE" }},
+            created_at_to: { value: "", filterMode: { label: "Менше", value: "less", shortName: "LESS" }},
+            created_by_user: { value: "", filterMode: { label: "Містить", value: "include", shortName: "LIKE" }},
+          },
+        },
       },
       availableParams: {
         minFilterWidth: 60,
@@ -814,6 +847,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       contacts: 10,
       services: 10,
       orders: 10,
+      business_account_transactions: 10,
     },
     currentPages: {
       items: 0,
@@ -827,6 +861,7 @@ export const useAppConfigStore = defineStore("appConfig", {
       contacts: 0,
       services: 0,
       orders: 0,
+      business_account_transactions: 0,
     },
     availableAmaountOfItemsPerPage: [10, 20, 50],
     other: {
@@ -844,6 +879,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           contacts: 7,
           services: 7,
           orders: 7,
+          business_account_transactions: 7,
         },
         //px
         gapsBetweenItems: {
@@ -858,6 +894,7 @@ export const useAppConfigStore = defineStore("appConfig", {
           contacts: 0,
           services: 0,
           orders: 0,
+          business_account_transactions: 0,
         },
       },
     },

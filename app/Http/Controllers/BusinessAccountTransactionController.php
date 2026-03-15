@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Helpers\AuthAPI;
 use App\Helpers\ErrorHandler;
 use App\Helpers\NbuCurrencyExchangeCoursesService;
-use App\Http\Resources\SpendResource;
-use App\Models\Spend;
+use App\Http\Resources\BusinessAccountTransactionResource;
+use App\Models\BusinessAccountTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
-class SpendController extends Controller
+class BusinessAccountTransactionController extends Controller
 {
-    public string $section = 'spends';
+    public string $section = 'business_account_transactions';
 
     public AuthAPI|false $authAPI;
 
@@ -27,42 +26,29 @@ class SpendController extends Controller
         $this->authAPI = AuthAPI::isAuthenticated($request->bearerToken(), $request->ip());
     }
 
-    private function getFieldsAndRulesForCreatingOrUpdatingSection(bool $includeIsHiddenField): array
+    private function getFieldsAndRulesForCreatingOrUpdatingSection(): array
     {
-        $fields = [
+        return [
             'title' => ['required', 'string', 'max:255'],
             'amount_on_card' => ['required', 'numeric', 'gte:0'],
             'amount_via_terminal' => ['required', 'numeric', 'gte:0'],
             'amount_as_cash' => ['required', 'numeric', 'gte:0'],
             'currency' => ['required', Rule::in(['UAH', 'USD', 'EUR'])],
+            'type' => ['required', Rule::in(['income', 'outcome'])],
             'happened_at' => ['required', 'date_format:Y-m-d H:i'],
-        ];
-
-        if ($includeIsHiddenField) {
-            $fields['is_hidden'] = ['required', 'bool'];
-        }
-
-        return $fields;
-    }
-
-    private function getFieldRulesForOrderingSection(): array
-    {
-        return [
-            'orderField' => ['string', Rule::in(['id', 'title', 'price', 'happened_at', 'created_at', 'created_by_user']), 'nullable'],
         ];
     }
 
     private function getFieldsAndRulesForFilteringSection(): array
     {
         $stringFilters = ['include', 'exclude', 'more', 'less', 'equal', 'notequal'];
-        $numericFilters = ['more', 'less', 'equal', 'notequal'];
         $dateFilters = ['include', 'more', 'less'];
+        $numberFilters = ['more', 'less', 'equal', 'notequal'];
+        $selectFilters = ['equal', 'notequal'];
 
         return [
             'title_filter_value' => ['string', 'nullable'],
             'title_filter_mode' => ['string', Rule::in($stringFilters), 'nullable'],
-            'price_filter_value' => ['string', 'nullable'],
-            'price_filter_mode' => ['string', Rule::in($numericFilters), 'nullable'],
             'happened_at_from_filter_value' => ['string', 'nullable'],
             'happened_at_from_filter_mode' => ['string', Rule::in($dateFilters), 'nullable'],
             'happened_at_to_filter_value' => ['string', 'nullable'],
@@ -71,6 +57,10 @@ class SpendController extends Controller
             'created_at_from_filter_mode' => ['string', Rule::in($dateFilters), 'nullable'],
             'created_at_to_filter_value' => ['string', 'nullable'],
             'created_at_to_filter_mode' => ['string', Rule::in($dateFilters), 'nullable'],
+            'type_filter_value' => ['string', 'nullable'],
+            'type_filter_mode' => ['string', Rule::in($selectFilters), 'nullable'],
+            'total_price_filter_value' => ['string', 'nullable'],
+            'total_price_filter_mode' => ['string', Rule::in($numberFilters), 'nullable'],
             'created_by_user_filter_value' => ['string', 'nullable'],
             'created_by_user_filter_mode' => ['string', Rule::in($stringFilters), 'nullable'],
         ];
@@ -89,33 +79,20 @@ class SpendController extends Controller
         return array_unique($fields);
     }
 
-    /**
-     * Receive a current section model
-     *
-     * @return Spend
-     */
-    public function getSectionModel(): Spend
-    {
-        return new Spend();
-    }
-
-    /**
-     * Display a listing of the resources.
-     *
-     * @param  Request  $request
-     * @return AnonymousResourceCollection|Response
-     */
     public function read(Request $request, NbuCurrencyExchangeCoursesService $coursesService): AnonymousResourceCollection|Response
     {
         $today = Carbon::today()->format('Ymd');
-        $isAbleToSeeHiddenSpends = $this->authAPI->isAuthorizedFor('see_hidden', 'spends');
+        $isAuthorized = $this->authAPI->isAuthorizedFor('read', $this->section);
+        if (!$isAuthorized) {
+            return ErrorHandler::responseWith('Доступ заборонено', 403);
+        }
 
         $rules = [
             'itemsPerPage' => 'required|numeric',
             'page' => 'required|numeric',
             'orderValue' => ['string', Rule::in(['desc', 'asc']), 'nullable'],
+            'orderField' => ['string', Rule::in(['id', 'title', 'happened_at', 'created_at', 'total_price', 'type', 'created_by_user']), 'nullable'],
             ...$this->getFieldsAndRulesForFilteringSection(),
-            ...$this->getFieldRulesForOrderingSection(),
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -128,18 +105,15 @@ class SpendController extends Controller
         } catch (ValidationException $e) {
             return ErrorHandler::responseWith($e->getMessage());
         }
-        $section = Spend::query()->with('user');
-        $section->when(! $isAbleToSeeHiddenSpends, function ($query) {
-            $query->where('is_hidden', '<>', true);
-        });
 
-        //forming where query
+        $section = BusinessAccountTransaction::query()->with('user');
+
         foreach ($this->getListOfFilteringFields() as $field) {
-            $searchValue = $data["{$field}_filter_value"];
+            $searchValue = $data["{$field}_filter_value"] ?? null;
             $filterMode = match ($field) {
                 'happened_at_from', 'created_at_from' => 'more',
                 'happened_at_to', 'created_at_to' => 'less',
-                default => $data["{$field}_filter_mode"]
+                default => $data["{$field}_filter_mode"] ?? null
             };
             $searchOperator = $this->getWhereOperator($filterMode);
 
@@ -163,7 +137,6 @@ class SpendController extends Controller
 
                         continue;
                     }
-
                     if ($searchOperator === 'notLike') {
                         $section->whereHas('user', function ($query) use ($searchValue) {
                             $query->whereNot(function ($query) use ($searchValue) {
@@ -177,7 +150,7 @@ class SpendController extends Controller
                     continue;
                 }
 
-                if ($field === 'price') {
+                if ($field === 'total_price') {
                     if (empty($searchValue)) {
                         continue;
                     }
@@ -201,7 +174,7 @@ class SpendController extends Controller
 
                         continue;
                     } else {
-                         // If no currency symbol, just search by amount
+                        // If no currency symbol, just search by amount
                         $section->where('total_price', $searchOperator, $searchValue);
                         continue;
                     }
@@ -223,35 +196,29 @@ class SpendController extends Controller
             }
         }
 
-        //ordering a query
-        if (! empty($data['orderField']) && ! empty($data['orderValue'])) {
-            $orderField = $data['orderField'];
-            if ($orderField === 'price') {
-                $orderField = 'total_price';
-            }
-            $section = $section->orderBy($orderField, $data['orderValue']);
+        if (!empty($data['orderField']) && !empty($data['orderValue'])) {
+            $field = $data['orderField'];
+            $section->orderBy($field, $data['orderValue']);
         } else {
-            $section = $section->latest();
+            $section->latest('happened_at');
         }
 
-        $paginatedSection = $section->paginate($data['itemsPerPage']);
+        $paginated = $section->paginate($data['itemsPerPage']);
 
-        SpendResource::$dollarCurrencyExchangeCoefficient = $coursesService->getCourses($today, 'USD');
-        SpendResource::$euroCurrencyExchangeCoefficient = $coursesService->getCourses($today, 'EUR');
-        SpendResource::$isUserAllowedToSeeHidden = $isAbleToSeeHiddenSpends;
+        BusinessAccountTransactionResource::$dollarCurrencyExchangeCoefficient = $coursesService->getCourses($today, 'USD');
+        BusinessAccountTransactionResource::$euroCurrencyExchangeCoefficient = $coursesService->getCourses($today, 'EUR');
 
-        return SpendResource::collection($paginatedSection);
+        return BusinessAccountTransactionResource::collection($paginated);
     }
 
     public function create(Request $request): Response
     {
-        $sectionModel = $this->getSectionModel();
+        $isAuthorized = $this->authAPI->isAuthorizedFor('create', $this->section);
+        if (!$isAuthorized) {
+            return ErrorHandler::responseWith('Доступ заборонено', 403);
+        }
 
-        $isAbleToHideSpends = $this->authAPI->isAuthorizedFor('hide', 'spends');
-        $isAbleToSeeHiddenSpends = $this->authAPI->isAuthorizedFor('see_hidden', 'spends');
-        SpendResource::$isUserAllowedToSeeHidden = $isAbleToSeeHiddenSpends;
-
-        $rules = $this->getFieldsAndRulesForCreatingOrUpdatingSection($isAbleToHideSpends);
+        $rules = $this->getFieldsAndRulesForCreatingOrUpdatingSection();
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return ErrorHandler::responseWith(json_encode($validator->errors()));
@@ -264,43 +231,30 @@ class SpendController extends Controller
         }
 
         $data['total_price'] = $data['amount_on_card'] + $data['amount_via_terminal'] + $data['amount_as_cash'];
-
-        if ($data['total_price'] < 0.1) {
-            return ErrorHandler::responseWith('Сума повинна бути більше 0');
-        }
-
         $data['created_by_user_id'] = $this->authAPI->user->id;
-        $spend = $sectionModel::create($data);
+
+        $transaction = BusinessAccountTransaction::create($data);
 
         $today = Carbon::today()->format('Ymd');
-        SpendResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
-        SpendResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
+        BusinessAccountTransactionResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
+        BusinessAccountTransactionResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
 
-        return response()->json(['spend' => SpendResource::make($spend->load('user'))]);
+        return response()->json(['transaction' => BusinessAccountTransactionResource::make($transaction->load('user'))]);
     }
 
     public function update(Request $request, int $id): Response
     {
-        $isAbleToUpdate = $this->authAPI->isAuthorizedFor('update', 'spends');
-        if (! $isAbleToUpdate) {
-            return ErrorHandler::responseWith('Оновлення не дозволено');
+        $isAuthorized = $this->authAPI->isAuthorizedFor('update', $this->section);
+        if (!$isAuthorized) {
+            return ErrorHandler::responseWith('Доступ заборонено', 403);
         }
 
-        $isAbleToHideSpends = $this->authAPI->isAuthorizedFor('hide', 'spends');
-        $isAbleToSeeHiddenSpends = $this->authAPI->isAuthorizedFor('see_hidden', 'spends');
-        $isAllowedToEditNotOwned = $this->authAPI->isAuthorizedFor('update_not_owned', 'spends');
-
-        SpendResource::$isUserAllowedToSeeHidden = $isAbleToSeeHiddenSpends;
-
-        $section = Spend::where('id', $id)->first();
-        if (! $section) {
-            return ErrorHandler::responseWith('Витрату не знайдено');
-        }
-        if (! $isAllowedToEditNotOwned && $section->user->id !== $this->authAPI->user->id) {
-            return ErrorHandler::responseWith('Редагування заборонено');
+        $transaction = BusinessAccountTransaction::find($id);
+        if (!$transaction) {
+            return ErrorHandler::responseWith('Транзакцію не знайдено', 404);
         }
 
-        $rules = $this->getFieldsAndRulesForCreatingOrUpdatingSection($isAbleToHideSpends);
+        $rules = $this->getFieldsAndRulesForCreatingOrUpdatingSection();
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return ErrorHandler::responseWith(json_encode($validator->errors()));
@@ -314,65 +268,35 @@ class SpendController extends Controller
 
         $data['total_price'] = $data['amount_on_card'] + $data['amount_via_terminal'] + $data['amount_as_cash'];
 
-        if ($data['total_price'] < 0.1) {
-             return ErrorHandler::responseWith('Сума повинна бути більше 0');
-        }
-
-        foreach ($data as $field => $value) {
-            $section->$field = $value;
-        }
-        $section->save();
+        $transaction->update($data);
 
         $today = Carbon::today()->format('Ymd');
-        SpendResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
-        SpendResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
+        BusinessAccountTransactionResource::$dollarCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'USD');
+        BusinessAccountTransactionResource::$euroCurrencyExchangeCoefficient = $this->getNbuCurrencyExchangeCourses($today, 'EUR');
 
-        return response()->json(['spend' => SpendResource::make($section->load('user'))]);
+        return response()->json(['transaction' => BusinessAccountTransactionResource::make($transaction->load('user'))]);
     }
 
-    /**
-     * Delete section (row) from DB by ID
-     *
-     * @param  Request  $request
-     * @param  int  $id Passed through URL
-     * @return Response
-     */
     public function delete(Request $request, int $id): Response
     {
-        $isAllowedToDelete = $this->authAPI->isAuthorizedFor('delete', 'spends');
-        if (! $isAllowedToDelete) {
-            return ErrorHandler::responseWith('Видалення не дозволено');
+        $isAuthorized = $this->authAPI->isAuthorizedFor('delete', $this->section);
+        if (!$isAuthorized) {
+            return ErrorHandler::responseWith('Доступ заборонено', 403);
         }
 
-        $isAllowedToDeleteNotOwned = $this->authAPI->isAuthorizedFor('delete_not_owned', 'spends');
-
-        $sectionModel = $this->getSectionModel();
-        $section = $sectionModel::query()->find($id);
-
-        if ($section == null) {
-            return ErrorHandler::responseWith('Витрату не знайдено');
-        }
-        if (! $isAllowedToDeleteNotOwned && $section->user->id !== $this->authAPI->user->id) {
-            return ErrorHandler::responseWith('Видалення заборонено');
+        $transaction = BusinessAccountTransaction::find($id);
+        if (!$transaction) {
+            return ErrorHandler::responseWith('Транзакцію не знайдено', 404);
         }
 
-        $section->delete();
+        $transaction->delete();
 
         return response('OK', 200);
     }
 
-    /**
-     * Returns nbu currency exchange currency rate for today
-     *
-     * @param  string  $date - yyyymm
-     * @param  string  $currencyCode - USD|EUR|etc...
-     * @param
-     * @return float currency exchange index
-     */
     private function getNbuCurrencyExchangeCourses(string $date, string $currencyCode): float
     {
         $nbuService = new NbuCurrencyExchangeCoursesService();
-
         return $nbuService->getCourses($date, $currencyCode);
     }
 
@@ -387,6 +311,6 @@ class SpendController extends Controller
             'notequal' => '<>',
         ];
 
-        return $equality[$operatorName];
+        return $equality[$operatorName] ?? 'like';
     }
 }

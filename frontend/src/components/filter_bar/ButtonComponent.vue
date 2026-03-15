@@ -194,9 +194,17 @@ const filterBadgeLabel = computed(() => {
 const filterModes = computed(() => {
   let modes = appStore.filters.availableParams.items;
 
-  if (props.mode != "universal") {
+  if (props.mode !== "universal") {
     modes = appStore.filters.availableParams.items.filter(
       (item) => item.type === props.mode
+    );
+  }
+
+  if (props.mode === "universal") {
+    let excludeFilterTypesForUniversal = ["select"];
+
+    modes = appStore.filters.availableParams.items.filter(
+      (item) => !excludeFilterTypesForUniversal.includes(item.type)
     );
   }
 

@@ -25,7 +25,7 @@
     </div>
 
     <q-menu self="bottom middle" :offset="[-props.width / 2 - 16, -55]">
-      <q-inner-loading :showing="sectionStore.data.isItemsLoading">
+      <q-inner-loading :showing="props.sectionStore.data.isItemsLoading">
         <q-spinner-puff size="50px" color="primary" />
       </q-inner-loading>
       <div style="min-width: 250px; min-height: fit-content">
@@ -35,11 +35,11 @@
         <div class="row">
           <div class="filter-body col-12 q-px-md">
             <q-select
-              v-if="appStore.filters.data[props.sectionName].selectedParams[props.name]"
+              v-if="props.appStore.filters.data[props.sectionName].selectedParams[props.name]"
               autofocus
               class="col-12 q-mb-md"
               outlined
-              v-model="appStore.filters.data[props.sectionName].selectedParams[props.name].value"
+              v-model="internalValue"
               :options="props.options"
               :option-label="props.optionLabel || 'label'"
               :option-value="props.optionValue || 'value'"
@@ -49,11 +49,11 @@
               dense
             />
             <q-select
-              v-if="appStore.filters.data[props.sectionName].selectedParams[props.name]"
+              v-if="props.appStore.filters.data[props.sectionName].selectedParams[props.name]"
               class="col-12 q-mb-md"
               dense
               outlined
-              v-model="appStore.filters.data[props.sectionName].selectedParams[props.name].filterMode"
+              v-model="internalFilterMode"
               :options="filterModes"
               @update:model-value="$emit('changeFilterMode', props.name)"
             />
@@ -135,22 +135,25 @@
 <script setup>
 import { computed } from "vue";
 
-const appStore = props.appStore;
-const sectionStore = props.sectionStore;
-
-const props = defineProps([
-  "appStore",
-  "sectionName",
-  "sectionStore",
-  "name",
-  "label",
-  "searchBarLabel",
-  "orderButtonLabels",
-  "width",
-  "options", // Array of options for select
-  "optionLabel", // Property name for option label
-  "optionValue", // Property name for option value
-]);
+const props = defineProps({
+  appStore: Object,
+  sectionName: String,
+  sectionStore: Object,
+  name: String,
+  label: String,
+  searchBarLabel: String,
+  orderButtonLabels: Object,
+  width: [Number, String],
+  options: {
+    type: Array,
+    default: () => []
+  },
+  optionLabel: String,
+  optionValue: String,
+  // Add missing props to prevent "Extraneous non-props attributes" warning
+  mode: String,
+  targetFields: Array
+});
 
 const emits = defineEmits([
   "clearFilter",
@@ -158,18 +161,40 @@ const emits = defineEmits([
   "setFilterOrder",
 ]);
 
+// Helper to access the filter object safely
+const currentFilter = computed(() => {
+  return props.appStore.filters.data[props.sectionName].selectedParams[props.name];
+});
+
+// Use computed with getter/setter for v-model to avoid prop mutation error
+const internalValue = computed({
+  get: () => currentFilter.value?.value,
+  set: (val) => {
+    if (currentFilter.value) {
+      currentFilter.value.value = val;
+    }
+  }
+});
+
+const internalFilterMode = computed({
+  get: () => currentFilter.value?.filterMode,
+  set: (val) => {
+    if (currentFilter.value) {
+      currentFilter.value.filterMode = val;
+    }
+  }
+});
+
 const filterOrder = computed(() => {
   return {
-    field: appStore.filters.data[props.sectionName].selectedParams.order.field,
-    value: appStore.filters.data[props.sectionName].selectedParams.order.value,
+    field: props.appStore.filters.data[props.sectionName].selectedParams.order.field,
+    value: props.appStore.filters.data[props.sectionName].selectedParams.order.value,
   };
 });
 
 const filterBadgeLabel = computed(() => {
-  let filter =
-    appStore.filters.data[props.sectionName].selectedParams[props.name];
+  let filter = currentFilter.value;
 
-  // Return empty badges if filter doesn't exist
   if (!filter) {
     return {
       value: "",
@@ -182,9 +207,9 @@ const filterBadgeLabel = computed(() => {
     value: filter.value != "" && filter.value != null ? "V" : "",
     mode: filter.filterMode?.shortName || "",
     order:
-      appStore.filters.data[props.sectionName].selectedParams.order.field ==
+      props.appStore.filters.data[props.sectionName].selectedParams.order.field ==
       props.name
-        ? appStore.filters.data[props.sectionName].selectedParams.order.value ==
+        ? props.appStore.filters.data[props.sectionName].selectedParams.order.value ==
           "asc"
           ? "asc"
           : "desc"
@@ -193,11 +218,9 @@ const filterBadgeLabel = computed(() => {
 });
 
 const filterModes = computed(() => {
-  // For select filters, we want "equal" and "not equal" modes
-  let modes = appStore.filters.availableParams.items.filter(
+  return props.appStore.filters.availableParams.items.filter(
     (item) => item.type === "select"
   );
-  return modes;
 });
 </script>
 

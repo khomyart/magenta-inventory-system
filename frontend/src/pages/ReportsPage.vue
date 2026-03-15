@@ -20,7 +20,7 @@
             />
           </div>
           <div class="col-auto">
-            <q-icon name="arrow_forward" size="sm" color="grey-6" />
+            <q-icon name="arrow_forward" size="sm" color="grey-6"/>
           </div>
           <div class="col-auto" style="width: 250px">
             <DateTimeInputComponent
@@ -123,20 +123,84 @@
               <q-tooltip class="bg-black text-body2">Скинути</q-tooltip>
             </q-btn>
           </div>
-          <q-space />
+          <q-space/>
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Report Content -->
     <div v-if="reportStore.hasReport">
-      <!-- Summary Cards -->
-      <div class="row q-col-gutter-md q-mb-lg">
-        <!-- Revenue Card -->
-        <div class="col-12 col-md-4">
+
+      <!-- Account State Card -->
+      <div class="col-12 q-mb-lg">
+        <q-card class="bg-primary text-white">
+          <q-card-section>
+            <!--                <div class="text-overline text-white-7">Стан рахунку (За весь час)</div>-->
+            <div class="text-h4 q-mt-sm text-center">
+              {{ formatCurrency(reportStore.accountState?.total || 0) }}
+
+              <div class="q-mt-sm text-caption text-white-8 q-mt-md ">
+                <div v-if="reportStore.accountState" class="flex-center row q-gutter-md">
+                  <div>Електронні гроші: {{
+                      formatCurrency(reportStore.accountState.card + reportStore.accountState.terminal || 0)
+                    }}
+                  </div>
+
+                  <div>Готівка: {{ formatCurrency(reportStore.accountState.cash || 0) }}</div>
+                </div>
+              </div>
+            </div>
+
+          </q-card-section>
+        </q-card>
+      </div>
+      <!-- Transactions Breakdown -->
+      <div class="row q-col-gutter-md q-mb-lg" v-if="reportStore.transactionsSummary">
+        <div class="col-12">
           <q-card>
             <q-card-section>
-              <div class="text-overline text-grey-7">Виручка</div>
+              <div class="text-h6">Інші транзакції (За період)</div>
+              <div class="text-caption text-grey-7">
+                Додаткові надходження та витрати
+              </div>
+            </q-card-section>
+            <q-separator/>
+            <q-card-section>
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <div class="text-subtitle2 text-positive">Доходи (+):
+                    {{ formatCurrency(reportStore.transactionsSummary.income.total) }}
+                  </div>
+                  <div class="text-caption text-grey-8 q-ml-md">
+                    <div>Картка: {{ formatCurrency(reportStore.transactionsSummary.income.card) }}</div>
+                    <div>Термінал: {{ formatCurrency(reportStore.transactionsSummary.income.terminal) }}</div>
+                    <div>Готівка: {{ formatCurrency(reportStore.transactionsSummary.income.cash) }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="text-subtitle2 text-negative">Витрати (-):
+                    {{ formatCurrency(reportStore.transactionsSummary.outcome.total) }}
+                  </div>
+                  <div class="text-caption text-grey-8 q-ml-md">
+                    <div>Картка: {{ formatCurrency(reportStore.transactionsSummary.outcome.card) }}</div>
+                    <div>Термінал: {{ formatCurrency(reportStore.transactionsSummary.outcome.terminal) }}</div>
+                    <div>Готівка: {{ formatCurrency(reportStore.transactionsSummary.outcome.cash) }}</div>
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="row q-col-gutter-md q-mb-lg">
+
+        <!-- Revenue Card -->
+        <div class="col-12 col-md-3">
+          <q-card>
+            <q-card-section>
+              <div class="text-overline text-grey-7">Виручка (За період)</div>
               <div class="text-h4 text-positive q-mt-sm">
                 {{ formatCurrency(reportStore.revenue?.total || 0) }}
               </div>
@@ -155,10 +219,10 @@
         </div>
 
         <!-- Expenses Card -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <q-card>
             <q-card-section>
-              <div class="text-overline text-grey-7">Витрати</div>
+              <div class="text-overline text-grey-7">Витрати (За період)</div>
               <div class="text-h4 text-negative q-mt-sm">
                 {{ formatCurrency(reportStore.expenses?.total || 0) }}
               </div>
@@ -177,10 +241,10 @@
         </div>
 
         <!-- Profit Card -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <q-card>
             <q-card-section>
-              <div class="text-overline text-grey-7">Прибуток</div>
+              <div class="text-overline text-grey-7">Прибуток (За період)</div>
               <div
                 class="text-h4 q-mt-sm"
                 :class="
@@ -195,13 +259,17 @@
                 <div v-if="reportStore.revenue?.breakdown && reportStore.expenses?.breakdown">
                   <div>
                     Електронні гроші:
-                    <span :class="((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal)) >= 0 ? 'text-green' : 'text-red'">
-                      {{ formatCurrency((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal)) }}
+                    <span
+                      :class="((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal)) >= 0 ? 'text-green' : 'text-red'">
+                      {{
+                        formatCurrency((reportStore.revenue.breakdown.card + reportStore.revenue.breakdown.terminal) - (reportStore.expenses.breakdown.card + reportStore.expenses.breakdown.terminal))
+                      }}
                     </span>
                   </div>
                   <div>
                     Готівка:
-                    <span :class="(reportStore.revenue.breakdown.cash - reportStore.expenses.breakdown.cash) >= 0 ? 'text-green' : 'text-red'">
+                    <span
+                      :class="(reportStore.revenue.breakdown.cash - reportStore.expenses.breakdown.cash) >= 0 ? 'text-green' : 'text-red'">
                       {{ formatCurrency(reportStore.revenue.breakdown.cash - reportStore.expenses.breakdown.cash) }}
                     </span>
                   </div>
@@ -230,7 +298,7 @@
                 Виручка, витрати та прибуток за обраний період
               </div>
             </q-card-section>
-            <q-separator />
+            <q-separator/>
             <q-card-section>
               <RevenueExpenseChart
                 v-if="reportStore.dailyData"
@@ -279,7 +347,7 @@
                 </div>
               </div>
             </q-card-section>
-            <q-separator />
+            <q-separator/>
             <q-card-section>
               <div
                 v-if="
@@ -412,7 +480,7 @@
                 </div>
               </div>
             </q-card-section>
-            <q-separator />
+            <q-separator/>
             <q-card-section>
               <div
                 v-if="
@@ -442,7 +510,7 @@
                 Розподіл замовлень за статусами
               </div>
             </q-card-section>
-            <q-separator />
+            <q-separator/>
             <q-card-section>
               <div
                 v-if="reportStore.ordersStatistics"
@@ -454,7 +522,7 @@
                     {{ reportStore.ordersStatistics.total }}
                   </div>
                 </div>
-                <q-separator />
+                <q-separator/>
                 <div class="row items-center">
                   <div class="col-6 text-grey-8">Очікують:</div>
                   <div class="col-6 text-right">
@@ -485,7 +553,7 @@
                     {{ reportStore.ordersStatistics.by_status?.cancelled || 0 }}
                   </div>
                 </div>
-                <q-separator />
+                <q-separator/>
                 <div class="row items-center">
                   <div class="col-6 text-grey-8">Завершені та оплачені:</div>
                   <div class="col-6 text-right text-bold text-positive">
@@ -519,7 +587,7 @@
                 Заробітки співробітників за замовленнями
               </div>
             </q-card-section>
-            <q-separator />
+            <q-separator/>
             <q-card-section>
               <div v-if="groupedUserInvolvement.length > 0">
                 <q-list separator>
@@ -529,8 +597,9 @@
                   >
                     <q-item-section>
                       <q-item-label class="text-bold text-h6">{{
-                        user.user_name
-                      }}</q-item-label>
+                          user.user_name
+                        }}
+                      </q-item-label>
                       <q-item-label caption class="q-mt-xs">
                         Всього замовлень: {{ user.total_orders_count }} | Сумарна
                         виручка: {{ formatCurrency(user.total_earnings) }}
@@ -547,7 +616,7 @@
                           <q-item-section>
                             <q-item-label caption>
                               <span class="text-grey-8"
-                                >Рівень {{ level.involvement_level }} ({{
+                              >Рівень {{ level.involvement_level }} ({{
                                   level.involvement_percentage
                                 }}%):</span
                               >
@@ -585,7 +654,7 @@
 
     <!-- Empty State -->
     <div v-else class="text-center q-pa-xl">
-      <q-icon name="assessment" size="120px" color="grey-4" />
+      <q-icon name="assessment" size="120px" color="grey-4"/>
       <div class="text-h6 text-grey-6 q-mt-md">
         Виберіть період та сформуйте звіт
       </div>
@@ -598,17 +667,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useReportStore } from "src/stores/reportStore";
-import { useTypeStore } from "src/stores/typeStore";
-import { useColorStore } from "src/stores/colorStore";
-import { useSizeStore } from "src/stores/sizeStore";
-import { date } from "quasar";
+import {ref, computed, onMounted} from "vue";
+import {useReportStore} from "src/stores/reportStore";
+import {useTypeStore} from "src/stores/typeStore";
+import {useColorStore} from "src/stores/colorStore";
+import {useSizeStore} from "src/stores/sizeStore";
+import {date} from "quasar";
 import RevenueExpenseChart from "src/components/reports/RevenueExpenseChart.vue";
 import ServicesChart from "src/components/reports/ServicesChart.vue";
 import ItemsChart from "src/components/reports/ItemsChart.vue";
 import DateTimeInputComponent from "src/components/input/DateTimeInputComponent.vue";
-import { getServerTime } from "../../helpers/GeneralPurposeFunctions.js";
+import {getServerTime} from "../../helpers/GeneralPurposeFunctions.js";
 
 const reportStore = useReportStore();
 const typeStore = useTypeStore();
@@ -733,13 +802,13 @@ const setQuickPeriod = (period) => {
   const getMondayOfWeek = (d) => {
     const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days; otherwise go back to Monday
-    return date.addToDate(d, { days: diff });
+    return date.addToDate(d, {days: diff});
   };
 
   // Helper function to get Sunday of the week
   const getSundayOfWeek = (d) => {
     const monday = getMondayOfWeek(d);
-    return date.addToDate(monday, { days: 6 });
+    return date.addToDate(monday, {days: 6});
   };
 
   switch (period) {
@@ -748,7 +817,7 @@ const setQuickPeriod = (period) => {
       end = date.formatDate(today, "DD/MM/YYYY") + " 23:59";
       break;
     case "yesterday":
-      const yesterday = date.subtractFromDate(today, { days: 1 });
+      const yesterday = date.subtractFromDate(today, {days: 1});
       start = date.formatDate(yesterday, "DD/MM/YYYY") + " 00:00";
       end = date.formatDate(yesterday, "DD/MM/YYYY") + " 23:59";
       break;
@@ -760,7 +829,7 @@ const setQuickPeriod = (period) => {
       break;
     case "lastWeek":
       // Get last week by going back 7 days from today, then finding Monday and Sunday
-      const lastWeekDate = date.subtractFromDate(today, { days: 7 });
+      const lastWeekDate = date.subtractFromDate(today, {days: 7});
       const lastWeekMonday = getMondayOfWeek(lastWeekDate);
       const lastWeekSunday = getSundayOfWeek(lastWeekDate);
       start = date.formatDate(lastWeekMonday, "DD/MM/YYYY") + " 00:00";
@@ -774,7 +843,7 @@ const setQuickPeriod = (period) => {
       break;
     case "lastMonth":
       // Get last month by subtracting 1 month from today first
-      const lastMonthDate = date.subtractFromDate(today, { months: 1 });
+      const lastMonthDate = date.subtractFromDate(today, {months: 1});
       const lastMonthStart = date.startOfDate(lastMonthDate, "month");
       const lastMonthEnd = date.endOfDate(lastMonthDate, "month");
       start = date.formatDate(lastMonthStart, "DD/MM/YYYY") + " 00:00";

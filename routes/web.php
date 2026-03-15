@@ -25,6 +25,7 @@ include 'sections/contacts.php';
 include 'sections/services.php';
 include 'sections/orders.php';
 include 'sections/reports.php';
+include 'sections/business_account_transactions.php';
 //additional entities
 include 'sections/countries.php';
 include 'sections/cities.php';

@@ -202,6 +202,16 @@ export const useReportStore = defineStore("report", {
     },
 
     /**
+     * Get account state (balance) data
+     */
+    accountState: (state) => state.report?.account_state || null,
+
+    /**
+     * Get transactions summary data
+     */
+    transactionsSummary: (state) => state.report?.summary?.transactions || null,
+
+    /**
      * Check if report is loaded
      */
     hasReport: (state) => state.report !== null,

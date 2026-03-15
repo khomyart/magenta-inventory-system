@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Services\Report\AccountStateCalculator;
 use App\Services\Report\ExpenseCalculator;
 use App\Services\Report\ItemStatisticsCalculator;
 use App\Services\Report\OrderStatisticsCalculator;
 use App\Services\Report\ProfitCalculator;
 use App\Services\Report\RevenueCalculator;
 use App\Services\Report\ServiceStatisticsCalculator;
+use App\Services\Report\TransactionCalculator;
 use App\Services\Report\UserInvolvementCalculator;
 use Carbon\Carbon;
 
@@ -27,6 +29,10 @@ class ReportService
 
     private ItemStatisticsCalculator $itemStatisticsCalculator;
 
+    private TransactionCalculator $transactionCalculator;
+
+    private AccountStateCalculator $accountStateCalculator;
+
     public function __construct()
     {
         $this->revenueCalculator = new RevenueCalculator();
@@ -36,6 +42,8 @@ class ReportService
         $this->userInvolvementCalculator = new UserInvolvementCalculator();
         $this->serviceStatisticsCalculator = new ServiceStatisticsCalculator();
         $this->itemStatisticsCalculator = new ItemStatisticsCalculator();
+        $this->transactionCalculator = new TransactionCalculator();
+        $this->accountStateCalculator = new AccountStateCalculator();
     }
 
     /**
@@ -67,6 +75,12 @@ class ReportService
 
         // Calculate profit
         $profitData = $this->profitCalculator->calculateProfit($revenueData, $expensesData);
+
+        // Calculate transactions
+        $transactionData = $this->transactionCalculator->calculateTransactions($startDate, $endDate);
+
+        // Calculate current account state (balance)
+        $accountState = $this->accountStateCalculator->calculateCurrentState();
 
         // Get daily data with all dates filled
         $dailyData = $this->prepareDailyData($startDate, $endDate, $revenueData['by_day'], $expensesData['by_day'], $profitData['by_day']);
@@ -113,7 +127,9 @@ class ReportService
                 'completed_orders_count' => $orderStatistics['completed_and_paid'],
                 'average_order_value' => $averageOrderValue,
                 'spends_count' => $expensesData['spends_count'],
+                'transactions' => $transactionData,
             ],
+            'account_state' => $accountState,
             'daily_data' => $dailyData,
             'orders_by_status' => $orderStatistics['by_status'],
             'user_involvement' => $userInvolvement,

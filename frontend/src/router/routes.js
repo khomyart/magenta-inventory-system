@@ -153,6 +153,17 @@ const routes = [
         name: "reports",
         component: () => import("pages/ReportsPage.vue"),
       },
+      {
+        path: "/business_account_transactions",
+        name: "business_account_transactions",
+        redirect: "/business_account_transactions/1",
+        children: [
+          {
+            path: ":page",
+            component: () => import("pages/BusinessAccountTransactionsPage.vue"),
+          },
+        ],
+      },
     ],
   },
 

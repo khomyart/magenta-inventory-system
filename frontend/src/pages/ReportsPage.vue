@@ -131,32 +131,35 @@
     <!-- Report Content -->
     <div v-if="reportStore.hasReport">
 
-      <!-- Account State Card -->
-      <div class="col-12 q-mb-lg">
-        <q-card class="bg-primary text-white">
-          <q-card-section>
-            <!--                <div class="text-overline text-white-7">Стан рахунку (За весь час)</div>-->
-            <div class="text-h4 q-mt-sm text-center">
-              {{ formatCurrency(reportStore.accountState?.total || 0) }}
-
-              <div class="q-mt-sm text-caption text-white-8 q-mt-md ">
-                <div v-if="reportStore.accountState" class="flex-center row q-gutter-md">
-                  <div>Електронні гроші: {{
-                      formatCurrency(reportStore.accountState.card + reportStore.accountState.terminal || 0)
-                    }}
-                  </div>
-
-                  <div>Готівка: {{ formatCurrency(reportStore.accountState.cash || 0) }}</div>
-                </div>
-              </div>
-            </div>
-
-          </q-card-section>
-        </q-card>
-      </div>
       <!-- Transactions Breakdown -->
       <div class="row q-col-gutter-md q-mb-lg" v-if="reportStore.transactionsSummary">
-        <div class="col-12">
+        <!-- Account State Card -->
+        <div class="col-5 q-mb-md">
+          <q-card class="bg-primary text-white">
+            <q-card-section>
+              <div class="text-h6">Стан рахунку (За весь час)</div>
+            </q-card-section>
+            <q-separator/>
+            <q-card-section>
+              <div class="text-h4 q-mt-sm">
+                {{ formatCurrency(reportStore.accountState?.total || 0) }}
+
+                <div class="q-mt-sm text-caption text-white-8 q-mt-md ">
+                  <div v-if="reportStore.accountState" class="row q-gutter-md">
+                    <div>Електронні гроші: {{
+                        formatCurrency(reportStore.accountState.card + reportStore.accountState.terminal || 0)
+                      }}
+                    </div>
+
+                    <div>Готівка: {{ formatCurrency(reportStore.accountState.cash || 0) }}</div>
+                  </div>
+                </div>
+              </div>
+
+            </q-card-section>
+          </q-card>
+        </div>
+        <div class="col-7">
           <q-card>
             <q-card-section>
               <div class="text-h6">Інші транзакції (За період)</div>
